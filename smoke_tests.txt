@@ -5,3 +5,5 @@ jax_likelihood_functions/imaging/delaunay_mge.py
 jax_likelihood_functions/interferometer/rectangular.py
 jax_likelihood_functions/point_source/point.py
 jax_likelihood_functions/multi/mge.py
+aggregator/fit_imaging.py
+aggregator/fit_interferometer.py
