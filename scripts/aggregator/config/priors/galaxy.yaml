@@ -1,0 +1,17 @@
+Galaxy:
+  redshift:
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 3.0
+
+Redshift:
+  redshift:
+    limits:
+      lower: 0.0
+      upper: inf
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 3.0
+    width_modifier:
+      type: Absolute
+      value: 1.0
