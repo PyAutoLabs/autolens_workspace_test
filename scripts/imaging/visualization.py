@@ -247,6 +247,8 @@ Calls PlotterImaging.imaging()          -> dataset.png, dataset.fits
 
 print("Running visualize_before_fit (parametric source)...")
 
+analysis.title_prefix = "TEST"
+
 VisualizerImaging.visualize_before_fit(
     analysis=analysis,
     paths=paths,
