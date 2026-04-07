@@ -210,6 +210,7 @@ analysis = al.AnalysisImaging(
     adapt_images=adapt_images,
     use_jax=True,
 )
+analysis.title_prefix = "TEST"
 
 
 """
@@ -246,8 +247,6 @@ Calls PlotterImaging.imaging()          -> dataset.png, dataset.fits
 """
 
 print("Running visualize_before_fit (parametric source)...")
-
-analysis.title_prefix = "TEST"
 
 VisualizerImaging.visualize_before_fit(
     analysis=analysis,
