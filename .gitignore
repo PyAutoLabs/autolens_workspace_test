@@ -2,4 +2,6 @@ __pycache__/
 output/
 dataset/
 test/
-/Users/Jammy/Code/PyAutoJAX/autolens_workspace/howtolens/config
+test_report.md
+test_results/
+/Users/Jammy/Code/PyAutoLabs/autolens_workspace/howtolens/config

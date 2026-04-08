@@ -1,0 +1,7 @@
+# Scripts to skip during automated runs (smoke tests, pre-release checks, CI).
+# Each entry is matched against script paths:
+#   - Entries with '/' do a substring match against the file path
+#   - Entries without '/' match the file stem exactly
+# Add an inline # comment to document the reason for skipping.
+
+[]
