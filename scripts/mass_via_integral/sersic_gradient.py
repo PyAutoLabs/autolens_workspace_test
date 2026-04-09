@@ -52,7 +52,7 @@ mp = ag.mp.SersicGradient(
     mass_to_light_ratio=1.0,
     mass_to_light_gradient=1.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_cse_from(
     grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
 )
 np.testing.assert_allclose(deflections[0, 0], 3.60324873535244, rtol=1e-3)
@@ -72,7 +72,7 @@ mp = ag.mp.SersicGradient(
     mass_to_light_ratio=1.0,
     mass_to_light_gradient=-1.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_cse_from(
     grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
 )
 np.testing.assert_allclose(deflections[0, 0], 0.97806399756448, rtol=1e-3)

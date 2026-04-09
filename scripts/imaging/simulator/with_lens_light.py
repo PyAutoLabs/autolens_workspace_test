@@ -114,7 +114,8 @@ dataset = simulator.via_tracer_from(tracer=tracer, grid=grid)
 """
 Output the simulated dataset to the dataset path as .fits files.
 """
-dataset.output_to_fits(
+aplt.fits_imaging(
+    dataset=dataset,
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),

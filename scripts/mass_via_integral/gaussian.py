@@ -40,7 +40,7 @@ mp = ag.mp.Gaussian(
     sigma=3.0,
     mass_to_light_ratio=1.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[1.0, 0.0]])
 )
 analytic = mp.deflections_2d_via_analytic_from(
@@ -60,7 +60,7 @@ mp = ag.mp.Gaussian(
     sigma=5.0,
     mass_to_light_ratio=1.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[0.5, 0.2]])
 )
 analytic = mp.deflections_2d_via_analytic_from(
@@ -80,7 +80,7 @@ mp = ag.mp.Gaussian(
     sigma=5.0,
     mass_to_light_ratio=2.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[0.5, 0.2]])
 )
 analytic = mp.deflections_2d_via_analytic_from(
@@ -100,7 +100,7 @@ mp = ag.mp.Gaussian(
     sigma=5.0,
     mass_to_light_ratio=1.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[0.5, 0.2]])
 )
 analytic = mp.deflections_2d_via_analytic_from(

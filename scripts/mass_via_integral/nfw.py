@@ -72,7 +72,7 @@ __NFWSph Config 1__
 """
 
 nfw = ag.mp.NFWSph(centre=(0.0, 0.0), kappa_s=1.0, scale_radius=1.0)
-deflections = nfw.deflections_2d_via_integral_from(
+deflections = nfw.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
 )
 np.testing.assert_allclose(deflections[0, 0], 0.56194, rtol=1e-3)
@@ -84,7 +84,7 @@ __NFWSph Config 2__
 """
 
 nfw = ag.mp.NFWSph(centre=(0.3, 0.2), kappa_s=2.5, scale_radius=4.0)
-deflections = nfw.deflections_2d_via_integral_from(
+deflections = nfw.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[0.1875, 0.1625]])
 )
 np.testing.assert_allclose(deflections[0, 0], -2.08909, rtol=1e-3)
@@ -101,7 +101,7 @@ nfw = ag.mp.NFW(
     kappa_s=1.0,
     scale_radius=1.0,
 )
-deflections = nfw.deflections_2d_via_integral_from(
+deflections = nfw.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
 )
 np.testing.assert_allclose(deflections[0, 0], 0.56194, rtol=1e-3)
@@ -118,7 +118,7 @@ nfw = ag.mp.NFW(
     kappa_s=2.5,
     scale_radius=4.0,
 )
-deflections = nfw.deflections_2d_via_integral_from(
+deflections = nfw.deflections_2d_via_analytic_from(
     grid=ag.Grid2DIrregular([(0.1625, 0.1625)])
 )
 np.testing.assert_allclose(deflections[0, 0], -2.59480, rtol=1e-3)

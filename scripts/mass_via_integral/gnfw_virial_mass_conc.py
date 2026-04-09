@@ -23,7 +23,7 @@ mp = ag.mp.gNFWVirialMassConcSph(
     redshift_source=1.0,
     inner_slope=1.0,
 )
-deflections = mp.deflections_2d_via_integral_from(
+deflections = mp.deflections_2d_via_mge_from(
     grid=ag.Grid2DIrregular([[0.1875, 0.1625]])
 )
 np.testing.assert_allclose(deflections[0, 0], 0.0466231, rtol=1e-3)
