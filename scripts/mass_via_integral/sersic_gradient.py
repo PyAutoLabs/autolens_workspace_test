@@ -40,6 +40,49 @@ def deflection_func(
 
 
 """
+__Deflections via Integral__
+"""
+
+
+def deflections_2d_via_integral_from(mp, grid):
+    transformed = mp.transformed_to_reference_frame_grid_from(grid)
+    axis_ratio = mp.axis_ratio()
+    sersic_constant = mp.sersic_constant
+
+    def calculate_deflection_component(npow, index):
+        deflection_grid = np.array(axis_ratio * transformed.array[:, index])
+
+        for i in range(transformed.shape[0]):
+            deflection_grid[i] *= (
+                mp.intensity
+                * mp.mass_to_light_ratio
+                * quad(
+                    deflection_func,
+                    a=0.0,
+                    b=1.0,
+                    args=(
+                        transformed.array[i, 0],
+                        transformed.array[i, 1],
+                        npow,
+                        axis_ratio,
+                        mp.sersic_index,
+                        mp.effective_radius,
+                        mp.mass_to_light_gradient,
+                        sersic_constant,
+                    ),
+                )[0]
+            )
+        return deflection_grid
+
+    deflection_y = calculate_deflection_component(1.0, 0)
+    deflection_x = calculate_deflection_component(0.0, 1)
+
+    return mp.rotated_grid_from_reference_frame_from(
+        np.multiply(1.0, np.vstack((deflection_y, deflection_x)).T)
+    )
+
+
+"""
 __Gradient 1__
 """
 
@@ -52,11 +95,11 @@ mp = ag.mp.SersicGradient(
     mass_to_light_ratio=1.0,
     mass_to_light_gradient=1.0,
 )
-deflections = mp.deflections_2d_via_cse_from(
-    grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
+integral = deflections_2d_via_integral_from(
+    mp, grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
 )
-np.testing.assert_allclose(deflections[0, 0], 3.60324873535244, rtol=1e-3)
-np.testing.assert_allclose(deflections[0, 1], 2.3638898009652, rtol=1e-3)
+cse = mp.deflections_2d_via_cse_from(grid=ag.Grid2DIrregular([[0.1625, 0.1625]]))
+np.testing.assert_allclose(integral, cse.array, rtol=1e-3)
 print("Gradient 1: PASSED")
 
 """
@@ -72,11 +115,11 @@ mp = ag.mp.SersicGradient(
     mass_to_light_ratio=1.0,
     mass_to_light_gradient=-1.0,
 )
-deflections = mp.deflections_2d_via_cse_from(
-    grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
+integral = deflections_2d_via_integral_from(
+    mp, grid=ag.Grid2DIrregular([[0.1625, 0.1625]])
 )
-np.testing.assert_allclose(deflections[0, 0], 0.97806399756448, rtol=1e-3)
-np.testing.assert_allclose(deflections[0, 1], 0.725459334118341, rtol=1e-3)
+cse = mp.deflections_2d_via_cse_from(grid=ag.Grid2DIrregular([[0.1625, 0.1625]]))
+np.testing.assert_allclose(integral, cse.array, rtol=1e-3)
 print("Gradient -1: PASSED")
 
 print("\nAll SersicGradient integral tests passed.")
