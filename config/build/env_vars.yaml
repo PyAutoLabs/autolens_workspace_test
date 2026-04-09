@@ -30,3 +30,16 @@ overrides:
       - PYAUTO_DISABLE_CRITICAL_CAUSTICS
       - PYAUTO_DISABLE_JAX
       - PYAUTO_FAST_PLOTS
+  # These scripts load pre-committed FITS data at full resolution
+  - pattern: "database/scrape/scaling_relation"
+    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+  - pattern: "imaging/convolution"
+    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+  - pattern: "imaging/model_fit"
+    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+  - pattern: "imaging/visualization"
+    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+  - pattern: "jax_grad/imaging_lp"
+    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+  - pattern: "jax_grad/imaging_mge"
+    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
