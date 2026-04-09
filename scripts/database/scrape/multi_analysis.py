@@ -1,59 +1,319 @@
+"""
+Database: Multi-Wavelength Simultaneous SLaM
+=============================================
+
+Runs a simultaneous multi-wavelength SLaM pipeline using factor graphs and scrapes
+the results to a database, verifying that queries and aggregator modules work correctly.
+
+Based on autolens_workspace/scripts/multi/features/slam/simultaneous.py
+"""
+
+import os
+from os import path
+
+
 def fit():
-    """
-    SLaM (Source, Light and Mass): Source Light Pixelized + Light Profile + Mass Total + Subhalo NFW
-    ================================================================================================
-
-    SLaM pipelines break the analysis down into multiple pipelines which focus on modeling a specific aspect of the strong
-    lens, first the Source, then the (lens) Light and finally the Mass. Each of these pipelines has it own inputs which
-    which customize the model and analysis in that pipeline.
-
-    The models fitted in earlier pipelines determine the model used in later pipelines. For example, if the SOURCE PIPELINE
-    uses a parametric `Sersic` profile for the bulge, this will be used in the subsequent MASS PIPELINE.
-
-    Using a SOURCE LP PIPELINE, LIGHT LP PIPELINE, MASS PIPELINE and SUBHALO PIPELINE this SLaM script
-    fits `Imaging` of a strong lens system, where in the final model:
-
-     - The lens galaxy's light is a bulge+disk `Sersic` and `Exponential`.
-     - The lens galaxy's total mass distribution is an `Isothermal`.
-     - A dark matter subhalo near The lens galaxy mass is included as a`NFWMCRLudlowSph`.
-     - The source galaxy is an `Inversion`.
-
-    This uses the SLaM pipelines:
-
-     `source_lp`
-     `source_pix`
-     `light_lp`
-     `mass_total`
-     `subhalo/detection`
-
-    Check them out for a full description of the analysis!
-    """
-    # %matplotlib inline
-    # from pyprojroot import here
-    # workspace_path = str(here())
-    # %cd $workspace_path
-    # print(f"Working Directory has been set to `{workspace_path}`")
-
     import numpy as np
-    import os
-    from os import path
-
+    from pathlib import Path
     import autofit as af
     import autolens as al
     import autolens.plot as aplt
-    import slam_pipeline
 
     """
-    __Search Settings__
+    __Pipeline Functions__
     """
-    settings_search = af.SettingsSearch(
-        path_prefix=path.join("model_graph"),
-        number_of_cores=1,
-        session=None,
-    )
+
+    def source_lp(
+        settings_search,
+        analysis_list,
+        lens_bulge,
+        source_bulge,
+        redshift_lens,
+        redshift_source,
+        dataset_model,
+        mass_centre=(0.0, 0.0),
+        n_batch=50,
+    ):
+        mass = af.Model(al.mp.Isothermal)
+        mass.centre = mass_centre
+
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    al.Galaxy,
+                    redshift=redshift_lens,
+                    bulge=lens_bulge,
+                    disk=None,
+                    mass=mass,
+                    shear=af.Model(al.mp.ExternalShear),
+                ),
+                source=af.Model(
+                    al.Galaxy,
+                    redshift=redshift_source,
+                    bulge=source_bulge,
+                ),
+            ),
+            dataset_model=dataset_model,
+        )
+
+        analysis_factor_list = []
+
+        for analysis in analysis_list:
+            analysis_factor = af.AnalysisFactor(prior_model=model, analysis=analysis)
+            analysis_factor_list.append(analysis_factor)
+
+        factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
+
+        search = af.Nautilus(
+            name="source_lp[1]",
+            **settings_search.search_dict,
+            n_live=200,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(
+            model=factor_graph.global_prior_model,
+            analysis=factor_graph,
+            **settings_search.fit_dict,
+        )
+
+    def source_pix_1(
+        settings_search,
+        analysis_list,
+        source_lp_result,
+        mesh_shape,
+        dataset_model,
+        n_batch=20,
+    ):
+        analysis_factor_list = []
+
+        for i, analysis in enumerate(analysis_list):
+            mass = al.util.chaining.mass_from(
+                mass=source_lp_result[i].model.galaxies.lens.mass,
+                mass_result=source_lp_result[i].model.galaxies.lens.mass,
+                unfix_mass_centre=True,
+            )
+
+            if i > 0:
+                mass.centre = model.galaxies.lens.mass.centre
+
+            shear = source_lp_result[i].model.galaxies.lens.shear
+
+            model = af.Collection(
+                galaxies=af.Collection(
+                    lens=af.Model(
+                        al.Galaxy,
+                        redshift=source_lp_result[i].instance.galaxies.lens.redshift,
+                        bulge=source_lp_result[i].instance.galaxies.lens.bulge,
+                        disk=source_lp_result[i].instance.galaxies.lens.disk,
+                        mass=mass,
+                        shear=shear,
+                    ),
+                    source=af.Model(
+                        al.Galaxy,
+                        redshift=source_lp_result[i].instance.galaxies.source.redshift,
+                        pixelization=af.Model(
+                            al.Pixelization,
+                            mesh=af.Model(
+                                al.mesh.RectangularAdaptDensity, shape=mesh_shape
+                            ),
+                            regularization=al.reg.Adapt,
+                        ),
+                    ),
+                ),
+                dataset_model=dataset_model,
+            )
+
+            analysis_factor = af.AnalysisFactor(prior_model=model, analysis=analysis)
+            analysis_factor_list.append(analysis_factor)
+
+        factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
+
+        search = af.Nautilus(
+            name="source_pix[1]",
+            **settings_search.search_dict,
+            n_live=150,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(
+            model=factor_graph.global_prior_model,
+            analysis=factor_graph,
+            **settings_search.fit_dict,
+        )
+
+    def source_pix_2(
+        settings_search,
+        analysis_list,
+        source_lp_result,
+        source_pix_result_1,
+        mesh_shape,
+        dataset_model,
+        n_batch=20,
+    ):
+        analysis_factor_list = []
+
+        for i, analysis in enumerate(analysis_list):
+            model = af.Collection(
+                galaxies=af.Collection(
+                    lens=af.Model(
+                        al.Galaxy,
+                        redshift=source_lp_result[i].instance.galaxies.lens.redshift,
+                        bulge=source_lp_result[i].instance.galaxies.lens.bulge,
+                        disk=source_lp_result[i].instance.galaxies.lens.disk,
+                        mass=source_pix_result_1[i].instance.galaxies.lens.mass,
+                        shear=source_pix_result_1[i].instance.galaxies.lens.shear,
+                    ),
+                    source=af.Model(
+                        al.Galaxy,
+                        redshift=source_lp_result[i].instance.galaxies.source.redshift,
+                        pixelization=af.Model(
+                            al.Pixelization,
+                            mesh=af.Model(
+                                al.mesh.RectangularAdaptImage, shape=mesh_shape
+                            ),
+                            regularization=al.reg.Adapt,
+                        ),
+                    ),
+                ),
+                dataset_model=dataset_model,
+            )
+
+            analysis_factor = af.AnalysisFactor(prior_model=model, analysis=analysis)
+            analysis_factor_list.append(analysis_factor)
+
+        factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
+
+        search = af.Nautilus(
+            name="source_pix[2]",
+            **settings_search.search_dict,
+            n_live=75,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(
+            model=factor_graph.global_prior_model,
+            analysis=factor_graph,
+            **settings_search.fit_dict,
+        )
+
+    def light_lp(
+        settings_search,
+        analysis_list,
+        source_result_for_lens,
+        source_result_for_source,
+        lens_bulge,
+        dataset_model,
+        n_batch=20,
+    ):
+        analysis_factor_list = []
+
+        for i, analysis in enumerate(analysis_list):
+            source = al.util.chaining.source_custom_model_from(
+                result=source_result_for_source[i], source_is_model=False
+            )
+
+            model = af.Collection(
+                galaxies=af.Collection(
+                    lens=af.Model(
+                        al.Galaxy,
+                        redshift=source_result_for_lens[
+                            i
+                        ].instance.galaxies.lens.redshift,
+                        bulge=lens_bulge,
+                        disk=None,
+                        mass=source_result_for_lens[i].instance.galaxies.lens.mass,
+                        shear=source_result_for_lens[i].instance.galaxies.lens.shear,
+                    ),
+                    source=source,
+                ),
+                dataset_model=dataset_model,
+            )
+
+            analysis_factor = af.AnalysisFactor(prior_model=model, analysis=analysis)
+            analysis_factor_list.append(analysis_factor)
+
+        factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
+
+        search = af.Nautilus(
+            name="light[1]",
+            **settings_search.search_dict,
+            n_live=250,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(
+            model=factor_graph.global_prior_model,
+            analysis=factor_graph,
+            **settings_search.fit_dict,
+        )
+
+    def mass_total(
+        settings_search,
+        analysis_list,
+        source_result_for_lens,
+        source_result_for_source,
+        light_result,
+        dataset_model,
+        n_batch=20,
+    ):
+        mass = af.Model(al.mp.PowerLaw)
+
+        analysis_factor_list = []
+
+        for i, analysis in enumerate(analysis_list):
+            mass_i = al.util.chaining.mass_from(
+                mass=mass,
+                mass_result=source_result_for_lens[i].model.galaxies.lens.mass,
+                unfix_mass_centre=True,
+            )
+
+            source = al.util.chaining.source_from(
+                result=source_result_for_source[i],
+            )
+
+            model = af.Collection(
+                galaxies=af.Collection(
+                    lens=af.Model(
+                        al.Galaxy,
+                        redshift=source_result_for_lens[
+                            i
+                        ].instance.galaxies.lens.redshift,
+                        bulge=light_result[i].instance.galaxies.lens.bulge,
+                        disk=light_result[i].instance.galaxies.lens.disk,
+                        mass=mass_i,
+                        shear=source_result_for_lens[i].model.galaxies.lens.shear,
+                    ),
+                    source=source,
+                ),
+                dataset_model=dataset_model,
+            )
+
+            analysis_factor = af.AnalysisFactor(prior_model=model, analysis=analysis)
+            analysis_factor_list.append(analysis_factor)
+
+        factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
+
+        search = af.Nautilus(
+            name="mass_total[1]",
+            **settings_search.search_dict,
+            n_live=150,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(
+            model=factor_graph.global_prior_model,
+            analysis=factor_graph,
+            **settings_search.fit_dict,
+        )
 
     """
-    __Dataset__ 
+    __Dataset__
     """
     dataset_waveband_list = ["g", "r"]
     pixel_scale_list = [0.12, 0.08]
@@ -61,18 +321,12 @@ def fit():
     dataset_name = "lens_sersic"
     dataset_main_path = path.join("dataset", "multi", dataset_name)
 
-    """
-    __Dataset Auto-Simulation__
-
-    If the dataset does not already exist on your system, it will be created by running the corresponding
-    simulator script. This ensures that all example scripts can be run without manually simulating data first.
-    """
     if not path.exists(dataset_main_path):
         import subprocess
         import sys
 
         subprocess.run(
-            [sys.executable, "scripts/jax_likelihood_functions/multi/simulator.py"],
+            [sys.executable, "scripts/multi/simulator.py"],
             check=True,
         )
 
@@ -109,157 +363,162 @@ def fit():
 
         dataset_list.append(dataset)
 
-    """
-    __Model 1__
-    """
-    redshift_lens = 0.5
-    redshift_source = 1.0
-
-    # Lens Light
-
-    centre_0 = af.GaussianPrior(mean=0.0, sigma=0.1)
-    centre_1 = af.GaussianPrior(mean=0.0, sigma=0.1)
-
-    total_gaussians = 30
-    gaussian_per_basis = 2
-
-    log10_sigma_list = np.linspace(-2, np.log10(mask_radius), total_gaussians)
-
-    bulge_gaussian_list = []
-
-    for j in range(gaussian_per_basis):
-        gaussian_list = af.Collection(
-            af.Model(al.lp_linear.Gaussian) for _ in range(total_gaussians)
-        )
-
-        for i, gaussian in enumerate(gaussian_list):
-            gaussian.centre.centre_0 = centre_0
-            gaussian.centre.centre_1 = centre_1
-            gaussian.ell_comps = gaussian_list[0].ell_comps
-            gaussian.sigma = 10 ** log10_sigma_list[i]
-
-        bulge_gaussian_list += gaussian_list
-
-    lens_bulge = af.Model(
-        al.lp_basis.Basis,
-        profile_list=bulge_gaussian_list,
-    )
-
-    # Source Light
-
-    centre_0 = af.GaussianPrior(mean=0.0, sigma=0.3)
-    centre_1 = af.GaussianPrior(mean=0.0, sigma=0.3)
-
-    total_gaussians = 30
-    gaussian_per_basis = 1
-
-    log10_sigma_list = np.linspace(-3, np.log10(1.0), total_gaussians)
-
-    bulge_gaussian_list = []
-
-    for j in range(gaussian_per_basis):
-        gaussian_list = af.Collection(
-            af.Model(al.lp_linear.Gaussian) for _ in range(total_gaussians)
-        )
-
-        for i, gaussian in enumerate(gaussian_list):
-            gaussian.centre.centre_0 = centre_0
-            gaussian.centre.centre_1 = centre_1
-            gaussian.ell_comps = gaussian_list[0].ell_comps
-            gaussian.sigma = 10 ** log10_sigma_list[i]
-
-        bulge_gaussian_list += gaussian_list
-
-    source_bulge = af.Model(
-        al.lp_basis.Basis,
-        profile_list=bulge_gaussian_list,
-    )
-
-    """
-    __Analysis List__
-    """
-    analysis_list = [al.AnalysisImaging(dataset=dataset) for dataset in dataset_list]
-
-    """
-    __Preamble__
-    """
-    lens_bulge = lens_bulge
-    lens_disk = af.Model(al.lp.Exponential)
-    lens_point = None
-    mass: af.Model = af.Model(al.mp.Isothermal)
-    shear: af.Model(al.mp.ExternalShear) = af.Model(al.mp.ExternalShear)
-    source_bulge = source_bulge
-    source_disk = None
-    extra_galaxies = None
-    dataset_model = af.Model(al.DatasetModel)
-
-    """
-    __Analysis Graphical Model__
-    """
-    model = af.Collection(
-        galaxies=af.Collection(
-            lens=af.Model(
-                al.Galaxy,
-                redshift=redshift_lens,
-                bulge=lens_bulge,
-                disk=lens_disk,
-                point=lens_point,
-                mass=mass,
-                shear=shear,
-            ),
-            source=af.Model(
-                al.Galaxy,
-                redshift=redshift_source,
-                bulge=source_bulge,
-                disk=source_disk,
-            ),
-        ),
-        extra_galaxies=extra_galaxies,
-        dataset_model=dataset_model,
-    )
-
-    analysis_factor_list = []
-
-    for i, analysis in enumerate(analysis_list):
-
-        model_analysis = model.copy()
-
-        if i > 0:
-            model_analysis.dataset_model.grid_offset.grid_offset_0 = af.UniformPrior(
-                lower_limit=-1.0, upper_limit=1.0
-            )
-            model_analysis.dataset_model.grid_offset.grid_offset_1 = af.UniformPrior(
-                lower_limit=-1.0, upper_limit=1.0
-            )
-
-        analysis_factor = af.AnalysisFactor(
-            prior_model=model_analysis, analysis=analysis
-        )
-
-        analysis_factor_list.append(analysis_factor)
-
-    factor_graph = af.FactorGraphModel(*analysis_factor_list)
-
-    search = af.Nautilus(
-        name="task_5_analysis_graph_database",
-        **settings_search.search_dict,
-        n_live=200,
-        n_like_max=300,
-    )
-
-    source_lp_result = search.fit(
-        model=factor_graph.global_prior_model,
-        analysis=factor_graph,
+    settings_search = af.SettingsSearch(
+        path_prefix=path.join("database", "scrape", "multi_analysis"),
+        number_of_cores=1,
+        session=None,
         info={"hi": "there"},
     )
 
-    """
-    __Database Stuff__
-    """
+    redshift_lens = 0.5
+    redshift_source = 1.0
 
+    mesh_pixels_yx = 28
+    mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
+
+    dataset_model = af.Model(al.DatasetModel)
+
+    """
+    __SLaM Pipeline__
+    """
+    lens_bulge = al.model_util.mge_model_from(
+        mask_radius=mask_radius,
+        total_gaussians=20,
+        gaussian_per_basis=2,
+        centre_prior_is_uniform=True,
+    )
+
+    source_bulge = al.model_util.mge_model_from(
+        mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
+    )
+
+    analysis_list = [
+        al.AnalysisImaging(dataset=dataset, use_jax=True) for dataset in dataset_list
+    ]
+
+    source_lp_result = source_lp(
+        settings_search=settings_search,
+        analysis_list=analysis_list,
+        lens_bulge=lens_bulge,
+        source_bulge=source_bulge,
+        redshift_lens=redshift_lens,
+        redshift_source=redshift_source,
+        dataset_model=dataset_model,
+    )
+
+    positions_likelihood = source_lp_result.positions_likelihood_from(
+        factor=3.0, minimum_threshold=0.2
+    )
+
+    adapt_images_list = []
+
+    for result in source_lp_result:
+        galaxy_image_name_dict = al.galaxy_name_image_dict_via_result_from(
+            result=result
+        )
+        adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_image_name_dict)
+        adapt_images_list.append(adapt_images)
+
+    analysis_list = [
+        al.AnalysisImaging(
+            dataset=result.max_log_likelihood_fit.dataset,
+            adapt_images=adapt_images,
+            positions_likelihood_list=[positions_likelihood],
+            use_jax=True,
+        )
+        for result, adapt_images in zip(source_lp_result, adapt_images_list)
+    ]
+
+    source_pix_result_1 = source_pix_1(
+        settings_search=settings_search,
+        analysis_list=analysis_list,
+        source_lp_result=source_lp_result,
+        mesh_shape=mesh_shape,
+        dataset_model=dataset_model,
+    )
+
+    adapt_images_list = []
+
+    for result in source_pix_result_1:
+        galaxy_image_name_dict = al.galaxy_name_image_dict_via_result_from(
+            result=result
+        )
+        adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_image_name_dict)
+        adapt_images_list.append(adapt_images)
+
+    analysis_list = [
+        al.AnalysisImaging(
+            dataset=result.max_log_likelihood_fit.dataset,
+            adapt_images=adapt_images,
+            use_jax=True,
+        )
+        for result, adapt_images in zip(source_pix_result_1, adapt_images_list)
+    ]
+
+    source_pix_result_2 = source_pix_2(
+        settings_search=settings_search,
+        analysis_list=analysis_list,
+        source_lp_result=source_lp_result,
+        source_pix_result_1=source_pix_result_1,
+        mesh_shape=mesh_shape,
+        dataset_model=dataset_model,
+    )
+
+    lens_bulge = al.model_util.mge_model_from(
+        mask_radius=mask_radius,
+        total_gaussians=20,
+        gaussian_per_basis=2,
+        centre_prior_is_uniform=True,
+    )
+
+    analysis_list = [
+        al.AnalysisImaging(
+            dataset=result.max_log_likelihood_fit.dataset,
+            adapt_images=adapt_images,
+            raise_inversion_positions_likelihood_exception=False,
+        )
+        for result, adapt_images in zip(source_pix_result_1, adapt_images_list)
+    ]
+
+    light_result = light_lp(
+        settings_search=settings_search,
+        analysis_list=analysis_list,
+        source_result_for_lens=source_pix_result_1,
+        source_result_for_source=source_pix_result_2,
+        lens_bulge=lens_bulge,
+        dataset_model=dataset_model,
+    )
+
+    positions_likelihood = source_pix_result_1[0].positions_likelihood_from(
+        factor=3.0, minimum_threshold=0.2
+    )
+
+    analysis_list = [
+        al.AnalysisImaging(
+            dataset=result.max_log_likelihood_fit.dataset,
+            adapt_images=adapt_images,
+            positions_likelihood_list=[positions_likelihood],
+        )
+        for result, adapt_images in zip(source_pix_result_1, adapt_images_list)
+    ]
+
+    mass_result = mass_total(
+        settings_search=settings_search,
+        analysis_list=analysis_list,
+        source_result_for_lens=source_pix_result_1,
+        source_result_for_source=source_pix_result_2,
+        light_result=light_result,
+        dataset_model=dataset_model,
+    )
+
+    """
+    __Database__
+
+    Add results to database.
+    """
     from autofit.database.aggregator import Aggregator
 
-    database_file = "task_5_database_graph.sqlite"
+    database_file = "database_directory_multi_analysis.sqlite"
 
     try:
         os.remove(path.join("output", database_file))
@@ -268,7 +527,7 @@ def fit():
 
     agg = Aggregator.from_database(database_file)
     agg.add_directory(
-        directory=path.join("output", "model_graph", "task_5_analysis_graph_database")
+        directory=path.join("output", "database", "scrape", "multi_analysis")
     )
 
     assert len(agg) > 0
@@ -278,6 +537,10 @@ def fit():
 
     Make sure database + agg can be used.
     """
+    print("\n\n***********************")
+    print("****RESULTS TESTING****")
+    print("***********************\n")
+
     for samples in agg.values("samples"):
         print(samples.log_likelihood_list)
         print(samples.log_likelihood_list[0])
@@ -290,6 +553,10 @@ def fit():
     """
     __Queries__
     """
+    print("\n\n***********************")
+    print("****QUERIES TESTING****")
+    print("***********************\n")
+
     unique_tag = agg.search.unique_tag
     agg_query = agg.query(unique_tag == "mass_sie__source_sersic__1")
     samples_gen = agg_query.values("samples")
@@ -312,6 +579,7 @@ def fit():
 
     mass = agg.model.galaxies.lens.mass
     agg_query = agg.query((mass == al.mp.Isothermal) & (mass.einstein_radius > 1.0))
+
     print(
         "Total Samples Objects In Query `Isothermal and einstein_radius > 3.0` = ",
         len(agg_query),
@@ -323,39 +591,51 @@ def fit():
 
     Check that all other files stored in database (e.g. model, search) can be loaded and used.
     """
+    print("\n\n***********************")
+    print("*****FILES TESTING*****")
+    print("***********************\n")
 
     for model in agg.values("model"):
-        print(model.info)
+        print(f"\n****Model Info (model)****\n\n{model.info}")
 
     for search in agg.values("search"):
-        print(search)
+        print(f"\n****Search (search)****\n\n{search}")
 
     for samples_summary in agg.values("samples_summary"):
         instance = samples_summary.max_log_likelihood()
-        print(instance[0].galaxies)
+        print(f"\n****Max Log Likelihood (samples_summary)****\n\n{instance}")
 
     for info in agg.values("info"):
-        print(info["hi"])
-
-    # for dataset in agg.child_values("dataset.data"):
-    #     print(dataset)
+        print(f"\n****Info****\n\n{info}")
+        assert info["hi"] == "there"
 
     """
     __Aggregator Module__
     """
+    print("\n\n***********************")
+    print("***AGG MODULE TESTING***")
+    print("***********************\n\n")
+
+    agg = agg.query(agg.search.name == "mass_total[1]")
+
     tracer_agg = al.agg.TracerAgg(aggregator=agg)
     tracer_gen = tracer_agg.max_log_likelihood_gen_from()
 
     grid = al.Grid2D.uniform(shape_native=(100, 100), pixel_scales=0.1)
 
     for tracer_list in tracer_gen:
-        # Only one `Analysis` so take first and only tracer.
         tracer = tracer_list[0]
 
-        aplt.plot_array(array=tracer.convergence_2d_from(grid=grid))
-        aplt.plot_array(array=tracer.potential_2d_from(grid=grid))
+        try:
+            aplt.plot_array(array=tracer.convergence_2d_from(grid=grid))
+            aplt.plot_array(array=tracer.potential_2d_from(grid=grid))
 
-        print("Tracer Checked")
+        except al.exc.ProfileException:
+            print(
+                "TracerAgg with linear light profiles raises correct ProfileException"
+            )
+
+        print("TracerAgg Checked")
 
     imaging_agg = al.agg.ImagingAgg(aggregator=agg)
     imaging_gen = imaging_agg.dataset_gen_from()
@@ -365,7 +645,7 @@ def fit():
 
         aplt.plot_array(array=dataset.data)
 
-        print("Imaging Checked")
+        print("ImagingAgg Checked")
 
     fit_agg = al.agg.FitImagingAgg(
         aggregator=agg,
@@ -380,38 +660,7 @@ def fit():
         print(fit_list[0].dataset_model.grid_offset.grid_offset_1)
         print(fit_list[1].dataset_model.grid_offset)
 
-        # fit_plotter = aplt.FitImagingPlotter(fit=fit)
-        # fit_plotter.subplot_fit()
-
-        print("FitImaging Checked")
-
-    # fit_agg = al.agg.FitImagingAgg(
-    #     aggregator=agg,
-    # )
-    # fit_pdf_gen = fit_agg.randomly_drawn_via_pdf_gen_from(total_samples=3)
-    #
-    # i = 0
-    #
-    # for fit_gen in fit_pdf_gen:  # 1 Dataset so just one fit
-    #
-    #     for (
-    #         fit_list
-    #     ) in (
-    #         fit_gen
-    #     ):  # Iterate over each total_samples=3, each with two fits for each analysis.
-    #
-    #         i += 1
-    #
-    #         print(fit_list[0].dataset_model.grid_offset.grid_offset_1)
-    #         print(fit_list[1].dataset_model.grid_offset)
-    #
-    #         fit_plotter = aplt.FitImagingPlotter(fit=fit_list[0])
-    #         fit_plotter.subplot_fit()
-    #
-    #         fit_plotter = aplt.FitImagingPlotter(fit=fit_list[1])
-    #         fit_plotter.subplot_fit()
-    #
-    # assert i == 3
+        print("FitImagingAgg Checked")
 
 
 if __name__ == "__main__":

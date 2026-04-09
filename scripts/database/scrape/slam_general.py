@@ -1,9 +1,11 @@
 """
-Database: Model-Fit
-===================
+Database: SLaM General
+======================
 
-This is a simple example of a model-fit which we wish to write to the database. This should simply output the
-results to the `.sqlite` database file.
+Runs a SLaM pipeline (linear light profiles) and scrapes the results to a database,
+verifying that queries and aggregator modules work correctly.
+
+Based on autolens_workspace/scripts/imaging/features/linear_light_profiles/slam.py
 """
 
 from astropy.io import fits
@@ -15,16 +17,283 @@ from os import path
 def fit():
     import pytest
 
-    # %matplotlib inline
-    # from pyprojroot import here
-    # workspace_path = str(here())
-    # %cd $workspace_path
-    # print(f"Working Directory has been set to `{workspace_path}`")
-
+    from pathlib import Path
     import autofit as af
     import autolens as al
     import autolens.plot as aplt
-    import slam_pipeline
+
+    """
+    __Pipeline Functions__
+    """
+
+    def source_lp(
+        settings_search,
+        dataset,
+        mask_radius,
+        redshift_lens,
+        redshift_source,
+        n_batch=50,
+    ):
+        analysis = al.AnalysisImaging(dataset=dataset, use_jax=True)
+
+        lens_bulge = af.Model(al.lp_linear.Sersic)
+
+        source_bulge = al.model_util.mge_model_from(
+            mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
+        )
+
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    al.Galaxy,
+                    redshift=redshift_lens,
+                    bulge=lens_bulge,
+                    disk=None,
+                    mass=af.Model(al.mp.Isothermal),
+                    shear=af.Model(al.mp.ExternalShear),
+                ),
+                source=af.Model(
+                    al.Galaxy,
+                    redshift=redshift_source,
+                    bulge=source_bulge,
+                ),
+            ),
+        )
+
+        search = af.Nautilus(
+            name="source_lp[1]",
+            **settings_search.search_dict,
+            n_live=200,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(model=model, analysis=analysis, **settings_search.fit_dict)
+
+    def source_pix_1(
+        settings_search,
+        dataset,
+        source_lp_result,
+        mesh_init,
+        regularization_init,
+        n_batch=20,
+    ):
+        galaxy_image_name_dict = al.galaxy_name_image_dict_via_result_from(
+            result=source_lp_result
+        )
+
+        adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_image_name_dict)
+
+        analysis = al.AnalysisImaging(
+            dataset=dataset,
+            adapt_images=adapt_images,
+            positions_likelihood_list=[
+                source_lp_result.positions_likelihood_from(
+                    factor=3.0, minimum_threshold=0.2
+                )
+            ],
+        )
+
+        mass = al.util.chaining.mass_from(
+            mass=source_lp_result.model.galaxies.lens.mass,
+            mass_result=source_lp_result.model.galaxies.lens.mass,
+            unfix_mass_centre=True,
+        )
+        shear = source_lp_result.model.galaxies.lens.shear
+
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    al.Galaxy,
+                    redshift=source_lp_result.instance.galaxies.lens.redshift,
+                    bulge=source_lp_result.instance.galaxies.lens.bulge,
+                    disk=source_lp_result.instance.galaxies.lens.disk,
+                    mass=mass,
+                    shear=shear,
+                ),
+                source=af.Model(
+                    al.Galaxy,
+                    redshift=source_lp_result.instance.galaxies.source.redshift,
+                    pixelization=af.Model(
+                        al.Pixelization,
+                        mesh=mesh_init,
+                        regularization=regularization_init,
+                    ),
+                ),
+            ),
+        )
+
+        search = af.Nautilus(
+            name="source_pix[1]",
+            **settings_search.search_dict,
+            n_live=150,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(model=model, analysis=analysis, **settings_search.fit_dict)
+
+    def source_pix_2(
+        settings_search,
+        dataset,
+        source_lp_result,
+        source_pix_result_1,
+        mesh,
+        regularization,
+        n_batch=20,
+    ):
+        galaxy_image_name_dict = al.galaxy_name_image_dict_via_result_from(
+            result=source_pix_result_1
+        )
+
+        adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_image_name_dict)
+
+        analysis = al.AnalysisImaging(
+            dataset=dataset,
+            adapt_images=adapt_images,
+            use_jax=True,
+        )
+
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    al.Galaxy,
+                    redshift=source_lp_result.instance.galaxies.lens.redshift,
+                    bulge=source_lp_result.instance.galaxies.lens.bulge,
+                    disk=source_lp_result.instance.galaxies.lens.disk,
+                    mass=source_pix_result_1.instance.galaxies.lens.mass,
+                    shear=source_pix_result_1.instance.galaxies.lens.shear,
+                ),
+                source=af.Model(
+                    al.Galaxy,
+                    redshift=source_lp_result.instance.galaxies.source.redshift,
+                    pixelization=af.Model(
+                        al.Pixelization,
+                        mesh=mesh,
+                        regularization=regularization,
+                    ),
+                ),
+            ),
+        )
+
+        search = af.Nautilus(
+            name="source_pix[2]",
+            **settings_search.search_dict,
+            n_live=75,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(model=model, analysis=analysis, **settings_search.fit_dict)
+
+    def light_lp(
+        settings_search,
+        dataset,
+        source_result_for_lens,
+        source_result_for_source,
+        n_batch=20,
+    ):
+        galaxy_image_name_dict = al.galaxy_name_image_dict_via_result_from(
+            result=source_result_for_lens
+        )
+
+        adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_image_name_dict)
+
+        analysis = al.AnalysisImaging(
+            dataset=dataset,
+            adapt_images=adapt_images,
+        )
+
+        lens_bulge = af.Model(al.lp_linear.Sersic)
+
+        source = al.util.chaining.source_custom_model_from(
+            result=source_result_for_source, source_is_model=False
+        )
+
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    al.Galaxy,
+                    redshift=source_result_for_lens.instance.galaxies.lens.redshift,
+                    bulge=lens_bulge,
+                    disk=None,
+                    mass=source_result_for_lens.instance.galaxies.lens.mass,
+                    shear=source_result_for_lens.instance.galaxies.lens.shear,
+                ),
+                source=source,
+            ),
+        )
+
+        search = af.Nautilus(
+            name="light[1]",
+            **settings_search.search_dict,
+            n_live=150,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(model=model, analysis=analysis, **settings_search.fit_dict)
+
+    def mass_total(
+        settings_search,
+        dataset,
+        source_result_for_lens,
+        source_result_for_source,
+        light_result,
+        n_batch=20,
+    ):
+        mass = af.Model(al.mp.PowerLaw)
+
+        galaxy_image_name_dict = al.galaxy_name_image_dict_via_result_from(
+            result=source_result_for_lens
+        )
+
+        adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_image_name_dict)
+
+        analysis = al.AnalysisImaging(
+            dataset=dataset,
+            adapt_images=adapt_images,
+            positions_likelihood_list=[
+                source_result_for_source.positions_likelihood_from(
+                    factor=3.0, minimum_threshold=0.2
+                )
+            ],
+        )
+
+        mass = al.util.chaining.mass_from(
+            mass=mass,
+            mass_result=source_result_for_lens.model.galaxies.lens.mass,
+            unfix_mass_centre=True,
+        )
+
+        bulge = light_result.instance.galaxies.lens.bulge
+        disk = light_result.instance.galaxies.lens.disk
+
+        source = al.util.chaining.source_from(result=source_result_for_source)
+
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    al.Galaxy,
+                    redshift=source_result_for_lens.instance.galaxies.lens.redshift,
+                    bulge=bulge,
+                    disk=disk,
+                    mass=mass,
+                    shear=source_result_for_lens.model.galaxies.lens.shear,
+                ),
+                source=source,
+            ),
+        )
+
+        search = af.Nautilus(
+            name="mass_total[1]",
+            **settings_search.search_dict,
+            n_live=150,
+            n_batch=n_batch,
+            n_like_max=300,
+        )
+
+        return search.fit(model=model, analysis=analysis, **settings_search.fit_dict)
 
     """
     __Dataset + Masking__
@@ -32,12 +301,6 @@ def fit():
     dataset_name = "with_lens_light"
     dataset_path = path.join("dataset", "imaging", dataset_name)
 
-    """
-    __Dataset Auto-Simulation__
-
-    If the dataset does not already exist on your system, it will be created by running the corresponding
-    simulator script. This ensures that all example scripts can be run without manually simulating data first.
-    """
     if not path.exists(dataset_path):
         import subprocess
         import sys
@@ -64,11 +327,6 @@ def fit():
 
     dataset = dataset.apply_mask(mask=mask)
 
-    """
-    __Settings AutoFit__
-    
-    The settings of autofit, which controls the output paths, parallelization, database use, etc.
-    """
     settings_search = af.SettingsSearch(
         path_prefix=path.join("database", "scrape", "slam_general"),
         number_of_cores=1,
@@ -76,150 +334,53 @@ def fit():
         info={"hi": "there"},
     )
 
-    """
-    __Redshifts__
-    
-    The redshifts of the lens and source galaxies, which are used to perform unit converions of the model and data (e.g. 
-    from arc-seconds to kiloparsecs, masses to solar masses, etc.).
-    """
     redshift_lens = 0.5
     redshift_source = 1.0
 
-    """
-    __SOURCE LP PIPELINE (with lens light)__
-    
-    The SOURCE LP PIPELINE (with lens light) uses three searches to initialize a robust model for the 
-    source galaxy's light, which in this example:
-     
-     - Uses a parametric `Sersic` bulge and `Exponential` disk with centres aligned for the lens
-     galaxy's light.
-     
-     - Uses an `Isothermal` model for the lens's total mass distribution with an `ExternalShear`.
-    
-     Settings:
-    
-     - Mass Centre: Fix the mass profile centre to (0.0, 0.0) (this assumption will be relaxed in the MASS PIPELINE).
-    """
-    analysis = al.AnalysisImaging(dataset=dataset)
+    mesh_pixels_yx = 28
+    mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
-    bulge = af.Model(al.lp_linear.Sersic)
-    disk = af.Model(al.lp_linear.Exponential)
-    # disk = af.Model(al.lp_linear.Sersic)
-    bulge.centre = disk.centre
-
-    source_lp_result = slam_pipeline.source_lp.run(
+    """
+    __SLaM Pipeline__
+    """
+    source_lp_result = source_lp(
         settings_search=settings_search,
-        analysis=analysis,
-        lens_bulge=bulge,
-        lens_disk=disk,
-        mass=af.Model(al.mp.Isothermal),
-        shear=af.Model(al.mp.ExternalShear),
-        source_bulge=af.Model(al.lp_linear.Sersic),
+        dataset=dataset,
+        mask_radius=mask_radius,
         redshift_lens=redshift_lens,
         redshift_source=redshift_source,
-        n_like_max=300,
     )
 
-    """
-    __LIGHT LP PIPELINE__
-    
-    The LIGHT LP PIPELINE uses one search to fit a complex lens light model to a high level of accuracy, using the
-    lens mass model and source light model fixed to the maximum log likelihood result of the SOURCE LP PIPELINE.
-    In this example it:
-    
-     - Uses a parametric `Sersic` bulge and `Sersic` disk with centres aligned for the lens galaxy's 
-     light [Do not use the results of the SOURCE LP PIPELINE to initialize priors].
-    
-     - Uses an `Isothermal` model for the lens's total mass distribution [fixed from SOURCE LP PIPELINE].
-    
-     - Uses the `Sersic` model representing a bulge for the source's light [fixed from SOURCE LP PIPELINE].
-    
-     - Carries the lens redshift, source redshift and `ExternalShear` of the SOURCE PIPELINE through to the MASS 
-     PIPELINE [fixed values].
-    """
-    total_gaussians = 30
-    gaussian_per_basis = 2
-
-    # The sigma values of the Gaussians will be fixed to values spanning 0.01 to the mask radius, 3.0".
-    mask_radius = 3.0
-    log10_sigma_list = np.linspace(-2, np.log10(mask_radius), total_gaussians)
-
-    # By defining the centre here, it creates two free parameters that are assigned below to all Gaussians.
-
-    centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
-    centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
-
-    bulge_gaussian_list = []
-
-    for j in range(gaussian_per_basis):
-        # A list of Gaussian model components whose parameters are customized belows.
-
-        gaussian_list = af.Collection(
-            af.Model(al.lp_linear.Gaussian) for _ in range(total_gaussians)
-        )
-
-        # Iterate over every Gaussian and customize its parameters.
-
-        for i, gaussian in enumerate(gaussian_list):
-            gaussian.centre.centre_0 = centre_0  # All Gaussians have same y centre.
-            gaussian.centre.centre_1 = centre_1  # All Gaussians have same x centre.
-            gaussian.ell_comps = gaussian_list[
-                0
-            ].ell_comps  # All Gaussians have same elliptical components.
-            gaussian.sigma = (
-                10 ** log10_sigma_list[i]
-            )  # All Gaussian sigmas are fixed to values above.
-
-        bulge_gaussian_list += gaussian_list
-
-    # The Basis object groups many light profiles together into a single model component.
-
-    bulge = af.Model(
-        al.lp_basis.Basis,
-        profile_list=bulge_gaussian_list,
-    )
-
-    light_result = slam_pipeline.light_lp.run(
+    source_pix_result_1 = source_pix_1(
         settings_search=settings_search,
-        analysis=analysis,
-        source_result_for_lens=source_lp_result,
-        source_result_for_source=source_lp_result,
-        lens_bulge=bulge,
-        lens_disk=disk,
-        n_like_max=300,
-    )
-
-    """
-    __MASS TOTAL PIPELINE (with lens light)__
-    
-    The MASS TOTAL PIPELINE (with lens light) uses one search to fits a complex lens mass model to a high level of accuracy, 
-    using the lens mass model and source model of the SOURCE PIPELINE to initialize the model priors and the lens light
-    model of the LIGHT LP PIPELINE. In this example it:
-    
-     - Uses a parametric `Sersic` bulge and `Sersic` disk with centres aligned for the lens galaxy's 
-     light [fixed from LIGHT LP PIPELINE].
-    
-     - Uses an `PowerLaw` model for the lens's total mass distribution [priors initialized from SOURCE 
-     PARAMETRIC PIPELINE + centre unfixed from (0.0, 0.0)].
-     
-     - Uses the `Sersic` model representing a bulge for the source's light [priors initialized from SOURCE 
-     PARAMETRIC PIPELINE].
-     
-     - Carries the lens redshift, source redshift and `ExternalShear` of the SOURCE PIPELINE through to the MASS PIPELINE.
-    """
-    analysis = al.AnalysisImaging(
         dataset=dataset,
+        source_lp_result=source_lp_result,
+        mesh_init=af.Model(al.mesh.RectangularAdaptDensity, shape=mesh_shape),
+        regularization_init=al.reg.Adapt,
     )
 
-    mass_result = slam_pipeline.mass_total.run(
+    source_pix_result_2 = source_pix_2(
         settings_search=settings_search,
-        analysis=analysis,
-        source_result_for_lens=source_lp_result,
-        source_result_for_source=source_lp_result,
+        dataset=dataset,
+        source_lp_result=source_lp_result,
+        source_pix_result_1=source_pix_result_1,
+        mesh=af.Model(al.mesh.RectangularAdaptImage, shape=mesh_shape),
+        regularization=al.reg.Adapt,
+    )
+
+    light_result = light_lp(
+        settings_search=settings_search,
+        dataset=dataset,
+        source_result_for_lens=source_pix_result_1,
+        source_result_for_source=source_pix_result_2,
+    )
+
+    mass_result = mass_total(
+        settings_search=settings_search,
+        dataset=dataset,
+        source_result_for_lens=source_pix_result_1,
+        source_result_for_source=source_pix_result_2,
         light_result=light_result,
-        mass=af.Model(al.mp.PowerLaw),
-        multipole_3=af.Model(al.mp.PowerLawMultipole),
-        n_like_max=300,
     )
 
     """
@@ -245,7 +406,7 @@ def fit():
 
     """
     __Samples + Results__
-    
+
     Make sure database + agg can be used.
     """
     print("\n\n***********************")
@@ -296,7 +457,7 @@ def fit():
 
     """
     __Files__
-    
+
     Check that all other files stored in database (e.g. model, search) can be loaded and used.
     """
     print("\n\n***********************")

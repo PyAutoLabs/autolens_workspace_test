@@ -23,7 +23,7 @@ overrides:
   - pattern: "jax_likelihood_functions/"
     unset: [PYAUTO_WORKSPACE_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
   # Database scrape scripts need real search output on disk — no test env vars
-  - pattern: "database/scrape/general"
+  - pattern: "database/scrape/"
     unset:
       - PYAUTOFIT_TEST_MODE
       - PYAUTO_WORKSPACE_SMALL_DATASETS
