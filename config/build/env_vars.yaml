@@ -43,3 +43,8 @@ overrides:
     unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_mge"
     unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+  # visualization.py asserts subplot PNG files exist on disk, but
+  # PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray so
+  # no file is ever written.
+  - pattern: "interferometer/visualization"
+    unset: [PYAUTO_FAST_PLOTS]
