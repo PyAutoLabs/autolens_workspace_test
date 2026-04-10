@@ -124,7 +124,8 @@ __Output__
 
 Output the simulated dataset to the dataset path as .fits files.
 """
-dataset.output_to_fits(
+aplt.fits_interferometer(
+    dataset=dataset,
     data_path=path.join(dataset_path, "data.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
     uv_wavelengths_path=path.join(dataset_path, "uv_wavelengths.fits"),
@@ -142,9 +143,14 @@ __Visualize__
 
 Output a subplot of the simulated dataset, the image and the tracer's quantities to the dataset path as .png files.
 """
-aplt.plot_array(array=dataset.data, output=aplt.Output(path=dataset_path, format="png"))
+aplt.plot_array(
+    array=dataset.dirty_image,
+    output_path=dataset_path,
+    output_filename="dirty_image",
+    output_format="png",
+)
 aplt.subplot_tracer(
-    tracer=tracer, grid=grid, output=aplt.Output(path=dataset_path, format="png")
+    tracer=tracer, grid=grid, output_path=dataset_path, output_format="png"
 )
 
 """
