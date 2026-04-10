@@ -117,7 +117,7 @@ dataset = simulator.via_tracer_from(tracer=tracer, grid=grid)
 """
 Lets plot the simulated interferometer dataset before we output it to fits.
 """
-aplt.plot_array(array=dataset.data)
+aplt.plot_array(array=dataset.dirty_image)
 
 """
 __Output__
