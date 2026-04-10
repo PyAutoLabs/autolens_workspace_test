@@ -9,8 +9,20 @@
 #   skipped because they exceed the 60s per-script timeout cap. These are
 #   NOT permanent skips — every mega-run surfaces them with a loud warning
 #   banner. Fix the performance issue and remove the SLOW marker.
+#
+# NEEDS_FIX convention:
+#   Entries tagged `# NEEDS_FIX <YYYY-MM-DD> - <reason>` mark scripts that
+#   are broken and parked as a to-do list. Like SLOW-skips, these are NOT
+#   permanent skips — every mega-run surfaces them with a loud warning
+#   banner. Investigate the failure, fix the underlying bug, and remove
+#   the NEEDS_FIX marker.
 
 - database/scrape/multi_analysis # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_general # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_multi_one_by_one # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_pix # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- imaging/visualization # NEEDS_FIX 2026-04-10 - AssertionError: dataset.png missing after visualization refactor
+- jax_likelihood_functions/imaging/delaunay_mge # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
+- jax_likelihood_functions/imaging/mge_group # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
+- jax_grad/imaging_lp # NEEDS_FIX 2026-04-10 - JAX traceback in gradient computation for light profile
+- jax_grad/imaging_mge # NEEDS_FIX 2026-04-10 - AssertionError: Gradient is all zeros in MGE gradient computation
