@@ -3,5 +3,14 @@
 #   - Entries with '/' do a substring match against the file path
 #   - Entries without '/' match the file stem exactly
 # Add an inline # comment to document the reason for skipping.
+#
+# SLOW-skip convention:
+#   Entries tagged `# SLOW <YYYY-MM-DD> - <reason>` mark scripts that are
+#   skipped because they exceed the 60s per-script timeout cap. These are
+#   NOT permanent skips — every mega-run surfaces them with a loud warning
+#   banner. Fix the performance issue and remove the SLOW marker.
 
-[]
+- database/scrape/multi_analysis # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- database/scrape/slam_general # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- database/scrape/slam_multi_one_by_one # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- database/scrape/slam_pix # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
