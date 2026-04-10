@@ -129,17 +129,8 @@ al.output_to_json(
 )
 
 """
-Output a subplot of the simulated dataset, the image and a subplot of the `Tracer`'s quantities to the dataset path 
-as .png files.
-"""
-aplt.plot_array(array=dataset.data, output=aplt.Output(path=dataset_path, format="png"))
-aplt.subplot_tracer(
-    tracer=tracer, grid=grid, output=aplt.Output(path=dataset_path, format="png")
-)
-
-"""
-Pickle the `Tracer` in the dataset folder, ensuring the true `Tracer` is safely stored and available if we need to 
-check how the dataset was simulated in the future. 
+Pickle the `Tracer` in the dataset folder, ensuring the true `Tracer` is safely stored and available if we need to
+check how the dataset was simulated in the future.
 
 This will also be accessible via the `Aggregator` if a model-fit is performed using the dataset.
 """
