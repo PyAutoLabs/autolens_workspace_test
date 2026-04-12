@@ -7,3 +7,4 @@ jax_likelihood_functions/point_source/point.py
 jax_likelihood_functions/multi/mge.py
 aggregator/fit_imaging.py
 aggregator/fit_interferometer.py
+model_composition/multi_galaxy_mge.py
