@@ -1,10 +1,15 @@
 database/scrape/general.py
 # imaging/visualization.py  # disabled: bypass mode mkdir race condition (rhayes777/PyAutoFit#1179)
 # interferometer/visualization.py  # disabled: bypass mode missing fit.png assertion (rhayes777/PyAutoFit#1179)
-jax_likelihood_functions/imaging/delaunay_mge.py
+# jax_likelihood_functions/imaging/delaunay_mge.py  # disabled: jax 0.7 removed jax.interpreters.xla.pytype_aval_mappings — see admin_jammy/prompt/build/smoke_workspace_fixes.md
+jax_likelihood_functions/imaging/rectangular.py
+jax_likelihood_functions/imaging/mge.py
+jax_likelihood_functions/imaging/lp.py
 jax_likelihood_functions/interferometer/rectangular.py
+jax_likelihood_functions/interferometer/mge.py
 jax_likelihood_functions/point_source/point.py
 jax_likelihood_functions/multi/mge.py
 aggregator/fit_imaging.py
 aggregator/fit_interferometer.py
+aggregator/tracer.py
 model_composition/multi_galaxy_mge.py
