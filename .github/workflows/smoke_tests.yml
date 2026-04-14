@@ -75,6 +75,7 @@ jobs:
           pip install ./PyAutoConf ./PyAutoFit ./PyAutoArray ./PyAutoGalaxy ./PyAutoLens
           pip install numba
         fi
+        pip install tensorflow-probability==0.25.0
     - name: Prepare cache dirs
       run: |
         mkdir -p /tmp/numba_cache /tmp/matplotlib
