@@ -34,6 +34,7 @@ Expected outputs are derived directly from the source code of:
 """
 
 import shutil
+import time
 from os import path
 from pathlib import Path
 from types import SimpleNamespace
@@ -125,10 +126,10 @@ bulge.effective_radius = 0.8
 mass = af.Model(al.mp.PowerLaw)
 mass.centre.centre_0 = 0.0
 mass.centre.centre_1 = 0.0
-mass.ell_comps.ell_comps_0 = 0.0
-mass.ell_comps.ell_comps_1 = 0.0
+mass.ell_comps.ell_comps_0 = 0.05
+mass.ell_comps.ell_comps_1 = 0.1
 mass.einstein_radius = 1.6
-mass.slope = 1.8
+mass.slope = 2.0
 
 lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass)
 
@@ -248,13 +249,13 @@ Calls PlotterImaging.imaging()          -> dataset.png, dataset.fits
 
 print("Running visualize_before_fit (parametric source)...")
 
+_t0 = time.perf_counter()
 VisualizerImaging.visualize_before_fit(
     analysis=analysis,
     paths=paths,
     model=model_parametric,
 )
-
-print("visualize_before_fit complete.")
+print(f"visualize_before_fit complete in {time.perf_counter() - _t0:.2f}s")
 
 """
 __Assertions: visualize_before_fit__
@@ -344,14 +345,14 @@ for source_name, model, has_inversion in source_runs:
 
     instance = model.instance_from_prior_medians()
 
+    _t0 = time.perf_counter()
     VisualizerImaging.visualize(
         analysis=analysis,
         paths=sub_paths,
         instance=instance,
         during_analysis=False,
     )
-
-    print(f"  visualize complete for {source_name}.")
+    print(f"  visualize complete for {source_name} in {time.perf_counter() - _t0:.2f}s")
 
     assert (sub_path / "fit.png").exists(), f"{source_name}/fit.png missing"
     print(f"  {source_name}/fit.png OK")
