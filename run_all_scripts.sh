@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WORKSPACE=/mnt/c/Users/Jammy/Code/PyAutoJAX/autolens_workspace_test
+WORKSPACE=/mnt/c/Users/Jammy/Code/PyAutoLabs/autolens_workspace_test
 FAILED_DIR="$WORKSPACE/failed"
 mkdir -p "$FAILED_DIR"
 

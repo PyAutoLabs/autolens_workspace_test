@@ -204,6 +204,7 @@ analysis = al.AnalysisInterferometer(
     positions_likelihood_list=[positions_likelihood],
     adapt_images=adapt_images,
     use_jax=False,
+    title_prefix="TEST"
 )
 
 

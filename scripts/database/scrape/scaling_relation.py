@@ -12,7 +12,7 @@ profile as a function of its luminosity:
 
 where `scaling_factor` and `scaling_exponent` are free parameters inferred by the
 non-linear search.  This is the same relational model API used in production group
-and cluster lens modeling (see `base_project/scripts/group.py`).
+and cluster lens modeling (see `autolens_base_project/scripts/group.py`).
 
 __Known issue__
 
