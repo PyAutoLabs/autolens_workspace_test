@@ -5,4 +5,5 @@ test/
 test_report.md
 test_results/
 root.log
+**/images/
 /Users/Jammy/Code/PyAutoLabs/autolens_workspace/howtolens/config
