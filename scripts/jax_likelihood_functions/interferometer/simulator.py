@@ -11,7 +11,7 @@ their likelihood values are deterministic and can be numerically asserted.
 
 __Dataset__
 
-The simulation uses the SMA uv_wavelengths stored in `dataset/interferometer/simple/uv_wavelengths.fits`
+The simulation uses the SMA uv_wavelengths stored in `dataset/interferometer/uv_wavelengths/sma.fits`
 (190 visibilities), giving fast and deterministic interferometer likelihood evaluations.
 
 __Model__
@@ -41,10 +41,10 @@ grid = al.Grid2D.uniform(shape_native=(256, 256), pixel_scales=0.1)
 """
 __UV Wavelengths__
 
-Load the SMA uv-coverage already stored in the dataset folder (190 baselines).
+Load the SMA uv-coverage stored in the repository's shared uv_wavelengths folder (190 baselines).
 """
 uv_wavelengths = al.ndarray_via_fits_from(
-    file_path=path.join(dataset_path, "uv_wavelengths.fits"), hdu=0
+    file_path=path.join("dataset", "interferometer", "uv_wavelengths", "sma.fits"), hdu=0
 )
 
 print(f"Total visibilities: {uv_wavelengths.shape[0]}")
@@ -99,6 +99,8 @@ __Output__
 
 Overwrite the dataset files in `dataset/interferometer/simple/`.
 """
+Path(dataset_path).mkdir(parents=True, exist_ok=True)
+
 import numpy as np
 
 al.output_to_fits(
