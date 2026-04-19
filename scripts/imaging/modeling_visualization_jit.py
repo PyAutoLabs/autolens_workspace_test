@@ -14,27 +14,14 @@ Calls ``analysis.fit_for_visualization(instance)`` twice and asserts the
 second call is much faster than the first (confirming the compiled function
 is cached on the analysis instance, not recompiled per visualization).
 
-Part 2 — **Live Nautilus quick-update.** Runs a real (short) Nautilus fit
-with a parametric (Sersic + Isothermal) model — **no** MGE, **no** linear
-light profiles — with ``iterations_per_quick_update`` set low so the
-visualizer fires during the fit. Asserts that ``subplot_fit.png`` files land
-on disk, proving the JIT-cached fit_for_visualization is being invoked
-correctly by the live search callback.
-
-Why two models?
----------------
-MGE uses ``al.lmp_linear.GaussianGradient`` — a linear light profile whose
-``intensity`` is solved by the inversion. Visualization-side code rebuilds
-the tracer by looking up each linear profile in
-``fit.linear_light_profile_intensity_dict``, keyed by **object identity**.
-Pytree unflatten (``cls.__new__`` + ``setattr``) gives us a new profile
-instance whose identity doesn't match the dict keys, so the lookup fails
-with ``KeyError: GaussianGradient``. That's a real pytree issue, but it's
-scoped to the linear-light-profile path and is deferred to the follow-up
-tasks in ``admin_jammy/prompt/autolens/fit_imaging_pytree_*.md``. Today,
-Part 1 proves MGE is fine on the output side and Part 2 proves the
-end-to-end plumbing works with a model whose visualization path doesn't
-touch the identity-sensitive dict lookup.
+Part 2 — **Live Nautilus quick-update with MGE linear profiles.** Runs a
+real (short) Nautilus fit with an MGE lens (``GaussianGradient`` basis +
+``NFWSph`` mass) and MGE source — both use linear light profiles whose
+``intensity`` is solved by the inversion. With the ``pytree_token`` fix on
+``LightProfileLinear``, the ``linear_light_profile_intensity_dict`` lookup
+survives the JAX pytree round-trip and no ``KeyError`` is raised. Asserts
+that ``subplot_fit.png`` files land on disk, proving the JIT-cached
+fit_for_visualization fires correctly during the live search callback.
 
 This script deliberately opts in with
 ``AnalysisImaging(use_jax=True, use_jax_for_visualization=True)``. Default
@@ -183,33 +170,59 @@ print("PASS: MGE jit-cached fit_for_visualization works and is reused.")
 
 """
 ============================================================================
-Part 2 — Live Nautilus quick-update with a parametric model
+Part 2 — Live Nautilus quick-update with MGE linear light profiles
 ============================================================================
 
-Model: Sersic source + Isothermal lens. No linear light profiles. The live
-search fires quick-update visualization every ``iterations_per_quick_update``
-calls; we verify subplot_fit.png lands on disk.
+Model: MGE parametric lens (Basis of GaussianGradient + NFWSph mass) and
+MGE parametric source. Linear light profiles are used, so the
+``linear_light_profile_intensity_dict`` lookup is exercised during
+visualization. With the ``pytree_token`` fix on ``LightProfileLinear``,
+dict lookups survive the JAX pytree round-trip and no ``KeyError`` is raised.
+
+The live search fires quick-update visualization every
+``iterations_per_quick_update`` calls; we verify subplot_fit.png lands on disk.
 """
 print("\n" + "=" * 72)
-print("Part 2: Live Nautilus with jit-visualization quick-update")
+print("Part 2: Live Nautilus with MGE linear profiles + jit-visualization")
 print("=" * 72)
 
-mass_param = af.Model(al.mp.Isothermal)
-shear_param = af.Model(al.mp.ExternalShear)
-lens_param = af.Model(
-    al.Galaxy, redshift=0.5, mass=mass_param, shear=shear_param
+mass_mge2 = af.Model(al.mp.NFWSph)
+
+total_gaussians2 = 3
+log10_sigma_list2 = np.linspace(-2, np.log10(mask_radius), total_gaussians2)
+
+centre_0_2 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+centre_1_2 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+
+gaussian_list2 = af.Collection(
+    af.Model(al.lmp_linear.GaussianGradient) for _ in range(total_gaussians2)
+)
+for i, gaussian in enumerate(gaussian_list2):
+    gaussian.centre.centre_0 = centre_0_2
+    gaussian.centre.centre_1 = centre_1_2
+    gaussian.ell_comps = gaussian_list2[0].ell_comps
+    gaussian.sigma = 10 ** log10_sigma_list2[i]
+    gaussian.mass_to_light_ratio = 10.0
+    gaussian.mass_to_light_gradient = 1.0
+
+bulge_mge2 = af.Model(al.lp_basis.Basis, profile_list=list(gaussian_list2))
+
+lens_mge2 = af.Model(
+    al.Galaxy, redshift=0.5, bulge=bulge_mge2, mass=mass_mge2
 )
 
-source_bulge_param = af.Model(al.lp.Sersic)
-source_param = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge_param)
+source_bulge_mge2 = al.model_util.mge_model_from(
+    mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
+)
+source_mge2 = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge_mge2)
 
-model_param = af.Collection(
-    galaxies=af.Collection(lens=lens_param, source=source_param)
+model_mge2 = af.Collection(
+    galaxies=af.Collection(lens=lens_mge2, source=source_mge2)
 )
 
-register_model(model_param)
+register_model(model_mge2)
 
-analysis_param = al.AnalysisImaging(
+analysis_mge2 = al.AnalysisImaging(
     dataset=dataset,
     use_jax=True,
     use_jax_for_visualization=True,
@@ -222,7 +235,7 @@ output_root.mkdir(parents=True)
 
 search = af.Nautilus(
     path_prefix=str(output_root),
-    name="sersic_parametric",
+    name="mge_linear",
     n_live=50,
     n_like_max=1500,
     iterations_per_quick_update=500,
@@ -230,21 +243,26 @@ search = af.Nautilus(
 )
 
 print("Running Nautilus ...")
-result = search.fit(model=model_param, analysis=analysis_param)
+result = search.fit(model=model_mge2, analysis=analysis_mge2)
 
-produced_pngs = list(output_root.rglob("subplot_fit.png"))
-print(f"subplot_fit.png files produced: {len(produced_pngs)}")
+# The Nautilus output goes to output/<path_prefix>/<name>/<hash>/image/
+# The quick-update visualizer writes fit.png (via subplot_fit function)
+# to that image folder during each quick update.
+output_search_root = Path("output") / output_root / "mge_linear"
+produced_pngs = list(output_search_root.rglob("fit.png"))
+print(f"fit.png files produced: {len(produced_pngs)}")
 for p in produced_pngs:
     print(f"  {p}")
 assert len(produced_pngs) > 0, (
-    f"no subplot_fit.png produced under {output_root} — "
+    f"no fit.png produced under {output_search_root} — "
     "quick-update visualization did not fire"
 )
-assert analysis_param._jitted_fit_from is not None, (
+assert analysis_mge2._jitted_fit_from is not None, (
     "expected _jitted_fit_from to be cached on the analysis instance during search"
 )
 
 print(
-    "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates, "
-    "subplot_fit.png written, and the compiled function was reused across updates."
+    "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "
+    "with MGE linear profiles, fit.png written, no KeyError from "
+    "linear_light_profile_intensity_dict lookup."
 )
