@@ -1,0 +1,201 @@
+"""
+Path A PoC: jit-wrap ``analysis.fit_from`` for rectangular source + MGE lens
+===========================================================================
+
+Intersection of two already-shipped siblings:
+
+- ``rectangular_pytree.py`` — rectangular pixelization source with
+  ``Inversion``/``Mapper``/``Mesh``/``Regularization`` pytree registrations.
+- ``mge_pytree.py`` — ``Basis``-of-Gaussians (MGE) light side.
+
+Task prompt (``admin_jammy/prompt/issued/fit_imaging_pytree_rectangular_mge.md``):
+if the two siblings landed clean, this should pass with **no new registrations**.
+If it doesn't, the interaction between those two code paths is the bug.
+
+Success criterion:
+  - ``jax.jit(analysis.fit_from)(instance)`` returns a ``FitImaging`` whose
+    ``log_likelihood`` is a ``jax.Array`` matching the NumPy-path scalar.
+"""
+
+from os import path
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+
+import autofit as af
+import autolens as al
+
+from autofit.jax.pytrees import enable_pytrees, register_model
+
+enable_pytrees()
+
+
+"""
+__Dataset__ — same on-disk dataset used by ``rectangular_mge.py``.
+"""
+sub_size = 4
+
+dataset_path = path.join("dataset", "imaging", "jax_test")
+
+if al.util.dataset.should_simulate(dataset_path):
+    import subprocess
+    import sys
+
+    subprocess.run(
+        [sys.executable, "scripts/jax_likelihood_functions/imaging/simulator.py"],
+        check=True,
+    )
+
+dataset = al.Imaging.from_fits(
+    data_path=path.join(dataset_path, "data.fits"),
+    psf_path=path.join(dataset_path, "psf.fits"),
+    noise_map_path=path.join(dataset_path, "noise_map.fits"),
+    pixel_scales=0.2,
+    over_sample_size_lp=sub_size,
+    over_sample_size_pixelization=sub_size,
+)
+
+mask_radius = 3.5
+
+mask = al.Mask2D.circular(
+    shape_native=dataset.shape_native,
+    pixel_scales=dataset.pixel_scales,
+    radius=mask_radius,
+)
+
+dataset = dataset.apply_mask(mask=mask)
+
+over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
+    grid=dataset.grid,
+    sub_size_list=[4, 2, 1],
+    radial_list=[0.3, 0.6],
+    centre_list=[(0.0, 0.0)],
+)
+
+snr_no_lens = al.Array2D.from_fits(
+    file_path=path.join(dataset_path, "snr_no_lens.fits"), pixel_scales=0.2
+)
+
+signal_to_noise_threshold = 3.0
+over_sample_size_pixelization = np.where(
+    snr_no_lens.native > signal_to_noise_threshold,
+    4,
+    2,
+)
+over_sample_size_pixelization = al.Array2D(
+    values=over_sample_size_pixelization, mask=mask
+)
+
+dataset = dataset.apply_over_sampling(
+    over_sample_size_lp=over_sample_size,
+    over_sample_size_pixelization=over_sample_size_pixelization,
+)
+
+
+"""
+__Model__ — MGE lens bulge + Isothermal + ExternalShear mass, rectangular source.
+"""
+mesh_pixels_yx = 28
+mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
+
+# Lens: MGE bulge + Isothermal mass + ExternalShear
+bulge = al.model_util.mge_model_from(
+    mask_radius=mask_radius,
+    total_gaussians=30,
+    gaussian_per_basis=2,
+    centre_prior_is_uniform=True,
+)
+
+mass = af.Model(al.mp.Isothermal)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=0.2, upper_limit=0.4)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.4, upper_limit=-0.2)
+mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
+mass.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=0.11111111111111108, upper_limit=0.1111111111111111
+)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+
+shear = af.Model(al.mp.ExternalShear)
+shear.gamma_1 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
+shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
+
+lens = af.Model(
+    al.Galaxy,
+    redshift=0.5,
+    bulge=bulge,
+    mass=mass,
+    shear=shear,
+)
+
+# Source: rectangular pixelization with Adapt regularization
+mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
+regularization = al.reg.Adapt()
+pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
+
+source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
+
+model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+
+galaxy_name_image_dict = {
+    "('galaxies', 'lens')": dataset.data,
+    "('galaxies', 'source')": dataset.data,
+}
+
+adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_name_image_dict)
+
+
+"""
+__Analysis__ on the JAX path (``use_jax=True``).
+"""
+analysis = al.AnalysisImaging(
+    dataset=dataset,
+    adapt_images=adapt_images,
+    raise_inversion_positions_likelihood_exception=False,
+    settings=al.Settings(
+        use_border_relocator=True,
+        use_positive_only_solver=True,
+        use_mixed_precision=True,
+    ),
+    use_jax=True,
+)
+
+register_model(model)
+
+instance = model.instance_from_prior_medians()
+
+
+"""
+__NumPy reference scalar__.
+"""
+analysis_np = al.AnalysisImaging(
+    dataset=dataset,
+    adapt_images=adapt_images,
+    raise_inversion_positions_likelihood_exception=False,
+    settings=al.Settings(
+        use_border_relocator=True,
+        use_positive_only_solver=True,
+        use_mixed_precision=True,
+    ),
+    use_jax=False,
+)
+fit_np = analysis_np.fit_from(instance=instance)
+print("NumPy fit.log_likelihood:", float(fit_np.log_likelihood))
+
+
+"""
+__Path A: jit-wrap ``analysis.fit_from``__.
+"""
+fit_jit_fn = jax.jit(analysis.fit_from)
+fit = fit_jit_fn(instance)
+
+print("JIT fit type:", type(fit).__name__)
+print("JIT fit.log_likelihood:", fit.log_likelihood)
+assert isinstance(fit.log_likelihood, jnp.ndarray), (
+    f"expected jax.Array, got {type(fit.log_likelihood)}"
+)
+np.testing.assert_allclose(
+    float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
+)
+
+print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
