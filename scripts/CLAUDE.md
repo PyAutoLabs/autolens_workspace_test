@@ -96,6 +96,12 @@ Scripts that test JAX can compute log-likelihood gradients and batch evaluations
 | `imaging/mge_group.py` | MGE with extra galaxies |
 | `interferometer/mge.py` | MGE for interferometry |
 | `interferometer/rectangular.py` | Rectangular pixelization for interferometry |
+| `interferometer/lp.py` | Parametric Sersic source for interferometry |
+| `interferometer/delaunay.py` | Delaunay pixelization for interferometry |
+| `interferometer/delaunay_mge.py` | Delaunay source + MGE lens for interferometry |
+| `interferometer/rectangular_mge.py` | Rectangular source + MGE lens for interferometry |
+| `interferometer/rectangular_dspl.py` | Rectangular source on double source plane (interferometry) |
+| `interferometer/rectangular_sparse.py` | Rectangular pixelization via JAX sparse-operator NUFFT path |
 | `point_source/point.py` | Point-source likelihood |
 
 ---
