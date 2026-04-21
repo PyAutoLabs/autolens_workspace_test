@@ -3,8 +3,11 @@ Func Grad: Multi-Wavelength MGE
 ================================
 Tests that JAX can compute batched log-likelihood evaluations for a multi-wavelength
 imaging model using the `FactorGraphModel` API. Two imaging datasets (g and r bands)
-are fitted simultaneously with a shared Isothermal+ExternalShear lens mass and shared
-MGE source.
+are fitted simultaneously with an Isothermal+ExternalShear lens mass and an MGE source.
+
+Uses **option B** — per-band source MGE ``ell_comps`` priors via ``model.copy()`` +
+``af.GaussianPrior`` on each ``AnalysisFactor``. All other parameters (lens MGE bulge,
+lens mass, shear, source centres and intensities) remain shared across the g and r bands.
 """
 
 import numpy as np
@@ -84,12 +87,25 @@ model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
 print(model.info)
 
-# FactorGraphModel: same model instance for both analyses (fully shared parameters)
+# Option B: per-band source MGE ell_comps. All gaussians within the source Basis
+# share a single ell_comps prior pair per basis; re-tie them to a fresh pair per
+# factor so each band gets its own shape freedom.
+model_per_band_list = []
+for _ in waveband_list:
+    model_analysis = model.copy()
+    ec_0 = af.GaussianPrior(mean=0.0, sigma=0.5)
+    ec_1 = af.GaussianPrior(mean=0.0, sigma=0.5)
+    for gaussian in model_analysis.galaxies.source.bulge.profile_list:
+        gaussian.ell_comps.ell_comps_0 = ec_0
+        gaussian.ell_comps.ell_comps_1 = ec_1
+    model_per_band_list.append(model_analysis)
+
+# FactorGraphModel: one model.copy() per analysis, per-band source ell_comps.
 analysis_list = [al.AnalysisImaging(dataset=dataset) for dataset in dataset_list]
 
 analysis_factor_list = [
-    af.AnalysisFactor(prior_model=model, analysis=analysis)
-    for analysis in analysis_list
+    af.AnalysisFactor(prior_model=m, analysis=analysis)
+    for m, analysis in zip(model_per_band_list, analysis_list)
 ]
 
 factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
@@ -133,9 +149,11 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
+EXPECTED_VMAP_LOG_LIKELIHOOD = -2174335.96508048
+
 np.testing.assert_allclose(
     np.array(result),
-    -2174335.96508048,
+    EXPECTED_VMAP_LOG_LIKELIHOOD,
     rtol=1e-4,
     err_msg="multi/mge: JAX vmap likelihood mismatch",
 )

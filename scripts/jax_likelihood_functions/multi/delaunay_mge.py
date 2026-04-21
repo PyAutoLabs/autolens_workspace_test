@@ -3,7 +3,11 @@ Func Grad: Multi-Wavelength Delaunay + MGE Lens
 ===============================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap the
 multi-wavelength ``FactorGraphModel`` for an MGE lens bulge + Delaunay
-pixelization source (Hilbert image-mesh) shared across both g and r bands.
+pixelization source (Hilbert image-mesh) across both g and r bands.
+
+Uses **option B** — per-band source ``regularization.inner_coefficient``
+priors via ``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``.
+The MGE lens bulge, lens mass, shear, and mesh parameters remain shared.
 
 Path A asserts ``vmap == JIT round-trip``; see ``rectangular.py`` for
 the rationale (pixelized ``log_likelihood_function`` differs between
@@ -129,6 +133,20 @@ model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 print(model.info)
 
 """
+__Per-band models (option B)__
+
+Each band gets its own ``model.copy()`` with an independent prior on the
+source regularization ``inner_coefficient``.
+"""
+model_per_band_list = []
+for _ in waveband_list:
+    model_analysis = model.copy()
+    model_analysis.galaxies.source.pixelization.regularization.inner_coefficient = (
+        af.GaussianPrior(mean=1.0, sigma=0.5)
+    )
+    model_per_band_list.append(model_analysis)
+
+"""
 __FactorGraphModel__
 """
 analysis_list = [
@@ -141,8 +159,8 @@ analysis_list = [
 ]
 
 analysis_factor_list = [
-    af.AnalysisFactor(prior_model=model, analysis=analysis)
-    for analysis in analysis_list
+    af.AnalysisFactor(prior_model=m, analysis=analysis)
+    for m, analysis in zip(model_per_band_list, analysis_list)
 ]
 
 factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)

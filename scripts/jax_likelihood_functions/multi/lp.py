@@ -3,8 +3,12 @@ Func Grad: Multi-Wavelength Light Parametric
 =============================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap
 `factor_graph.log_likelihood_function` for a multi-wavelength imaging model
-using shared parametric Sersic light profiles for the lens and source across
-both bands.
+using parametric Sersic light profiles for the lens and source.
+
+Uses **option B** — per-band source ``bulge.ell_comps_0/1`` priors via
+``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``. All other
+parameters (lens bulge, lens mass, shear, source bulge aside from
+``ell_comps``) remain shared across the g and r bands.
 
 Path A uses ``jax.jit(factor_graph.log_likelihood_function)`` (not ``fit_from``
 — ``FactorGraphModel`` does not expose a ``fit_from`` method; it sums each
@@ -79,13 +83,30 @@ model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 print(model.info)
 
 """
+__Per-band models (option B)__
+
+Each band gets its own ``model.copy()`` with independent ``source.bulge.ell_comps``
+priors to capture chromatic shape differences. Everything else stays shared.
+"""
+model_per_band_list = []
+for _ in waveband_list:
+    model_analysis = model.copy()
+    model_analysis.galaxies.source.bulge.ell_comps.ell_comps_0 = af.GaussianPrior(
+        mean=0.0, sigma=0.5
+    )
+    model_analysis.galaxies.source.bulge.ell_comps.ell_comps_1 = af.GaussianPrior(
+        mean=0.0, sigma=0.5
+    )
+    model_per_band_list.append(model_analysis)
+
+"""
 __FactorGraphModel (vmap path)__
 """
 analysis_list = [al.AnalysisImaging(dataset=dataset) for dataset in dataset_list]
 
 analysis_factor_list = [
-    af.AnalysisFactor(prior_model=model, analysis=analysis)
-    for analysis in analysis_list
+    af.AnalysisFactor(prior_model=m, analysis=analysis)
+    for m, analysis in zip(model_per_band_list, analysis_list)
 ]
 
 factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
@@ -155,7 +176,8 @@ analysis_np_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=False) for dataset in dataset_list
 ]
 analysis_factor_np_list = [
-    af.AnalysisFactor(prior_model=model, analysis=a) for a in analysis_np_list
+    af.AnalysisFactor(prior_model=m, analysis=a)
+    for m, a in zip(model_per_band_list, analysis_np_list)
 ]
 factor_graph_np = af.FactorGraphModel(*analysis_factor_np_list, use_jax=False)
 
@@ -168,7 +190,8 @@ analysis_jit_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=True) for dataset in dataset_list
 ]
 analysis_factor_jit_list = [
-    af.AnalysisFactor(prior_model=model, analysis=a) for a in analysis_jit_list
+    af.AnalysisFactor(prior_model=m, analysis=a)
+    for m, a in zip(model_per_band_list, analysis_jit_list)
 ]
 factor_graph_jit = af.FactorGraphModel(*analysis_factor_jit_list, use_jax=True)
 
