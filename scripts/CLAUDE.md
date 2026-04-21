@@ -103,6 +103,8 @@ Scripts that test JAX can compute log-likelihood gradients and batch evaluations
 | `interferometer/rectangular_dspl.py` | Rectangular source on double source plane (interferometry) |
 | `interferometer/rectangular_sparse.py` | Rectangular pixelization via JAX sparse-operator NUFFT path |
 | `point_source/point.py` | Point-source likelihood |
+| `point_source/image_plane.py` | Point-source image-plane chi-squared (`FitPositionsImagePairAll`) |
+| `point_source/source_plane.py` | Point-source source-plane chi-squared (`FitPositionsSource`) — JIT currently blocked |
 
 ---
 
