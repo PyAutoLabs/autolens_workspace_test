@@ -2,8 +2,14 @@
 Func Grad: Multi-Wavelength Rectangular Pixelization
 ====================================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap the
-multi-wavelength ``FactorGraphModel`` for a shared rectangular-pixelization
+multi-wavelength ``FactorGraphModel`` for a rectangular-pixelization
 source across both g and r bands.
+
+Uses **option B** — per-band source ``regularization.inner_coefficient``
+priors via ``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``.
+This is the pixelized analogue of "per-band source shape": each band gets
+its own regularization strength. The lens mass, shear, and mesh parameters
+remain shared.
 
 Path A uses ``jax.jit`` on a parameter-vector entry point that mirrors
 ``fitness._vmap`` (``instance_from_vector`` → ``log_likelihood_function``),
@@ -110,15 +116,32 @@ shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
 
 lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
 
-mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
-regularization = al.reg.Adapt()
-pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
+pixelization = af.Model(
+    al.Pixelization,
+    mesh=al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0),
+    regularization=al.reg.Adapt,
+)
 
 source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
 print(model.info)
+
+"""
+__Per-band models (option B)__
+
+Each band gets its own ``model.copy()`` with an independent prior on the
+source regularization ``inner_coefficient``. This is the pixelized analogue
+of "per-band source shape": each band picks its own regularization strength.
+"""
+model_per_band_list = []
+for _ in waveband_list:
+    model_analysis = model.copy()
+    model_analysis.galaxies.source.pixelization.regularization.inner_coefficient = (
+        af.GaussianPrior(mean=1.0, sigma=0.5)
+    )
+    model_per_band_list.append(model_analysis)
 
 """
 __FactorGraphModel (vmap path)__
@@ -134,8 +157,8 @@ analysis_list = [
 ]
 
 analysis_factor_list = [
-    af.AnalysisFactor(prior_model=model, analysis=analysis)
-    for analysis in analysis_list
+    af.AnalysisFactor(prior_model=m, analysis=analysis)
+    for m, analysis in zip(model_per_band_list, analysis_list)
 ]
 
 factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)

@@ -2,8 +2,13 @@
 Func Grad: Multi-Wavelength MGE Group
 =====================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap the
-multi-wavelength ``FactorGraphModel`` for a shared MGE lens bulge + MGE
-source + extra galaxies across both g and r bands.
+multi-wavelength ``FactorGraphModel`` for an MGE lens bulge + MGE source +
+extra galaxies across both g and r bands.
+
+Uses **option B** — per-band source MGE ``ell_comps`` priors via
+``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``. The lens
+MGE bulge, lens mass, shear, and extra-galaxy parameters remain shared across
+the g and r bands.
 
 Path A uses ``jax.jit`` on a parameter-vector entry point that mirrors
 ``fitness._vmap`` (``instance_from_vector`` → ``log_likelihood_function``),
@@ -156,13 +161,32 @@ model = af.Collection(
 )
 
 """
+__Per-band models (option B)__
+
+Each band gets its own ``model.copy()`` with independent source-MGE ``ell_comps``
+priors. All gaussians within the source Basis share one ell_comps prior pair
+per basis (the model helper ties them together); we re-tie them to a fresh
+pair per factor so each band's source can take a different shape. The lens MGE
+and extra galaxies stay shared.
+"""
+model_per_band_list = []
+for _ in waveband_list:
+    model_analysis = model.copy()
+    ec_0 = af.GaussianPrior(mean=0.0, sigma=0.5)
+    ec_1 = af.GaussianPrior(mean=0.0, sigma=0.5)
+    for gaussian in model_analysis.galaxies.source.bulge.profile_list:
+        gaussian.ell_comps.ell_comps_0 = ec_0
+        gaussian.ell_comps.ell_comps_1 = ec_1
+    model_per_band_list.append(model_analysis)
+
+"""
 __FactorGraphModel__
 """
 analysis_list = [al.AnalysisImaging(dataset=dataset) for dataset in dataset_list]
 
 analysis_factor_list = [
-    af.AnalysisFactor(prior_model=model, analysis=analysis)
-    for analysis in analysis_list
+    af.AnalysisFactor(prior_model=m, analysis=analysis)
+    for m, analysis in zip(model_per_band_list, analysis_list)
 ]
 
 factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
@@ -224,7 +248,10 @@ analysis_np_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=False) for dataset in dataset_list
 ]
 factor_graph_np = af.FactorGraphModel(
-    *[af.AnalysisFactor(prior_model=model, analysis=a) for a in analysis_np_list],
+    *[
+        af.AnalysisFactor(prior_model=m, analysis=a)
+        for m, a in zip(model_per_band_list, analysis_np_list)
+    ],
     use_jax=False,
 )
 
@@ -239,7 +266,10 @@ analysis_jit_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=True) for dataset in dataset_list
 ]
 factor_graph_jit = af.FactorGraphModel(
-    *[af.AnalysisFactor(prior_model=model, analysis=a) for a in analysis_jit_list],
+    *[
+        af.AnalysisFactor(prior_model=m, analysis=a)
+        for m, a in zip(model_per_band_list, analysis_jit_list)
+    ],
     use_jax=True,
 )
 

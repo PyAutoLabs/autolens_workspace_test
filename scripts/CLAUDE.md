@@ -105,13 +105,13 @@ Scripts that test JAX can compute log-likelihood gradients and batch evaluations
 | `point_source/point.py` | Point-source likelihood |
 | `point_source/image_plane.py` | Point-source image-plane chi-squared (`FitPositionsImagePairAll`) |
 | `point_source/source_plane.py` | Point-source source-plane chi-squared (`FitPositionsSource`) — JIT currently blocked |
-| `multi/lp.py` | Parametric Sersic source, shared across g/r via `FactorGraphModel` |
-| `multi/mge.py` | MGE source, shared across g/r via `FactorGraphModel` |
-| `multi/mge_group.py` | MGE + extra galaxies, shared across g/r |
-| `multi/rectangular.py` | Rectangular pixelization source, shared across g/r |
-| `multi/delaunay.py` | Delaunay pixelization source (Hilbert image-mesh), shared across g/r |
-| `multi/rectangular_mge.py` | MGE lens + rectangular source, shared across g/r |
-| `multi/delaunay_mge.py` | MGE lens + Delaunay source, shared across g/r |
+| `multi/lp.py` | Parametric Sersic across g/r via `FactorGraphModel`; per-band source `ell_comps` (option B) |
+| `multi/mge.py` | MGE source across g/r; per-band source MGE `ell_comps` (option B) |
+| `multi/mge_group.py` | MGE + extra galaxies across g/r; per-band source MGE `ell_comps` (option B) |
+| `multi/rectangular.py` | Rectangular pixelization across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
 
 ---
 

@@ -3,7 +3,11 @@ Func Grad: Multi-Wavelength Rectangular + MGE Lens
 ==================================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap the
 multi-wavelength ``FactorGraphModel`` for an MGE lens bulge + rectangular
-pixelization source shared across both g and r bands.
+pixelization source across both g and r bands.
+
+Uses **option B** — per-band source ``regularization.inner_coefficient``
+priors via ``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``.
+The MGE lens bulge, lens mass, shear, and mesh parameters remain shared.
 
 Path A asserts ``vmap == JIT round-trip``; see ``rectangular.py`` for
 the rationale.
@@ -98,15 +102,31 @@ shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
 
 lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
 
-mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
-regularization = al.reg.Adapt()
-pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
+pixelization = af.Model(
+    al.Pixelization,
+    mesh=al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0),
+    regularization=al.reg.Adapt,
+)
 
 source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
 print(model.info)
+
+"""
+__Per-band models (option B)__
+
+Each band gets its own ``model.copy()`` with an independent prior on the
+source regularization ``inner_coefficient``.
+"""
+model_per_band_list = []
+for _ in waveband_list:
+    model_analysis = model.copy()
+    model_analysis.galaxies.source.pixelization.regularization.inner_coefficient = (
+        af.GaussianPrior(mean=1.0, sigma=0.5)
+    )
+    model_per_band_list.append(model_analysis)
 
 """
 __FactorGraphModel__
@@ -122,8 +142,8 @@ analysis_list = [
 ]
 
 analysis_factor_list = [
-    af.AnalysisFactor(prior_model=model, analysis=analysis)
-    for analysis in analysis_list
+    af.AnalysisFactor(prior_model=m, analysis=analysis)
+    for m, analysis in zip(model_per_band_list, analysis_list)
 ]
 
 factor_graph = af.FactorGraphModel(*analysis_factor_list, use_jax=True)
@@ -197,5 +217,5 @@ print("JIT log_likelihood_function:", log_l_jit)
 assert isinstance(log_l_jit, jnp.ndarray), (
     f"expected jax.Array, got {type(log_l_jit)}"
 )
-np.testing.assert_allclose(float(log_l_jit), EXPECTED_VMAP_LOG_LIKELIHOOD, rtol=1e-4)
+np.testing.assert_allclose(float(log_l_jit), float(result[0]), rtol=1e-4)
 print("PASS: jit(log_likelihood_function) round-trip matches vmap scalar.")
