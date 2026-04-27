@@ -17,6 +17,7 @@
 #   banner. Investigate the failure, fix the underlying bug, and remove
 #   the NEEDS_FIX marker.
 
+- database/scrape/general # NEEDS_FIX 2026-04-27 - PyAutoGalaxy abstract_fit.linear_light_profile_intensity_dict raises "TypeError: __hash__ method should return an integer" during subplot_fit_imaging after the search completes (a light-profile object's __hash__ returns a non-int). Surfaced once the dataset_label="build" path fix let the script progress past Imaging.from_fits.
 - database/scrape/multi_analysis # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_general # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_multi_one_by_one # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
