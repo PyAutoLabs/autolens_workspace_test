@@ -16,7 +16,7 @@ Full-pipeline JIT status
 The full pipeline (``jax.jit(analysis.fit_from)``) is currently **BLOCKED**
 by a ``Grid2DIrregular.grid_2d_via_deflection_grid_from`` xp-propagation bug
 documented in ``autolens_workspace_developer/jax_profiling/point_source/source_plane.py``
-and tracked in ``admin_jammy/prompt/issued/fit_point_pytree.md``.  When Path
+and tracked in ``PyAutoPrompt/autolens/fit_point_pytree.md``.  When Path
 A JIT fails with ``TracerArrayConversionError`` the script prints a clear
 BLOCKER line and continues, so the eager NumPy regression assertion is still
 exercised.  Once the upstream xp-propagation fix lands, the JIT path will
@@ -219,14 +219,14 @@ try:
 except (jax.errors.TracerArrayConversionError, TypeError) as e:
     # Two stacked blockers gate the full-pipeline JIT:
     #   1. FitPositionsSource is not pytree-registered, so fit_from returns a
-    #      non-JAX type (TypeError).  Tracked in admin_jammy/prompt/issued/fit_point_pytree.md.
+    #      non-JAX type (TypeError).  Tracked in PyAutoPrompt/autolens/fit_point_pytree.md.
     #   2. Even if that is fixed, the source-plane chi-squared itself fails with
     #      TracerArrayConversionError owing to the Grid2DIrregular.grid_2d_via_deflection_grid_from
     #      xp-propagation bug (see autolens_workspace_developer/jax_profiling/point_source/source_plane.py).
     print(
         "\nBLOCKER: source-plane jit(fit_from) is gated by:\n"
         f"  {type(e).__name__}: {e}\n"
-        "  Fixes tracked in admin_jammy/prompt/issued/fit_point_pytree.md and\n"
+        "  Fixes tracked in PyAutoPrompt/autolens/fit_point_pytree.md and\n"
         "  autolens_workspace_developer/jax_profiling/point_source/source_plane.py.\n"
         "  Eager NumPy regression assertion still PASSED above."
     )
