@@ -16,7 +16,7 @@ backed by ``jax.Array`` objects. Matplotlib-bound plotters materialise arrays
 to NumPy at the boundary. No ``jax.jit`` is applied to ``fit_from`` — the
 full-JIT path (Path A) depends on ``FitImaging`` itself becoming a pytree,
 which is tracked as a separate task (see
-``admin_jammy/prompt/autolens/fit_imaging_pytree.md``).
+``PyAutoPrompt/issued/fit_imaging_pytree.md``).
 
 Scope
 -----
