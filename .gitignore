@@ -7,3 +7,13 @@ test_results/
 root.log
 **/images/
 /Users/Jammy/Code/PyAutoLabs/autolens_workspace/howtolens/config
+
+# Generated artifacts — never check in
+image.fits
+path/
+scripts/path/
+scripts/scripts/
+output_path/
+*.log
+*.pyc
+.codex/
