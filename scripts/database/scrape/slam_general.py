@@ -298,8 +298,9 @@ def fit():
     """
     __Dataset + Masking__
     """
+    dataset_label = "build"
     dataset_name = "with_lens_light"
-    dataset_path = path.join("dataset", "imaging", dataset_name)
+    dataset_path = path.join("dataset", dataset_label, "imaging", dataset_name)
 
     if not path.exists(dataset_path):
         import subprocess
