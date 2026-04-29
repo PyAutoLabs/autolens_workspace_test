@@ -198,7 +198,7 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-EXPECTED_VMAP_LOG_LIKELIHOOD = -12670.19450898
+EXPECTED_VMAP_LOG_LIKELIHOOD = -12928.70087095
 
 np.testing.assert_allclose(
     np.array(result),

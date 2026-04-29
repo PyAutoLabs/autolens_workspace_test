@@ -17,9 +17,13 @@ This workspace is often imported from `/mnt/c/...` and Codex may not be able to 
 
 - Scripts run **without** `PYAUTOFIT_TEST_MODE=1` — non-linear searches execute for
   real (using sampler limits like `n_like_max=300` to keep runtime short).
-- No hardcoded expected numerical values in pure-logic or JAX tests.  Assertions
-  are relational (e.g. "JAX result matches NumPy result", "deflected grid ≠ input
-  grid") so they remain valid across profile parameter changes.
+- `jax_likelihood_functions/` scripts assert their `fitness._vmap` output against a
+  hardcoded expected log-likelihood literal (`assert_allclose(np.array(result), <value>, rtol=1e-4)`).
+  These literals are regression markers for the simulator + likelihood pipeline as a
+  whole; if a deliberate simulator change shifts the value, regenerate the literal
+  by running the script and pasting in the new `result` value. Don't replace these
+  with relational `vmap ≈ NumPy-path` assertions — that would lose absolute regression
+  detection.
 - JAX tests follow the **three-step pattern** established in `hessian_jax.py`:
   1. NumPy path — assert correct autoarray return type with `np.ndarray` backing.
   2. JAX path outside JIT — assert same autoarray type but with `jax.Array` backing.
