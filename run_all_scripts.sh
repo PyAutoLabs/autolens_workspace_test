@@ -14,7 +14,7 @@ find scripts -name "*.py" | sort | while read script; do
     TOTAL=$((TOTAL + 1))
     echo "[$TOTAL] Running: $script"
 
-    output=$(PYAUTOFIT_TEST_MODE=1 python "$script" 2>&1)
+    output=$(PYAUTO_TEST_MODE=1 python "$script" 2>&1)
     exit_code=$?
 
     if [ $exit_code -ne 0 ]; then

@@ -15,7 +15,7 @@ import autolens as al
 from autolens import fixtures
 from autofit.non_linear.samples import Sample
 
-os.environ["PYAUTOFIT_TEST_MODE"] = "1"
+os.environ["PYAUTO_TEST_MODE"] = "1"
 
 directory = path.dirname(path.realpath(__file__))
 
