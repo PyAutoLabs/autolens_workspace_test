@@ -9,8 +9,8 @@
 #   - Patterns without '/' match the file stem exactly
 
 defaults:
-  PYAUTOFIT_TEST_MODE: "2"              # 0=normal, 1=reduced iterations, 2=skip sampler (fastest)
-  PYAUTO_WORKSPACE_SMALL_DATASETS: "1"  # Cap grids/masks to 15x15, reduce MGE gaussians
+  PYAUTO_TEST_MODE: "2"              # 0=normal, 1=reduced iterations, 2=skip sampler (fastest)
+  PYAUTO_SMALL_DATASETS: "1"  # Cap grids/masks to 15x15, reduce MGE gaussians
   PYAUTO_DISABLE_JAX: "1"              # Force use_jax=False, avoid JIT compilation overhead
   PYAUTO_FAST_PLOTS: "1"               # Skip tight_layout() + critical curve/caustic overlays
   JAX_ENABLE_X64: "True"               # Enable 64-bit precision in JAX
@@ -20,27 +20,31 @@ defaults:
 overrides:
   # JAX likelihood functions test JIT compilation — need JAX enabled and full-size datasets
   - pattern: "jax_likelihood_functions/"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
+    unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
   # Database scrape scripts need real search output on disk — no test env vars
   - pattern: "database/scrape/"
     unset:
-      - PYAUTOFIT_TEST_MODE
-      - PYAUTO_WORKSPACE_SMALL_DATASETS
+      - PYAUTO_TEST_MODE
+      - PYAUTO_SMALL_DATASETS
       - PYAUTO_DISABLE_JAX
       - PYAUTO_FAST_PLOTS
   # These scripts load pre-committed FITS data at full resolution
   - pattern: "database/scrape/scaling_relation"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+    unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "imaging/convolution"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+    unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "imaging/model_fit"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+    unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "imaging/visualization"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+    unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_lp"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+    unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_mge"
-    unset: [PYAUTO_WORKSPACE_SMALL_DATASETS]
+    unset: [PYAUTO_SMALL_DATASETS]
+  # Model composition scripts assert prior_count for full-size MGE bases.
+  # PYAUTO_SMALL_DATASETS=1 reduces total_gaussians and changes prior_count.
+  - pattern: "model_composition/"
+    unset: [PYAUTO_SMALL_DATASETS]
   # visualization.py asserts subplot PNG files exist on disk, but
   # PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray so
   # no file is ever written.

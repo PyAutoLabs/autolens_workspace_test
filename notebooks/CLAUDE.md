@@ -15,7 +15,7 @@ This workspace is often imported from `/mnt/c/...` and Codex may not be able to 
 
 ## Testing Philosophy
 
-- Scripts run **without** `PYAUTOFIT_TEST_MODE=1` — non-linear searches execute for
+- Scripts run **without** `PYAUTO_TEST_MODE=1` — non-linear searches execute for
   real (using sampler limits like `n_like_max=300` to keep runtime short).
 - No hardcoded expected numerical values in pure-logic or JAX tests.  Assertions
   are relational (e.g. "JAX result matches NumPy result", "deflected grid ≠ input

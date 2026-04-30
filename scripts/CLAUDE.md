@@ -15,7 +15,7 @@ This workspace is often imported from `/mnt/c/...` and Codex may not be able to 
 
 ## Testing Philosophy
 
-- Scripts run **without** `PYAUTOFIT_TEST_MODE=1` — non-linear searches execute for
+- Scripts run **without** `PYAUTO_TEST_MODE=1` — non-linear searches execute for
   real (using sampler limits like `n_like_max=300` to keep runtime short).
 - `jax_likelihood_functions/` scripts assert their `fitness._vmap` output against a
   hardcoded expected log-likelihood literal (`assert_allclose(np.array(result), <value>, rtol=1e-4)`).
