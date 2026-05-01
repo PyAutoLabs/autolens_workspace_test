@@ -55,9 +55,9 @@ value, grad = jax.value_and_grad(loss)(q)
 
 assert np.isfinite(float(value))
 grad_np = np.array(grad)
-assert np.all(np.isfinite(grad_np)), (
-    f"gradient has {np.sum(~np.isfinite(grad_np))} non-finite entries"
-)
+assert np.all(
+    np.isfinite(grad_np)
+), f"gradient has {np.sum(~np.isfinite(grad_np))} non-finite entries"
 
 """
 __Well-conditioned: Preconditioned Solve Matches Raw jaxnnls__

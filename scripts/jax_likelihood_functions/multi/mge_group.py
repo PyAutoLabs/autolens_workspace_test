@@ -255,7 +255,9 @@ factor_graph_np = af.FactorGraphModel(
     use_jax=False,
 )
 
-params_np = np.array(factor_graph_np.global_prior_model.physical_values_from_prior_medians)
+params_np = np.array(
+    factor_graph_np.global_prior_model.physical_values_from_prior_medians
+)
 instance_np = factor_graph_np.global_prior_model.instance_from_vector(
     vector=params_np, xp=np
 )
@@ -282,12 +284,12 @@ def log_l_jit_fn(parameters):
     return factor_graph_jit.log_likelihood_function(instance)
 
 
-params_jit = jnp.array(factor_graph_jit.global_prior_model.physical_values_from_prior_medians)
+params_jit = jnp.array(
+    factor_graph_jit.global_prior_model.physical_values_from_prior_medians
+)
 log_l_jit = log_l_jit_fn(params_jit)
 
 print("JIT log_likelihood_function:", log_l_jit)
-assert isinstance(log_l_jit, jnp.ndarray), (
-    f"expected jax.Array, got {type(log_l_jit)}"
-)
+assert isinstance(log_l_jit, jnp.ndarray), f"expected jax.Array, got {type(log_l_jit)}"
 np.testing.assert_allclose(float(log_l_jit), log_l_np, rtol=1e-4)
 print("PASS: jit(log_likelihood_function) round-trip matches NumPy scalar.")

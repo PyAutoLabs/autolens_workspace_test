@@ -172,9 +172,9 @@ t1 = time.perf_counter()
 compile_time = t1 - t0
 print(f"First call (compile + run): {compile_time:.3f}s")
 print(f"  log_likelihood leaf type: {type(fit_1.log_likelihood).__name__}")
-assert isinstance(fit_1.log_likelihood, jnp.ndarray), (
-    f"expected jax.Array, got {type(fit_1.log_likelihood)}"
-)
+assert isinstance(
+    fit_1.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_1.log_likelihood)}"
 
 t0 = time.perf_counter()
 fit_2 = analysis_probe.fit_for_visualization(instance_probe)
@@ -188,9 +188,9 @@ assert cached_time < compile_time * 0.5, (
     f"Cached call ({cached_time:.3f}s) not faster than compile "
     f"({compile_time:.3f}s) — JIT cache is not being hit."
 )
-assert analysis_probe._jitted_fit_from is not None, (
-    "expected _jitted_fit_from to be cached on the analysis instance after first call"
-)
+assert (
+    analysis_probe._jitted_fit_from is not None
+), "expected _jitted_fit_from to be cached on the analysis instance after first call"
 print("PASS: rectangular jit-cached fit_for_visualization works and is reused.")
 
 
@@ -248,9 +248,9 @@ assert len(produced_pngs) > 0, (
     f"no fit.png produced under {output_search_root} — "
     "quick-update visualization did not fire"
 )
-assert analysis_live._jitted_fit_from is not None, (
-    "expected _jitted_fit_from to be cached on the analysis instance during search"
-)
+assert (
+    analysis_live._jitted_fit_from is not None
+), "expected _jitted_fit_from to be cached on the analysis instance during search"
 
 print(
     "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "

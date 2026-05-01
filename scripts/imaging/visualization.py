@@ -210,7 +210,7 @@ analysis = al.AnalysisImaging(
     positions_likelihood_list=[positions_likelihood],
     adapt_images=adapt_images,
     use_jax=True,
-    title_prefix = "TEST"
+    title_prefix="TEST",
 )
 
 

@@ -5,6 +5,7 @@ Sersic Mass Profile — Deflections via Integral
 This script preserves the integral-based deflection calculation for the
 Sersic mass profile, which was removed from the autogalaxy source code.
 """
+
 import numpy as np
 from scipy.integrate import quad
 import autogalaxy as ag
@@ -22,8 +23,7 @@ def deflection_func(
         (u * ((x**2) + (y**2 / (1 - (1 - axis_ratio**2) * u))))
     )
     return np.exp(
-        -sersic_constant
-        * (((_eta_u / effective_radius) ** (1.0 / sersic_index)) - 1)
+        -sersic_constant * (((_eta_u / effective_radius) ** (1.0 / sersic_index)) - 1)
     ) / ((1 - (1 - axis_ratio**2) * u) ** (npow + 0.5))
 
 

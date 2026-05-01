@@ -5,6 +5,7 @@ NFW Mass Profile — Deflections and Potential via Integral
 This script preserves the integral-based deflection and potential calculations
 for the NFW mass profile, which were removed from the autogalaxy source code.
 """
+
 import numpy as np
 from scipy.integrate import quad
 import autogalaxy as ag
@@ -20,13 +21,9 @@ def nfw_deflection_func(u, y, x, npow, axis_ratio, scale_radius):
         (u * ((x**2) + (y**2 / (1 - (1 - axis_ratio**2) * u))))
     )
     if _eta_u > 1:
-        _eta_u_2 = (1.0 / np.sqrt(_eta_u**2 - 1)) * np.arctan(
-            np.sqrt(_eta_u**2 - 1)
-        )
+        _eta_u_2 = (1.0 / np.sqrt(_eta_u**2 - 1)) * np.arctan(np.sqrt(_eta_u**2 - 1))
     elif _eta_u < 1:
-        _eta_u_2 = (1.0 / np.sqrt(1 - _eta_u**2)) * np.arctanh(
-            np.sqrt(1 - _eta_u**2)
-        )
+        _eta_u_2 = (1.0 / np.sqrt(1 - _eta_u**2)) * np.arctanh(np.sqrt(1 - _eta_u**2))
     else:
         _eta_u_2 = 1
     return (
@@ -47,13 +44,9 @@ def nfw_potential_func(u, y, x, axis_ratio, kappa_s, scale_radius):
         (u * ((x**2) + (y**2 / (1 - (1 - axis_ratio**2) * u))))
     )
     if _eta_u > 1:
-        _eta_u_2 = (1.0 / np.sqrt(_eta_u**2 - 1)) * np.arctan(
-            np.sqrt(_eta_u**2 - 1)
-        )
+        _eta_u_2 = (1.0 / np.sqrt(_eta_u**2 - 1)) * np.arctan(np.sqrt(_eta_u**2 - 1))
     elif _eta_u < 1:
-        _eta_u_2 = (1.0 / np.sqrt(1 - _eta_u**2)) * np.arctanh(
-            np.sqrt(1 - _eta_u**2)
-        )
+        _eta_u_2 = (1.0 / np.sqrt(1 - _eta_u**2)) * np.arctanh(np.sqrt(1 - _eta_u**2))
     else:
         _eta_u_2 = 1
     return (

@@ -5,6 +5,7 @@ gNFW Mass Profile — Deflections, Potential, and Convergence via Integral
 This script preserves the integral-based calculations for the gNFW mass profile,
 which were removed from the autogalaxy source code.
 """
+
 import numpy as np
 from scipy import special
 from scipy.integrate import quad
@@ -256,9 +257,7 @@ def potential_2d_via_integral_from(mp, grid, tabulate_bins=1000):
             epsrel=epsrel,
         )[0]
 
-        deflection_integral[i] = (
-            (eta / mp.scale_radius) ** (2 - mp.inner_slope)
-        ) * (
+        deflection_integral[i] = ((eta / mp.scale_radius) ** (2 - mp.inner_slope)) * (
             (1.0 / (3 - mp.inner_slope))
             * special.hyp2f1(
                 3 - mp.inner_slope,
@@ -295,9 +294,7 @@ def potential_2d_via_integral_from(mp, grid, tabulate_bins=1000):
 __gNFWSph Config 1__
 """
 
-mp = ag.mp.gNFWSph(
-    centre=(0.0, 0.0), kappa_s=1.0, inner_slope=0.5, scale_radius=8.0
-)
+mp = ag.mp.gNFWSph(centre=(0.0, 0.0), kappa_s=1.0, inner_slope=0.5, scale_radius=8.0)
 integral = deflections_2d_via_integral_sph_from(
     mp, grid=ag.Grid2DIrregular([[0.1875, 0.1625]])
 )
@@ -309,9 +306,7 @@ print("gNFWSph config 1: PASSED")
 __gNFWSph Config 2__
 """
 
-mp = ag.mp.gNFWSph(
-    centre=(0.3, 0.2), kappa_s=2.5, inner_slope=1.5, scale_radius=4.0
-)
+mp = ag.mp.gNFWSph(centre=(0.3, 0.2), kappa_s=2.5, inner_slope=1.5, scale_radius=4.0)
 integral = deflections_2d_via_integral_sph_from(
     mp, grid=ag.Grid2DIrregular([[0.1875, 0.1625]])
 )
@@ -359,9 +354,7 @@ print("gNFW ell config 2: PASSED")
 __Potential — gNFWSph Inner Slope 0.5__
 """
 
-mp = ag.mp.gNFWSph(
-    centre=(0.0, 0.0), kappa_s=1.0, inner_slope=0.5, scale_radius=8.0
-)
+mp = ag.mp.gNFWSph(centre=(0.0, 0.0), kappa_s=1.0, inner_slope=0.5, scale_radius=8.0)
 integral_potential = potential_2d_via_integral_from(
     mp, grid=ag.Grid2DIrregular([[0.1625, 0.1875]])
 )
@@ -372,9 +365,7 @@ print("Potential inner_slope=0.5: PASSED")
 __Potential — gNFWSph Inner Slope 1.5__
 """
 
-mp = ag.mp.gNFWSph(
-    centre=(0.0, 0.0), kappa_s=1.0, inner_slope=1.5, scale_radius=8.0
-)
+mp = ag.mp.gNFWSph(centre=(0.0, 0.0), kappa_s=1.0, inner_slope=1.5, scale_radius=8.0)
 integral_potential = potential_2d_via_integral_from(
     mp, grid=ag.Grid2DIrregular([[0.1625, 0.1875]])
 )
@@ -402,9 +393,7 @@ print("Potential gNFW ell: PASSED")
 __Convergence — gNFWSph__
 """
 
-mp = ag.mp.gNFWSph(
-    centre=(0.0, 0.0), kappa_s=1.0, inner_slope=1.5, scale_radius=1.0
-)
+mp = ag.mp.gNFWSph(centre=(0.0, 0.0), kappa_s=1.0, inner_slope=1.5, scale_radius=1.0)
 convergence = mp.convergence_2d_from(grid=ag.Grid2DIrregular([[2.0, 0.0]]))
 np.testing.assert_allclose(convergence, 0.30840, rtol=1e-2)
 print("Convergence gNFWSph: PASSED")

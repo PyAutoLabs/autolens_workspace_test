@@ -4,6 +4,7 @@ Integration test: aggregator FitImaging scrape.
 Exercises FitImagingAgg randomly_drawn_via_pdf_gen_from,
 all_above_weight_gen_from, and adapt_images round-trip.
 """
+
 import os
 import shutil
 from os import path

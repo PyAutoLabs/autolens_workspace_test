@@ -5,6 +5,7 @@ Sersic Gradient Mass Profile — Deflections via Integral
 This script preserves the integral-based deflection calculation for the
 SersicGradient mass profile, which was removed from the autogalaxy source code.
 """
+
 import numpy as np
 from scipy.integrate import quad
 import autogalaxy as ag

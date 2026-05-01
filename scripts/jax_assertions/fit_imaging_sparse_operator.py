@@ -53,7 +53,9 @@ source_0 = al.Galaxy(redshift=0.4, bulge=al.lp.Sersic(centre=(0.3, 0.3)))
 source_1 = al.Galaxy(redshift=0.5, bulge=al.lp.Sersic(centre=(0.3, 0.3)))
 tracer = al.Tracer(galaxies=[lens_0, lens_1, lens_2, source_0, source_1])
 
-dataset = al.SimulatorImaging(exposure_time=300.0, psf=psf, add_poisson_noise_to_data=False)
+dataset = al.SimulatorImaging(
+    exposure_time=300.0, psf=psf, add_poisson_noise_to_data=False
+)
 
 dataset = dataset.via_tracer_from(tracer=tracer, grid=grid)
 dataset.sub_size = 2
@@ -98,9 +100,7 @@ pixelization = al.Pixelization(
 
 source_1 = al.Galaxy(redshift=0.5, pixelization=pixelization)
 
-tracer = al.Tracer(
-    galaxies=[lens_0, lens_1, lens_2, source_0, source_1]
-)
+tracer = al.Tracer(galaxies=[lens_0, lens_1, lens_2, source_0, source_1])
 
 fit_mapping = al.FitImaging(
     dataset=masked_dataset,

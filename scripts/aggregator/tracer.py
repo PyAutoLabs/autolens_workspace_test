@@ -4,6 +4,7 @@ Integration test: aggregator Tracer scrape.
 Exercises TracerAgg randomly_drawn_via_pdf_gen_from and
 all_above_weight_gen_from with weight verification.
 """
+
 import os
 import shutil
 from os import path

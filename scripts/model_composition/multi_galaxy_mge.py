@@ -54,24 +54,24 @@ bulge = al.model_util.mge_model_from(
     centre_prior_is_uniform=True,
 )
 
-assert bulge.prior_count == 6, (
-    f"Lens bulge prior_count: expected 6, got {bulge.prior_count}"
-)
+assert (
+    bulge.prior_count == 6
+), f"Lens bulge prior_count: expected 6, got {bulge.prior_count}"
 
 mass = af.Model(al.mp.Isothermal)
-assert mass.prior_count == 5, (
-    f"Isothermal prior_count: expected 5, got {mass.prior_count}"
-)
+assert (
+    mass.prior_count == 5
+), f"Isothermal prior_count: expected 5, got {mass.prior_count}"
 
 shear = af.Model(al.mp.ExternalShear)
-assert shear.prior_count == 2, (
-    f"ExternalShear prior_count: expected 2, got {shear.prior_count}"
-)
+assert (
+    shear.prior_count == 2
+), f"ExternalShear prior_count: expected 2, got {shear.prior_count}"
 
 lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
-assert lens.prior_count == 13, (
-    f"Lens galaxy prior_count: expected 13, got {lens.prior_count}"
-)
+assert (
+    lens.prior_count == 13
+), f"Lens galaxy prior_count: expected 13, got {lens.prior_count}"
 
 print("Lens galaxy composition: PASSED")
 
@@ -90,14 +90,14 @@ source_bulge = al.model_util.mge_model_from(
     centre_prior_is_uniform=False,
 )
 
-assert source_bulge.prior_count == 4, (
-    f"Source bulge prior_count: expected 4, got {source_bulge.prior_count}"
-)
+assert (
+    source_bulge.prior_count == 4
+), f"Source bulge prior_count: expected 4, got {source_bulge.prior_count}"
 
 source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
-assert source.prior_count == 4, (
-    f"Source galaxy prior_count: expected 4, got {source.prior_count}"
-)
+assert (
+    source.prior_count == 4
+), f"Source galaxy prior_count: expected 4, got {source.prior_count}"
 
 print("Source galaxy composition: PASSED")
 
@@ -110,9 +110,9 @@ free parameter count should be the sum of lens and source counts.
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
-assert model.prior_count == 17, (
-    f"Full model prior_count: expected 17, got {model.prior_count}"
-)
+assert (
+    model.prior_count == 17
+), f"Full model prior_count: expected 17, got {model.prior_count}"
 
 paths = model.unique_prior_paths
 
@@ -149,29 +149,29 @@ basis_0 = gaussians[:20]
 basis_1 = gaussians[20:]
 
 for g in basis_0:
-    assert g.centre.centre_0 is basis_0[0].centre.centre_0, (
-        "Centres within basis 0 must be shared by identity"
-    )
+    assert (
+        g.centre.centre_0 is basis_0[0].centre.centre_0
+    ), "Centres within basis 0 must be shared by identity"
     assert g.centre.centre_1 is basis_0[0].centre.centre_1
 
 for g in basis_1:
-    assert g.centre.centre_0 is basis_1[0].centre.centre_0, (
-        "Centres within basis 1 must be shared by identity"
-    )
+    assert (
+        g.centre.centre_0 is basis_1[0].centre.centre_0
+    ), "Centres within basis 1 must be shared by identity"
 
-assert basis_0[0].centre.centre_0 is basis_1[0].centre.centre_0, (
-    "Centres across bases must be shared (centre_per_basis=False)"
-)
+assert (
+    basis_0[0].centre.centre_0 is basis_1[0].centre.centre_0
+), "Centres across bases must be shared (centre_per_basis=False)"
 
 for g in basis_0:
-    assert g.ell_comps.ell_comps_0 is basis_0[0].ell_comps.ell_comps_0, (
-        "ell_comps within basis 0 must be shared by identity"
-    )
+    assert (
+        g.ell_comps.ell_comps_0 is basis_0[0].ell_comps.ell_comps_0
+    ), "ell_comps within basis 0 must be shared by identity"
 
 for g in basis_1:
-    assert g.ell_comps.ell_comps_0 is basis_1[0].ell_comps.ell_comps_0, (
-        "ell_comps within basis 1 must be shared by identity"
-    )
+    assert (
+        g.ell_comps.ell_comps_0 is basis_1[0].ell_comps.ell_comps_0
+    ), "ell_comps within basis 1 must be shared by identity"
 
 assert basis_0[0].ell_comps.ell_comps_0 is not basis_1[0].ell_comps.ell_comps_0, (
     "ell_comps across bases must be INDEPENDENT (this is the whole point of "
@@ -221,13 +221,13 @@ __Serialization Round-Trip__
 d = model.dict()
 restored = af.Collection.from_dict(d)
 
-assert restored.prior_count == model.prior_count, (
-    f"prior_count changed after round-trip: {restored.prior_count} vs {model.prior_count}"
-)
+assert (
+    restored.prior_count == model.prior_count
+), f"prior_count changed after round-trip: {restored.prior_count} vs {model.prior_count}"
 
-assert restored.unique_prior_paths == model.unique_prior_paths, (
-    "Path structure changed after serialization round-trip"
-)
+assert (
+    restored.unique_prior_paths == model.unique_prior_paths
+), "Path structure changed after serialization round-trip"
 
 print("Serialization round-trip: PASSED")
 
@@ -264,9 +264,9 @@ for gpb in [1, 2, 3]:
     else:
         expected = 2 + 2 * gpb
 
-    assert m.prior_count == expected, (
-        f"gaussian_per_basis={gpb}: expected {expected}, got {m.prior_count}"
-    )
+    assert (
+        m.prior_count == expected
+    ), f"gaussian_per_basis={gpb}: expected {expected}, got {m.prior_count}"
 
     gs = list(m.profile_list)
     assert len(gs) == 10 * gpb
@@ -277,9 +277,9 @@ for gpb in [1, 2, 3]:
             assert g.centre.centre_0 is basis_slice[0].centre.centre_0
 
     if gpb > 1:
-        assert gs[0].ell_comps.ell_comps_0 is not gs[10].ell_comps.ell_comps_0, (
-            f"gaussian_per_basis={gpb}: ell_comps should be independent across bases"
-        )
+        assert (
+            gs[0].ell_comps.ell_comps_0 is not gs[10].ell_comps.ell_comps_0
+        ), f"gaussian_per_basis={gpb}: ell_comps should be independent across bases"
 
 print("Gaussian per basis variants: PASSED")
 
@@ -296,9 +296,9 @@ m_sph = al.model_util.mge_model_from(
     use_spherical=True,
 )
 
-assert m_sph.prior_count == 2, (
-    f"Spherical MGE (shared centre): expected 2, got {m_sph.prior_count}"
-)
+assert (
+    m_sph.prior_count == 2
+), f"Spherical MGE (shared centre): expected 2, got {m_sph.prior_count}"
 
 m_sph_cpb = al.model_util.mge_model_from(
     mask_radius=3.0,
@@ -308,9 +308,9 @@ m_sph_cpb = al.model_util.mge_model_from(
     centre_per_basis=True,
 )
 
-assert m_sph_cpb.prior_count == 4, (
-    f"Spherical MGE (per-basis centre): expected 4, got {m_sph_cpb.prior_count}"
-)
+assert (
+    m_sph_cpb.prior_count == 4
+), f"Spherical MGE (per-basis centre): expected 4, got {m_sph_cpb.prior_count}"
 
 print("Spherical MGE: PASSED")
 
@@ -327,14 +327,14 @@ m_cpb = al.model_util.mge_model_from(
     centre_per_basis=True,
 )
 
-assert m_cpb.prior_count == 8, (
-    f"centre_per_basis=True: expected 8, got {m_cpb.prior_count}"
-)
+assert (
+    m_cpb.prior_count == 8
+), f"centre_per_basis=True: expected 8, got {m_cpb.prior_count}"
 
 gs = list(m_cpb.profile_list)
-assert gs[0].centre.centre_0 is not gs[10].centre.centre_0, (
-    "centre_per_basis=True: centres should be independent across bases"
-)
+assert (
+    gs[0].centre.centre_0 is not gs[10].centre.centre_0
+), "centre_per_basis=True: centres should be independent across bases"
 
 print("Centre per basis: PASSED")
 
@@ -351,9 +351,7 @@ m_cf = al.model_util.mge_model_from(
     centre_fixed=(0.0, 0.0),
 )
 
-assert m_cf.prior_count == 4, (
-    f"centre_fixed: expected 4, got {m_cf.prior_count}"
-)
+assert m_cf.prior_count == 4, f"centre_fixed: expected 4, got {m_cf.prior_count}"
 
 print("Centre fixed: PASSED")
 

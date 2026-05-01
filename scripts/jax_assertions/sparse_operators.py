@@ -64,12 +64,10 @@ for sub_size in range(1, 3):
         mapping_matrix=mapping_matrix, mask=mask
     )
 
-    data_vector = (
-        aa.util.inversion_imaging.data_vector_via_blurred_mapping_matrix_from(
-            blurred_mapping_matrix=blurred_mapping_matrix,
-            image=image,
-            noise_map=noise_map,
-        )
+    data_vector = aa.util.inversion_imaging.data_vector_via_blurred_mapping_matrix_from(
+        blurred_mapping_matrix=blurred_mapping_matrix,
+        image=image,
+        noise_map=noise_map,
     )
 
     rows, cols, vals = aa.util.mapper.sparse_triplets_from(
@@ -86,9 +84,7 @@ for sub_size in range(1, 3):
     psf_weighted_data = aa.util.inversion_imaging.psf_weighted_data_from(
         weight_map_native=weight_map.native.array,
         kernel_native=convolver.kernel.native.array,
-        native_index_for_slim_index=mask.derive_indexes.native_for_slim.astype(
-            "int"
-        ),
+        native_index_for_slim_index=mask.derive_indexes.native_for_slim.astype("int"),
     )
 
     data_vector_via_psf_weighted_noise = (
@@ -235,9 +231,7 @@ curvature_matrix_via_nufft_weighted_noise = (
     )
 )
 
-pix_indexes_for_sub_slim_index = np.array(
-    [[0], [2], [1], [1], [2], [2], [0], [2], [0]]
-)
+pix_indexes_for_sub_slim_index = np.array([[0], [2], [1], [1], [2], [2], [0], [2], [0]])
 
 pix_weights_for_sub_slim_index = np.ones(shape=(9, 1))
 

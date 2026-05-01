@@ -44,7 +44,8 @@ __UV Wavelengths__
 Load the SMA uv-coverage stored in the repository's shared uv_wavelengths folder (190 baselines).
 """
 uv_wavelengths = al.ndarray_via_fits_from(
-    file_path=path.join("dataset", "interferometer", "uv_wavelengths", "sma.fits"), hdu=0
+    file_path=path.join("dataset", "interferometer", "uv_wavelengths", "sma.fits"),
+    hdu=0,
 )
 
 print(f"Total visibilities: {uv_wavelengths.shape[0]}")

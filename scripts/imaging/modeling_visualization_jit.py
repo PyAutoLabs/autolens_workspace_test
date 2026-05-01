@@ -146,9 +146,9 @@ t1 = time.perf_counter()
 compile_time = t1 - t0
 print(f"First call (compile + run): {compile_time:.3f}s")
 print(f"  log_likelihood leaf type: {type(fit_1.log_likelihood).__name__}")
-assert isinstance(fit_1.log_likelihood, jnp.ndarray), (
-    f"expected jax.Array, got {type(fit_1.log_likelihood)}"
-)
+assert isinstance(
+    fit_1.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_1.log_likelihood)}"
 
 t0 = time.perf_counter()
 fit_2 = analysis_mge.fit_for_visualization(instance_mge)
@@ -162,9 +162,9 @@ assert cached_time < compile_time * 0.5, (
     f"Cached call ({cached_time:.3f}s) not faster than compile "
     f"({compile_time:.3f}s) — JIT cache is not being hit."
 )
-assert analysis_mge._jitted_fit_from is not None, (
-    "expected _jitted_fit_from to be cached on the analysis instance after first call"
-)
+assert (
+    analysis_mge._jitted_fit_from is not None
+), "expected _jitted_fit_from to be cached on the analysis instance after first call"
 print("PASS: MGE jit-cached fit_for_visualization works and is reused.")
 
 
@@ -207,18 +207,14 @@ for i, gaussian in enumerate(gaussian_list2):
 
 bulge_mge2 = af.Model(al.lp_basis.Basis, profile_list=list(gaussian_list2))
 
-lens_mge2 = af.Model(
-    al.Galaxy, redshift=0.5, bulge=bulge_mge2, mass=mass_mge2
-)
+lens_mge2 = af.Model(al.Galaxy, redshift=0.5, bulge=bulge_mge2, mass=mass_mge2)
 
 source_bulge_mge2 = al.model_util.mge_model_from(
     mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
 )
 source_mge2 = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge_mge2)
 
-model_mge2 = af.Collection(
-    galaxies=af.Collection(lens=lens_mge2, source=source_mge2)
-)
+model_mge2 = af.Collection(galaxies=af.Collection(lens=lens_mge2, source=source_mge2))
 
 register_model(model_mge2)
 
@@ -257,9 +253,9 @@ assert len(produced_pngs) > 0, (
     f"no fit.png produced under {output_search_root} — "
     "quick-update visualization did not fire"
 )
-assert analysis_mge2._jitted_fit_from is not None, (
-    "expected _jitted_fit_from to be cached on the analysis instance during search"
-)
+assert (
+    analysis_mge2._jitted_fit_from is not None
+), "expected _jitted_fit_from to be cached on the analysis instance during search"
 
 print(
     "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "

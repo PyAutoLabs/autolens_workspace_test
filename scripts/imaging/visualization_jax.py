@@ -144,8 +144,9 @@ try:
         instance=instance,
         during_analysis=False,
     )
-    assert (image_path / "parametric" / "fit.png").exists() or (image_path / "fit.png").exists(), \
-        "fit.png was not produced"
+    assert (image_path / "parametric" / "fit.png").exists() or (
+        image_path / "fit.png"
+    ).exists(), "fit.png was not produced"
     print("PILOT SUCCEEDED — JAX-backed visualization produced fit.png/tracer.png.")
 except Exception:
     print("PILOT FAILED — traceback below:")

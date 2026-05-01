@@ -6,6 +6,7 @@ This script preserves the integral-based deflection calculation for the
 gNFWVirialMassConcSph mass profile, which was removed from the autogalaxy
 source code.
 """
+
 import numpy as np
 from scipy import special
 from scipy.integrate import quad

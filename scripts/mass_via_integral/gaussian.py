@@ -7,6 +7,7 @@ Gaussian mass profile, which was removed from the autogalaxy source code.
 
 The values asserted here were originally verified by the autogalaxy unit tests.
 """
+
 import numpy as np
 from scipy.integrate import quad
 import autogalaxy as ag
@@ -83,12 +84,8 @@ mp = ag.mp.Gaussian(
     sigma=3.0,
     mass_to_light_ratio=1.0,
 )
-integral = deflections_2d_via_integral_from(
-    mp, grid=ag.Grid2DIrregular([[1.0, 0.0]])
-)
-analytic = mp.deflections_2d_via_analytic_from(
-    grid=ag.Grid2DIrregular([[1.0, 0.0]])
-)
+integral = deflections_2d_via_integral_from(mp, grid=ag.Grid2DIrregular([[1.0, 0.0]]))
+analytic = mp.deflections_2d_via_analytic_from(grid=ag.Grid2DIrregular([[1.0, 0.0]]))
 np.testing.assert_allclose(integral, analytic.array, rtol=1e-3)
 print("Config 1: PASSED")
 
@@ -103,12 +100,8 @@ mp = ag.mp.Gaussian(
     sigma=5.0,
     mass_to_light_ratio=1.0,
 )
-integral = deflections_2d_via_integral_from(
-    mp, grid=ag.Grid2DIrregular([[0.5, 0.2]])
-)
-analytic = mp.deflections_2d_via_analytic_from(
-    grid=ag.Grid2DIrregular([[0.5, 0.2]])
-)
+integral = deflections_2d_via_integral_from(mp, grid=ag.Grid2DIrregular([[0.5, 0.2]]))
+analytic = mp.deflections_2d_via_analytic_from(grid=ag.Grid2DIrregular([[0.5, 0.2]]))
 np.testing.assert_allclose(integral, analytic.array, rtol=1e-3)
 print("Config 2: PASSED")
 
@@ -123,12 +116,8 @@ mp = ag.mp.Gaussian(
     sigma=5.0,
     mass_to_light_ratio=2.0,
 )
-integral = deflections_2d_via_integral_from(
-    mp, grid=ag.Grid2DIrregular([[0.5, 0.2]])
-)
-analytic = mp.deflections_2d_via_analytic_from(
-    grid=ag.Grid2DIrregular([[0.5, 0.2]])
-)
+integral = deflections_2d_via_integral_from(mp, grid=ag.Grid2DIrregular([[0.5, 0.2]]))
+analytic = mp.deflections_2d_via_analytic_from(grid=ag.Grid2DIrregular([[0.5, 0.2]]))
 np.testing.assert_allclose(integral, analytic.array, rtol=1e-3)
 print("Mass to light 2: PASSED")
 
@@ -143,12 +132,8 @@ mp = ag.mp.Gaussian(
     sigma=5.0,
     mass_to_light_ratio=1.0,
 )
-integral = deflections_2d_via_integral_from(
-    mp, grid=ag.Grid2DIrregular([[0.5, 0.2]])
-)
-analytic = mp.deflections_2d_via_analytic_from(
-    grid=ag.Grid2DIrregular([[0.5, 0.2]])
-)
+integral = deflections_2d_via_integral_from(mp, grid=ag.Grid2DIrregular([[0.5, 0.2]]))
+analytic = mp.deflections_2d_via_analytic_from(grid=ag.Grid2DIrregular([[0.5, 0.2]]))
 np.testing.assert_allclose(integral, analytic.array, rtol=1e-3)
 print("Intensity 2: PASSED")
 
