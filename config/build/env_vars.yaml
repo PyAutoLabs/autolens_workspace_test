@@ -50,3 +50,9 @@ overrides:
   # no file is ever written.
   - pattern: "interferometer/visualization"
     unset: [PYAUTO_FAST_PLOTS]
+  # modeling_visualization_jit{,_delaunay,_rectangular} test the JIT-cached
+  # visualization path: needs JAX enabled (Part 1 asserts log_likelihood is
+  # a jax.Array), the full-resolution mask, a real Nautilus run for Part 2,
+  # and savefig active (Part 2 asserts fit.png lands on disk).
+  - pattern: "imaging/modeling_visualization_jit"
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
