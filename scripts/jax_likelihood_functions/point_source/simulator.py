@@ -49,10 +49,11 @@ positions = solver.solve(
     tracer=tracer, source_plane_coordinate=source_galaxy.point_0.centre
 )
 
+# Position noise = 5 mas (HST PSF-centroiding precision), not the imaging pixel scale.
 dataset = al.PointDataset(
     name="point_0",
     positions=positions,
-    positions_noise_map=grid.pixel_scale,
+    positions_noise_map=0.005,
 )
 
 al.output_to_json(
