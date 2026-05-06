@@ -126,16 +126,18 @@ aplt.plot_array(
 
 """
 Create a point-source dictionary data object and output this to a `.json` file, which is the format used to load and
-analyse the dataset.
+analyse the dataset. Position noise = 5 mas (HST PSF-centroiding precision); flux noise = 5% relative (microlensing-
+dominated regime). See `autolens_workspace/scripts/point_source/simulator.py` for rationale.
 """
+position_noise = 0.005
+flux_rel_noise = 0.05
+
 dataset = al.PointDataset(
     name="point_0",
     positions=positions,
-    positions_noise_map=grid.pixel_scale,
+    positions_noise_map=position_noise,
     fluxes=fluxes,
-    fluxes_noise_map=al.ArrayIrregular(
-        values=[np.sqrt(flux) for _ in range(len(fluxes))]
-    ),
+    fluxes_noise_map=al.ArrayIrregular(values=flux_rel_noise * np.asarray(fluxes)),
 )
 
 al.output_to_json(
