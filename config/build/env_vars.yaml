@@ -54,13 +54,22 @@ overrides:
   # visualization.py asserts subplot PNG files exist on disk, but
   # PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray so
   # no file is ever written.
-  - pattern: "interferometer/visualization"
+  - pattern: "interferometer/visualization.py"
     unset: [PYAUTO_FAST_PLOTS]
+  # interferometer/visualization_jax exercises the jit-cached
+  # fit_for_visualization path on the interferometer side. PYAUTO_DISABLE_JAX=1
+  # would silently flip use_jax flags off — script needs JAX enabled.
+  - pattern: "interferometer/visualization_jax"
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
   # modeling_visualization_jit{,_delaunay,_rectangular} test the JIT-cached
   # visualization path: needs JAX enabled (Part 1 asserts log_likelihood is
   # a jax.Array), the full-resolution mask, a real Nautilus run for Part 2,
   # and savefig active (Part 2 asserts fit.png lands on disk).
   - pattern: "imaging/modeling_visualization_jit"
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
+  # interferometer/modeling_visualization_jit — same intent as the imaging
+  # analogue but for the interferometer JIT path.
+  - pattern: "interferometer/modeling_visualization_jit"
     unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
   # multi/visualization_imaging loads the 150x150 lens_sersic dataset from
   # disk via Imaging.from_fits (which does not honour SMALL_DATASETS) and
