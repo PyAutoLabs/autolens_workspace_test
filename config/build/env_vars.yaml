@@ -35,8 +35,14 @@ overrides:
     unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "imaging/model_fit"
     unset: [PYAUTO_SMALL_DATASETS]
-  - pattern: "imaging/visualization"
+  - pattern: "imaging/visualization.py"
     unset: [PYAUTO_SMALL_DATASETS]
+  # visualization_jax exercises the jit-cached fit_for_visualization path
+  # (registered model + autoarray pytrees). It must run with JAX enabled —
+  # PYAUTO_DISABLE_JAX=1 would silently flip use_jax flags off and the
+  # script would no-op.
+  - pattern: "imaging/visualization_jax"
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_lp"
     unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_mge"
