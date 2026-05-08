@@ -230,6 +230,14 @@ if output_root.exists():
     shutil.rmtree(output_root)
 output_root.mkdir(parents=True)
 
+# Also clean the autofit search output. Without this, Nautilus resumes from
+# the previous run's cached samples.csv and skips live sampling — so the
+# quick-update visualizer never fires, _jitted_fit_from is never set, and
+# the assertion below would fail on every rerun. Force a fresh run.
+output_search_root = Path("output") / output_root / "mge_linear"
+if output_search_root.exists():
+    shutil.rmtree(output_search_root)
+
 search = af.Nautilus(
     path_prefix=str(output_root),
     name="mge_linear",
@@ -244,7 +252,6 @@ result = search.fit(model=model_mge2, analysis=analysis_mge2)
 
 # The Nautilus output goes to output/<path_prefix>/<name>/<hash>/image/
 # The quick-update visualizer writes fit.png during each quick update.
-output_search_root = Path("output") / output_root / "mge_linear"
 produced_pngs = list(output_search_root.rglob("fit.png"))
 print(f"fit.png files produced: {len(produced_pngs)}")
 for p in produced_pngs:
