@@ -44,6 +44,7 @@ Run from the ``autolens_workspace_test`` repo root with the standard cache overr
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/imaging/visualization_cluster.py
 """
+
 import shutil
 import subprocess
 import sys
@@ -176,22 +177,42 @@ def draw_lens_markers(ax, *, marker_size: int = 220) -> None:
     sat_y, sat_x = main_lens_centres.array[1]
     halo_y, halo_x = host_halo_centre.array[0]
     ax.scatter(
-        [bcg_x], [bcg_y], marker="*", s=marker_size, c="white",
-        edgecolors="black", linewidths=0.8, zorder=5,
+        [bcg_x],
+        [bcg_y],
+        marker="*",
+        s=marker_size,
+        c="white",
+        edgecolors="black",
+        linewidths=0.8,
+        zorder=5,
         label="BCG / member centres",
     )
     ax.scatter(
-        [sat_x], [sat_y], marker="*", s=marker_size * 0.6, c="white",
-        edgecolors="black", linewidths=0.8, zorder=5,
+        [sat_x],
+        [sat_y],
+        marker="*",
+        s=marker_size * 0.6,
+        c="white",
+        edgecolors="black",
+        linewidths=0.8,
+        zorder=5,
     )
     ax.scatter(
-        [halo_x], [halo_y], marker="P", s=marker_size * 0.7, c="white",
-        edgecolors="black", linewidths=0.8, zorder=5,
+        [halo_x],
+        [halo_y],
+        marker="P",
+        s=marker_size * 0.7,
+        c="white",
+        edgecolors="black",
+        linewidths=0.8,
+        zorder=5,
         label="Host halo centre",
     )
 
 
-def draw_kpc_scale_bar(ax, *, lens_redshift: float, cosmology, kpc: float = 50.0) -> None:
+def draw_kpc_scale_bar(
+    ax, *, lens_redshift: float, cosmology, kpc: float = 50.0
+) -> None:
     """Draw a *kpc* physical scale bar in the bottom-left of *ax*.
 
     50 kpc at ``z = 0.5`` is ~8" — visible against a 100" field without dominating the panel.
@@ -206,8 +227,12 @@ def draw_kpc_scale_bar(ax, *, lens_redshift: float, cosmology, kpc: float = 50.0
         x0 + bar_arcsec / 2.0,
         y0 + 0.02 * (ylim[1] - ylim[0]),
         f"{int(kpc)} kpc",
-        color="white", ha="center", va="bottom",
-        fontsize=11, fontweight="bold", zorder=5,
+        color="white",
+        ha="center",
+        va="bottom",
+        fontsize=11,
+        fontweight="bold",
+        zorder=5,
     )
 
 
@@ -242,16 +267,24 @@ _t0 = time.perf_counter()
 
 fig, ax = plt.subplots(figsize=(8.5, 8.0))
 ax.imshow(
-    image_native, cmap=CMAP, norm=make_lognorm(image_native),
-    extent=extent, origin="lower",
+    image_native,
+    cmap=CMAP,
+    norm=make_lognorm(image_native),
+    extent=extent,
+    origin="lower",
 )
 for i, dataset in enumerate(point_datasets):
     colour = WONG_PALETTE[i % len(WONG_PALETTE)]
     positions = np.asarray(dataset.positions.array)
     ax.scatter(
-        positions[:, 1], positions[:, 0],
-        marker="o", s=80, facecolors="none", edgecolors=colour,
-        linewidths=1.6, zorder=4,
+        positions[:, 1],
+        positions[:, 0],
+        marker="o",
+        s=80,
+        facecolors="none",
+        edgecolors=colour,
+        linewidths=1.6,
+        zorder=4,
         label=f"{dataset.name}  (z = {dataset.redshift:.2f})",
     )
 draw_lens_markers(ax)
@@ -270,10 +303,12 @@ plt.close(fig)
 
 print(f"plot 1 complete in {time.perf_counter() - _t0:.2f}s")
 
-assert (image_path / "visualization_overlaid_positions.png").exists(), \
-    "visualization_overlaid_positions.png missing"
-assert (image_path / "visualization_overlaid_positions.png").stat().st_size > 0, \
-    "visualization_overlaid_positions.png is empty"
+assert (
+    image_path / "visualization_overlaid_positions.png"
+).exists(), "visualization_overlaid_positions.png missing"
+assert (
+    image_path / "visualization_overlaid_positions.png"
+).stat().st_size > 0, "visualization_overlaid_positions.png is empty"
 print("visualization_overlaid_positions.png OK")
 
 
@@ -309,9 +344,14 @@ for i, (dataset, ax) in enumerate(zip(point_datasets, axes)):
 
     ax.imshow(image_native, cmap=CMAP, norm=lognorm, extent=extent, origin="lower")
     ax.scatter(
-        positions[:, 1], positions[:, 0],
-        marker="o", s=120, facecolors="none", edgecolors=colour,
-        linewidths=2.0, zorder=4,
+        positions[:, 1],
+        positions[:, 0],
+        marker="o",
+        s=120,
+        facecolors="none",
+        edgecolors=colour,
+        linewidths=2.0,
+        zorder=4,
     )
     draw_lens_markers(ax, marker_size=160)
     ax.set_xlim(bbox_x[0] - margin, bbox_x[1] + margin)
@@ -323,15 +363,19 @@ for i, (dataset, ax) in enumerate(zip(point_datasets, axes)):
 
 fig.suptitle("Per-source zoom panels (each panel cropped to its image group)", y=1.02)
 fig.tight_layout()
-fig.savefig(image_path / "visualization_per_source_grid.png", dpi=150, bbox_inches="tight")
+fig.savefig(
+    image_path / "visualization_per_source_grid.png", dpi=150, bbox_inches="tight"
+)
 plt.close(fig)
 
 print(f"plot 2 complete in {time.perf_counter() - _t0:.2f}s")
 
-assert (image_path / "visualization_per_source_grid.png").exists(), \
-    "visualization_per_source_grid.png missing"
-assert (image_path / "visualization_per_source_grid.png").stat().st_size > 0, \
-    "visualization_per_source_grid.png is empty"
+assert (
+    image_path / "visualization_per_source_grid.png"
+).exists(), "visualization_per_source_grid.png missing"
+assert (
+    image_path / "visualization_per_source_grid.png"
+).stat().st_size > 0, "visualization_per_source_grid.png is empty"
 print("visualization_per_source_grid.png OK")
 
 
@@ -364,19 +408,30 @@ CURVE_ALPHA = 0.7
 
 fig, ax = plt.subplots(figsize=(8.5, 8.0))
 ax.imshow(
-    image_native, cmap=CMAP, norm=make_lognorm(image_native),
-    extent=extent, origin="lower",
+    image_native,
+    cmap=CMAP,
+    norm=make_lognorm(image_native),
+    extent=extent,
+    origin="lower",
 )
 for curve in tangential_curves:
     pts = np.asarray(curve.array)
     ax.plot(
-        pts[:, 1], pts[:, 0],
-        color=CURVE_COLOR, linewidth=CURVE_LINEWIDTH, alpha=CURVE_ALPHA, zorder=3,
+        pts[:, 1],
+        pts[:, 0],
+        color=CURVE_COLOR,
+        linewidth=CURVE_LINEWIDTH,
+        alpha=CURVE_ALPHA,
+        zorder=3,
     )
 draw_lens_markers(ax)
 
 curve_proxy = Line2D(
-    [0], [0], color=CURVE_COLOR, linewidth=CURVE_LINEWIDTH, alpha=CURVE_ALPHA,
+    [0],
+    [0],
+    color=CURVE_COLOR,
+    linewidth=CURVE_LINEWIDTH,
+    alpha=CURVE_ALPHA,
     label=(
         f"Tangential critical curve (multi-plane, "
         f"z_src = {max(g.redshift for g in tracer.galaxies):.2f})"
@@ -392,10 +447,12 @@ plt.close(fig)
 
 print(f"plot 3 complete in {time.perf_counter() - _t0:.2f}s")
 
-assert (image_path / "visualization_critical_curves.png").exists(), \
-    "visualization_critical_curves.png missing"
-assert (image_path / "visualization_critical_curves.png").stat().st_size > 0, \
-    "visualization_critical_curves.png is empty"
+assert (
+    image_path / "visualization_critical_curves.png"
+).exists(), "visualization_critical_curves.png missing"
+assert (
+    image_path / "visualization_critical_curves.png"
+).stat().st_size > 0, "visualization_critical_curves.png is empty"
 print("visualization_critical_curves.png OK")
 
 
@@ -404,8 +461,9 @@ At least one tangential critical curve must have been recovered for a 10^15.3 M_
 zero curves at this halo mass would indicate a regression in either the simulator (mass too low)
 or the LensCalc multi-plane plumbing.
 """
-assert len(tangential_curves) > 0, \
-    "no tangential critical curves recovered (expected at least one for a 10^15.3 M_sun host)"
+assert (
+    len(tangential_curves) > 0
+), "no tangential critical curves recovered (expected at least one for a 10^15.3 M_sun host)"
 print(f"tangential_curves recovered: {len(tangential_curves)} OK")
 
 

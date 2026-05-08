@@ -87,9 +87,7 @@ __Per-Channel Analyses__
 One ``AnalysisInterferometer`` per channel — the canonical FactorGraph wiring.
 """
 analysis_list = [
-    al.AnalysisInterferometer(
-        dataset=dataset, use_jax=False, title_prefix="TEST"
-    )
+    al.AnalysisInterferometer(dataset=dataset, use_jax=False, title_prefix="TEST")
     for dataset in dataset_list
 ]
 
@@ -202,9 +200,7 @@ print(f"direct/ outputs:   {sorted(p.name for p in direct_path.iterdir())}")
 print(f"dispatch/ outputs: {sorted(p.name for p in dispatch_path.iterdir())}")
 
 if direct_combined.exists() and dispatch_combined.exists():
-    print(
-        "\nPASS: dispatch chain produces the same combined plot as the direct call."
-    )
+    print("\nPASS: dispatch chain produces the same combined plot as the direct call.")
 elif direct_combined.exists() and not dispatch_combined.exists():
     print(
         "\nFAIL: VisualizerInterferometer.visualize_combined works in isolation but "

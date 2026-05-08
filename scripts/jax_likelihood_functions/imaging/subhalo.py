@@ -162,9 +162,7 @@ def run_scenario(label, redshift_subhalo, batch_size=4):
 
     analysis = al.AnalysisImaging(
         dataset=dataset,
-        positions_likelihood_list=[
-            al.PositionsLH(threshold=0.4, positions=positions)
-        ],
+        positions_likelihood_list=[al.PositionsLH(threshold=0.4, positions=positions)],
     )
 
     # --- Path 1: fitness._vmap over a small batch of prior-median vectors ---
@@ -181,11 +179,13 @@ def run_scenario(label, redshift_subhalo, batch_size=4):
     parameters = jnp.array(parameters)
 
     result = fitness._vmap(parameters)
-    print(f"  [vmap]   result shape={np.shape(np.array(result))}, "
-          f"first={float(np.array(result)[0]):.6e}")
+    print(
+        f"  [vmap]   result shape={np.shape(np.array(result))}, "
+        f"first={float(np.array(result)[0]):.6e}"
+    )
     np.testing.assert_allclose(
         np.array(result),
-        -1.412105e+09,
+        -1.412105e09,
         rtol=1e-4,
         err_msg="subhalo: JAX vmap likelihood mismatch (issue #498 regression?)",
     )
@@ -195,9 +195,7 @@ def run_scenario(label, redshift_subhalo, batch_size=4):
 
     analysis_np = al.AnalysisImaging(
         dataset=dataset,
-        positions_likelihood_list=[
-            al.PositionsLH(threshold=0.4, positions=positions)
-        ],
+        positions_likelihood_list=[al.PositionsLH(threshold=0.4, positions=positions)],
         use_jax=False,
     )
     fit_np = analysis_np.fit_from(instance=instance)
@@ -205,9 +203,7 @@ def run_scenario(label, redshift_subhalo, batch_size=4):
 
     analysis_jit = al.AnalysisImaging(
         dataset=dataset,
-        positions_likelihood_list=[
-            al.PositionsLH(threshold=0.4, positions=positions)
-        ],
+        positions_likelihood_list=[al.PositionsLH(threshold=0.4, positions=positions)],
         use_jax=True,
     )
     fit = jax.jit(analysis_jit.fit_from)(instance)
