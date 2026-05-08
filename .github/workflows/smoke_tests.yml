@@ -68,13 +68,9 @@ jobs:
       run: |
         pip install --upgrade pip setuptools wheel
         pip install pyyaml
-        if [ "${{ matrix.python-version }}" = "3.12" ]; then
-          pip install ./PyAutoConf ./PyAutoFit ./PyAutoArray ./PyAutoGalaxy ./PyAutoLens
-          pip install "./PyAutoArray[optional]" "./PyAutoGalaxy[optional]" "./PyAutoLens[optional]"
-        else
-          pip install ./PyAutoConf ./PyAutoFit ./PyAutoArray ./PyAutoGalaxy ./PyAutoLens
-          pip install numba
-        fi
+        pip install ./PyAutoConf ./PyAutoFit ./PyAutoArray ./PyAutoGalaxy ./PyAutoLens
+        pip install "jax<0.7" "jaxlib<0.7"
+        pip install "./PyAutoArray[optional]" "./PyAutoGalaxy[optional]" "./PyAutoLens[optional]"
         pip install tensorflow-probability==0.25.0
     - name: Prepare cache dirs
       run: |
