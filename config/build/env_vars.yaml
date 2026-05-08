@@ -56,3 +56,12 @@ overrides:
   # and savefig active (Part 2 asserts fit.png lands on disk).
   - pattern: "imaging/modeling_visualization_jit"
     unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
+  # multi/visualization_imaging loads the 150x150 lens_sersic dataset from
+  # disk via Imaging.from_fits (which does not honour SMALL_DATASETS) and
+  # builds its mask via al.Mask2D.circular (which DOES cap to 15x15 under
+  # PYAUTO_SMALL_DATASETS=1, even when shape_native is explicit). The
+  # mismatch raises a (150,150) vs (15,15) broadcast error on apply_mask.
+  # The script does not run a non-linear search, so it is only useful at
+  # full resolution; just unset the cap.
+  - pattern: "multi/visualization_imaging"
+    unset: [PYAUTO_SMALL_DATASETS]
