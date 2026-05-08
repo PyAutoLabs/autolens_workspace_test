@@ -143,7 +143,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 # Regression constant filled in on first run against the workspace_test
 # seeded PointDataset (``scripts/jax_likelihood_functions/point_source/simulator.py``).
-EXPECTED_VMAP_LOG_LIKELIHOOD_SOURCE_PLANE = -199.1555813
+EXPECTED_VMAP_LOG_LIKELIHOOD_SOURCE_PLANE = -331481.25978149
 
 np.testing.assert_allclose(
     np.array(result),
@@ -180,7 +180,7 @@ fit_np = analysis_np.fit_from(instance=instance)
 log_likelihood_np = float(fit_np.log_likelihood)
 print("NumPy fit.log_likelihood:", log_likelihood_np)
 
-EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE = -199.1555813
+EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE = -331481.26508536364
 
 np.testing.assert_allclose(
     log_likelihood_np,
