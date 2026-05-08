@@ -20,13 +20,13 @@ compatibility.
 
 __Contents__
 
-**Lens Galaxy Composition:** MGE bulge with gaussian_per_basis=2 + Isothermal + ExternalShear.
-**Source Galaxy Composition:** MGE bulge with gaussian_per_basis=1.
-**Full Model:** af.Collection wrapping lens + source galaxies.
-**MGE Prior Identity:** Within-basis sharing and cross-basis independence of priors.
-**Identifier Stability:** Hardcoded regression anchor for the full model.
-**Serialization Round-Trip:** dict/from_dict preserves prior count and path structure.
-**Model Info:** Human-readable info string contains expected component names.
+- **Lens Galaxy Composition:** MGE bulge with gaussian_per_basis=2 + Isothermal + ExternalShear.
+- **Source Galaxy Composition:** MGE bulge with gaussian_per_basis=1.
+- **Full Model:** af.Collection wrapping lens + source galaxies.
+- **MGE Prior Identity:** Within-basis sharing and cross-basis independence of priors.
+- **Identifier Stability:** Hardcoded regression anchor for the full model.
+- **Serialization Round-Trip:** dict/from_dict preserves prior count and path structure.
+- **Model Info:** Human-readable info string contains expected component names.
 """
 
 import autofit as af
