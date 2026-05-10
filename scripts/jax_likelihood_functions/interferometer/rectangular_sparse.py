@@ -255,3 +255,93 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
+
+
+"""
+__Path B: TransformerDFT, no sparse operator__
+
+The Path A run above uses TransformerDFT + `apply_sparse_operator(use_jax=True)`
+(the cached-precision-matrix accelerator for pixelization). This pass uses
+the same TransformerDFT but skips the sparse-operator optimization — the
+plain direct-DFT pixelization path. The two paths give *different*
+log-likelihoods at the ~0.4% level because the sparse-operator
+precomputation is a numerical reformulation, not an exact reproduction;
+this is expected. Path B's literal must therefore match
+`scripts/jax_likelihood_functions/interferometer/rectangular.py` (which is
+the same model + DFT-no-sparse path).
+"""
+dataset_dft_nosparse = al.Interferometer.from_fits(
+    data_path=path.join(dataset_path, "data.fits"),
+    noise_map_path=path.join(dataset_path, "noise_map.fits"),
+    uv_wavelengths_path=path.join(dataset_path, "uv_wavelengths.fits"),
+    real_space_mask=real_space_mask,
+    transformer_class=al.TransformerDFT,
+)
+
+analysis_dft_nosparse = al.AnalysisInterferometer(
+    dataset=dataset_dft_nosparse,
+    adapt_images=adapt_images,
+    raise_inversion_positions_likelihood_exception=False,
+)
+
+fitness_dft_nosparse = Fitness(
+    model=model,
+    analysis=analysis_dft_nosparse,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+result_dft_nosparse = fitness_dft_nosparse._vmap(parameters)
+print()
+print("TransformerDFT (no sparse) vmap result:", result_dft_nosparse)
+
+np.testing.assert_allclose(
+    np.array(result_dft_nosparse),
+    -3164.286252,  # matches rectangular.py (same model, same DFT-no-sparse path)
+    rtol=1e-4,
+    err_msg="interferometer/rectangular_sparse: DFT-no-sparse vmap likelihood disagrees with rectangular.py reference",
+)
+print("PASS: TransformerDFT (no sparse) matches rectangular.py canonical likelihood.")
+
+
+"""
+__Path C: TransformerNUFFT (no sparse operator)__
+
+TransformerNUFFT is incompatible with `apply_sparse_operator` (raises
+NotImplementedError because the sparse path depends on pynufft's
+kernel-deconvolved adjoint scale). Run plain TransformerNUFFT + direct
+forward NUFFT for the pixelization. Should match Path B (DFT-no-sparse)
+since nufftax matches the analytic DFT to ~1e-13 in the forward operator.
+"""
+dataset_nufft = al.Interferometer.from_fits(
+    data_path=path.join(dataset_path, "data.fits"),
+    noise_map_path=path.join(dataset_path, "noise_map.fits"),
+    uv_wavelengths_path=path.join(dataset_path, "uv_wavelengths.fits"),
+    real_space_mask=real_space_mask,
+    transformer_class=al.TransformerNUFFT,
+)
+
+analysis_nufft = al.AnalysisInterferometer(
+    dataset=dataset_nufft,
+    adapt_images=adapt_images,
+    raise_inversion_positions_likelihood_exception=False,
+)
+
+fitness_nufft = Fitness(
+    model=model,
+    analysis=analysis_nufft,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+result_nufft = fitness_nufft._vmap(parameters)
+print()
+print("TransformerNUFFT vmap result:", result_nufft)
+
+np.testing.assert_allclose(
+    np.array(result_nufft),
+    -3164.286252,  # matches DFT-no-sparse path (Path B)
+    rtol=1e-4,
+    err_msg="interferometer/rectangular_sparse: TransformerNUFFT vmap likelihood disagrees with DFT-no-sparse",
+)
+print("PASS: TransformerNUFFT cross-check matches TransformerDFT (no sparse).")

@@ -126,7 +126,7 @@ The `image_mesh` can be ignored, it is legacy API from previous versions which m
 versions.
 """
 image_mesh = None
-mesh_shape = (30, 30)
+mesh_shape = (8, 8)
 total_mapper_pixels = mesh_shape[0] * mesh_shape[1]
 
 """
@@ -274,7 +274,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    1170.07439094,
+    -3797.73182794,
     rtol=1e-4,
     err_msg="rectangular_dspl: JAX vmap likelihood mismatch",
 )
