@@ -272,3 +272,46 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
+
+
+"""
+__Path B: TransformerNUFFT cross-check__
+
+Re-run the same vmap likelihood with the JAX-native nufftax-backed
+TransformerNUFFT. Should match the TransformerDFT result because nufftax
+agrees with the analytic DFT to ~1e-13 across the stress-tested
+configurations. This proves the slow direct-DFT and fast NUFFT paths
+produce the same end-to-end likelihood.
+"""
+dataset_nufft = al.Interferometer.from_fits(
+    data_path=path.join(dataset_path, "data.fits"),
+    noise_map_path=path.join(dataset_path, "noise_map.fits"),
+    uv_wavelengths_path=path.join(dataset_path, "uv_wavelengths.fits"),
+    real_space_mask=real_space_mask,
+    transformer_class=al.TransformerNUFFT,
+)
+
+analysis_nufft = al.AnalysisInterferometer(
+    dataset=dataset_nufft,
+    adapt_images=adapt_images,
+    raise_inversion_positions_likelihood_exception=False,
+)
+
+fitness_nufft = Fitness(
+    model=model,
+    analysis=analysis_nufft,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+result_nufft = fitness_nufft._vmap(parameters)
+print()
+print("TransformerNUFFT vmap result:", result_nufft)
+
+np.testing.assert_allclose(
+    np.array(result_nufft),
+    -3165.42388511,
+    rtol=1e-4,
+    err_msg="interferometer/delaunay: TransformerNUFFT vmap likelihood disagrees with TransformerDFT",
+)
+print("PASS: TransformerNUFFT cross-check matches TransformerDFT.")
