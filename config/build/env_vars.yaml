@@ -80,3 +80,10 @@ overrides:
   # full resolution; just unset the cap.
   - pattern: "multi/visualization_imaging"
     unset: [PYAUTO_SMALL_DATASETS]
+  # point_source/visualization_jax exercises the jit-cached
+  # fit_for_visualization path on the point-source side.
+  - pattern: "point_source/visualization_jax"
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS]
+  # point_source/modeling_visualization_jit — live Nautilus + JIT path.
+  - pattern: "point_source/modeling_visualization_jit"
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
