@@ -58,7 +58,10 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/interferometer/simulator.py"],
+        [
+            sys.executable,
+            "scripts/jax_likelihood_functions/interferometer/simulator.py",
+        ],
         check=True,
     )
 
@@ -128,7 +131,9 @@ __Run visualize on the eager-JAX fit__
 """
 instance = model.instance_from_prior_medians()
 
-print("Running VisualizerInterferometer.visualize with use_jax_for_visualization=True ...")
+print(
+    "Running VisualizerInterferometer.visualize with use_jax_for_visualization=True ..."
+)
 VisualizerInterferometer.visualize(
     analysis=analysis,
     paths=paths,
@@ -136,4 +141,6 @@ VisualizerInterferometer.visualize(
     during_analysis=False,
 )
 assert (image_path / "fit.png").exists(), "fit.png was not produced"
-print("PILOT SUCCEEDED — JAX-backed interferometer visualization produced fit.png/tracer.png.")
+print(
+    "PILOT SUCCEEDED — JAX-backed interferometer visualization produced fit.png/tracer.png."
+)

@@ -194,32 +194,24 @@ vis_a_dft = np.asarray(dft_a.visibilities_from(image=image_a))
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     vis_a_pyn = np.asarray(nuf_a.visibilities_from(image=image_a.native))
-vis_a_nfx = visibilities_via_nufftax(
-    image_a.native.array, uv_a, mask_a.pixel_scales
-)
+vis_a_nfx = visibilities_via_nufftax(image_a.native.array, uv_a, mask_a.pixel_scales)
 
 print(f"vis (DFT)     : {vis_a_dft}")
 print(f"vis (pynufft) : {vis_a_pyn}")
 print(f"vis (nufftax) : {vis_a_nfx}")
-print(
-    f"max |Δ| nufftax - DFT     : {np.max(np.abs(vis_a_nfx - vis_a_dft)):.4e}"
-)
-print(
-    f"max |Δ| pynufft - DFT     : {np.max(np.abs(vis_a_pyn - vis_a_dft)):.4e}"
-)
-print(
-    f"max |Δ| nufftax - pynufft : {np.max(np.abs(vis_a_nfx - vis_a_pyn)):.4e}"
-)
+print(f"max |Δ| nufftax - DFT     : {np.max(np.abs(vis_a_nfx - vis_a_dft)):.4e}")
+print(f"max |Δ| pynufft - DFT     : {np.max(np.abs(vis_a_pyn - vis_a_dft)):.4e}")
+print(f"max |Δ| nufftax - pynufft : {np.max(np.abs(vis_a_nfx - vis_a_pyn)):.4e}")
 
 # nufftax matches the analytic DFT to machine precision.
-assert np.max(np.abs(vis_a_nfx - vis_a_dft)) < 1e-10, (
-    "nufftax should match TransformerDFT exactly on all-ones 5x5"
-)
+assert (
+    np.max(np.abs(vis_a_nfx - vis_a_dft)) < 1e-10
+), "nufftax should match TransformerDFT exactly on all-ones 5x5"
 # pynufft is a gridding approximation and has ~0.1% absolute error at N=5
 # (small-N kernel inaccuracy). It will agree with both DFT and nufftax to ~5e-2.
-assert np.max(np.abs(vis_a_pyn - vis_a_dft)) < 1e-1, (
-    "pynufft should match DFT to gridding precision on all-ones 5x5"
-)
+assert (
+    np.max(np.abs(vis_a_pyn - vis_a_dft)) < 1e-1
+), "pynufft should match DFT to gridding precision on all-ones 5x5"
 
 
 # =============================================================================
@@ -324,22 +316,22 @@ print(
 )
 
 # nufftax with eps=1e-12 is effectively exact; match DFT to ~1e-9 relative.
-assert np.max(np.abs(vis_b_nfx - vis_b_dft)) / dft_scale < 1e-9, (
-    "nufftax should match TransformerDFT to ~1e-9 relative on 256x256"
-)
+assert (
+    np.max(np.abs(vis_b_nfx - vis_b_dft)) / dft_scale < 1e-9
+), "nufftax should match TransformerDFT to ~1e-9 relative on 256x256"
 # pynufft is a gridding approximation with default Jd=(6,6) and oversample
 # ratio=2; this gives ~6e-2 relative error at 256x256, which floors the
 # pynufft <-> nufftax agreement at the same level. We're proving nufftax
 # matches the **truth** (DFT) and is therefore **at least** as accurate as
 # pynufft, not that the two NUFFT implementations agree bit-for-bit.
-assert np.max(np.abs(vis_b_pyn - vis_b_dft)) / dft_scale < 1e-1, (
-    "pynufft should match TransformerDFT within its gridding precision"
-)
+assert (
+    np.max(np.abs(vis_b_pyn - vis_b_dft)) / dft_scale < 1e-1
+), "pynufft should match TransformerDFT within its gridding precision"
 # nufftax and pynufft agree only to pynufft's gridding precision (since
 # nufftax is essentially exact, this residual is dominated by pynufft's error).
-assert np.max(np.abs(vis_b_nfx - vis_b_pyn)) / dft_scale < 1e-1, (
-    "nufftax and pynufft must agree to pynufft's gridding precision"
-)
+assert (
+    np.max(np.abs(vis_b_nfx - vis_b_pyn)) / dft_scale < 1e-1
+), "nufftax and pynufft must agree to pynufft's gridding precision"
 
 
 # Save residuals plot for visual sanity check (mirrors imaging/convolution.py)
@@ -350,12 +342,8 @@ fig, axes = plt.subplots(1, 3, figsize=(16, 4))
 axes[0].plot(np.abs(vis_b_dft), "k-", label="|DFT|", lw=0.8)
 axes[0].set_title("|visibilities| (DFT reference)")
 axes[0].set_xlabel("uv index")
-axes[1].plot(
-    np.abs(vis_b_nfx - vis_b_dft), "b-", label="nufftax - DFT", lw=0.8
-)
-axes[1].plot(
-    np.abs(vis_b_pyn - vis_b_dft), "r-", label="pynufft - DFT", lw=0.8
-)
+axes[1].plot(np.abs(vis_b_nfx - vis_b_dft), "b-", label="nufftax - DFT", lw=0.8)
+axes[1].plot(np.abs(vis_b_pyn - vis_b_dft), "r-", label="pynufft - DFT", lw=0.8)
 axes[1].set_yscale("log")
 axes[1].set_title("|residual vs DFT|")
 axes[1].set_xlabel("uv index")
@@ -386,9 +374,7 @@ mapping_matrix[:, 1] = image_b.array * 0.5 + 0.1  # second column is different
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    mm_pyn = np.asarray(
-        nuf_b.transform_mapping_matrix(mapping_matrix=mapping_matrix)
-    )
+    mm_pyn = np.asarray(nuf_b.transform_mapping_matrix(mapping_matrix=mapping_matrix))
 mm_nfx = transform_mapping_matrix_via_nufftax(
     mapping_matrix=mapping_matrix,
     mask=real_space_mask,
@@ -452,44 +438,36 @@ n_modes_probe = (
 
 # (d.1) Adjoint identity for nufftax (no pynufft involved)
 rng = np.random.default_rng(0)
-c_probe = (
-    rng.standard_normal(dataset.uv_wavelengths.shape[0])
-    + 1j * rng.standard_normal(dataset.uv_wavelengths.shape[0])
-)
-f_probe = (
-    rng.standard_normal(real_space_mask.shape_native)
-    + 1j * rng.standard_normal(real_space_mask.shape_native)
+c_probe = rng.standard_normal(
+    dataset.uv_wavelengths.shape[0]
+) + 1j * rng.standard_normal(dataset.uv_wavelengths.shape[0])
+f_probe = rng.standard_normal(real_space_mask.shape_native) + 1j * rng.standard_normal(
+    real_space_mask.shape_native
 )
 img_from_c = np.asarray(
     nufftax.nufft2d1(x_jx, y_jx, jnp.asarray(c_probe), n_modes_probe, 1e-12, +1)
 )
-vis_from_f = np.asarray(
-    nufftax.nufft2d2(x_jx, y_jx, jnp.asarray(f_probe), 1e-12, -1)
-)
+vis_from_f = np.asarray(nufftax.nufft2d2(x_jx, y_jx, jnp.asarray(f_probe), 1e-12, -1))
 # Standard adjoint identity (derived in nufftax/transforms/autodiff.py: Type 1
 # and Type 2 are adjoints of each other with opposite isign):
 #   sum_k nufft2d1(c)[k] * conj(f[k]) == sum_j c[j] * conj(nufft2d2(f)[j])
 inner_lhs = np.sum(img_from_c * np.conj(f_probe))
 inner_rhs = np.sum(c_probe * np.conj(vis_from_f))
-adjoint_residual = abs(inner_lhs - inner_rhs) / max(
-    abs(inner_lhs), abs(inner_rhs), 1.0
-)
+adjoint_residual = abs(inner_lhs - inner_rhs) / max(abs(inner_lhs), abs(inner_rhs), 1.0)
 print(
     f"(d.1) nufftax adjoint identity "
     f"|<nufft2d1(c), f> - <c, nufft2d2(f)>|_rel : "
     f"{adjoint_residual:.4e}"
 )
-assert adjoint_residual < 1e-9, (
-    "nufftax must satisfy the adjoint property between nufft2d1 and nufft2d2"
-)
+assert (
+    adjoint_residual < 1e-9
+), "nufftax must satisfy the adjoint property between nufft2d1 and nufft2d2"
 
 # (d.2) Forward -> adjoint round trip on a known image
 # We use the lensed image from test (b). Push it through nufftax forward,
 # then through nufftax adjoint, and check the dirty image peaks within a
 # couple of pixels of the brightest pixel of the original.
-peak_image = np.unravel_index(
-    np.argmax(np.abs(image_b_native)), image_b_native.shape
-)
+peak_image = np.unravel_index(np.argmax(np.abs(image_b_native)), image_b_native.shape)
 vis_round = visibilities_via_nufftax(
     image_b_native, dataset.uv_wavelengths, real_space_mask.pixel_scales
 )
@@ -501,10 +479,7 @@ img_round = image_via_nufftax_adjoint(
 )
 peak_round = np.unravel_index(np.argmax(np.abs(img_round)), img_round.shape)
 distance = float(
-    np.sqrt(
-        (peak_image[0] - peak_round[0]) ** 2
-        + (peak_image[1] - peak_round[1]) ** 2
-    )
+    np.sqrt((peak_image[0] - peak_round[0]) ** 2 + (peak_image[1] - peak_round[1]) ** 2)
 )
 print(
     f"(d.2) round trip: peak of original = {peak_image}, "
@@ -514,9 +489,9 @@ print(
 # Allow a few pixels of slack because the dirty image is smoothed by the
 # uv-coverage PSF; the peak can wander slightly relative to a sharply-
 # peaked source.
-assert distance < 5.0, (
-    f"Round-trip dirty-image peak too far from original peak: {distance:.2f} px"
-)
+assert (
+    distance < 5.0
+), f"Round-trip dirty-image peak too far from original peak: {distance:.2f} px"
 
 
 print()

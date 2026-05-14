@@ -116,7 +116,7 @@ VisualizerPoint.visualize(
 )
 
 print("Files in image_path:", list(image_path.iterdir()))
-assert (image_path / "fit.png").exists(), (
-    f"fit.png was not produced. Files present: {list(image_path.iterdir())}"
-)
+assert (
+    image_path / "fit.png"
+).exists(), f"fit.png was not produced. Files present: {list(image_path.iterdir())}"
 print("NumPy point-source visualization produced fit.png.")

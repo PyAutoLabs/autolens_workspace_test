@@ -237,8 +237,7 @@ def run_scenario(
     result = fitness._vmap(parameters)
     first = float(np.array(result)[0])
     print(
-        f"  [vmap]   result shape={np.shape(np.array(result))}, "
-        f"first={first:.6e}"
+        f"  [vmap]   result shape={np.shape(np.array(result))}, " f"first={first:.6e}"
     )
     if expected_vmap is None:
         print(

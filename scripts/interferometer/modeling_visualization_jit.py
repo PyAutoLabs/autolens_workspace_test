@@ -65,7 +65,10 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/interferometer/simulator.py"],
+        [
+            sys.executable,
+            "scripts/jax_likelihood_functions/interferometer/simulator.py",
+        ],
         check=True,
     )
 
@@ -225,7 +228,9 @@ analysis_mge2 = al.AnalysisInterferometer(
     use_jax_for_visualization=True,
 )
 
-output_root = Path("scripts") / "interferometer" / "images" / "modeling_visualization_jit"
+output_root = (
+    Path("scripts") / "interferometer" / "images" / "modeling_visualization_jit"
+)
 if output_root.exists():
     shutil.rmtree(output_root)
 output_root.mkdir(parents=True)
