@@ -1,35 +1,53 @@
 """
-JAX Regression: Free Subhalo Redshift Under jax.jit
-===================================================
+JAX Regression: Free Subhalo Redshift + NFWMCRLudlow Under jax.jit
+==================================================================
 
-This script is the JAX regression check for
-https://github.com/PyAutoLabs/PyAutoLens/issues/498 (originally reported by
-@qiuhan96 and fixed in PyAutoLens PR #499). When the bug was present, setting
-``subhalo.redshift = af.UniformPrior(...)`` raised
-``jax.errors.TracerBoolConversionError`` because Python ``sorted`` /
-``float()`` / ``<=`` / ``==`` were called on what became a traced scalar
-under ``jax.jit``. The fix in ``autolens/lens/tracer_util.py`` and
-``Tracer.galaxies_ascending_redshift`` adds a JAX-aware fast-path guard that
-trusts input galaxy order when any galaxy redshift is traced.
+This script bundles two JAX regression checks that both live in the
+subhalo-likelihood code path:
 
-This script runs two scenarios:
+1. **Free subhalo redshift** (issue
+   https://github.com/PyAutoLabs/PyAutoLens/issues/498, fixed in
+   PyAutoLens PR #499). When the bug was present, setting
+   ``subhalo.redshift = af.UniformPrior(...)`` raised
+   ``jax.errors.TracerBoolConversionError`` because Python ``sorted`` /
+   ``float()`` / ``<=`` / ``==`` were called on what became a traced
+   scalar under ``jax.jit``. The fix in ``autolens/lens/tracer_util.py``
+   and ``Tracer.galaxies_ascending_redshift`` adds a JAX-aware fast-path
+   guard that trusts input galaxy order when any galaxy redshift is
+   traced.
 
-- **Scenario A** — subhalo redshift fixed at z=0.55 (Python float). Exercises
-  the unchanged numpy fast-path through ``tracer_util``.
-- **Scenario B** — subhalo redshift is ``af.UniformPrior(0.2, 0.9)`` (becomes
-  a traced scalar under ``jax.jit``). Exercises the JAX partition-and-trust-
-  input-order path that fixes #498.
+2. **NFWMCRLudlow subhalo under JAX** (issue
+   https://github.com/PyAutoLabs/PyAutoGalaxy/issues/397 and follow-up
+   #403). ``mp.NFWMCRLudlowSph`` calls into ``colossus.halo.concentration``
+   via ``jax.pure_callback`` in ``mcr_util.py`` to compute the
+   mass-concentration relation. We need a regression check that this
+   ``pure_callback`` chain co-operates with ``fitness._vmap`` (the path
+   that actually exercises the callback inside a JAX trace — single-call
+   ``jax.jit(analysis.fit_from)(instance)`` receives a pre-built model
+   instance whose ``kappa_s`` was already computed at construction time,
+   so it does *not* exercise the callback under jit).
 
-Both scenarios call ``fitness._vmap`` over a small batch of prior-median
-parameter vectors and ``jax.jit``-wrap ``analysis.fit_from`` on a single
-instance. Both must produce a finite, NumPy-matching ``log_likelihood`` and
-both must produce vmap results matching the regression literals below.
-A regression of #498 will trip the ``assert_allclose`` on Scenario B's vmap
-output (which would either raise the original ``TracerBoolConversionError``
-or silently drift away from the reference value).
+Four scenarios run, all on the same ``jax_test`` imaging dataset (lens
+at z=0.5, source at z=1.0):
 
-Same ``dataset/imaging/jax_test`` dataset, lens, and source as ``lp.py`` —
-only the ``subhalo`` galaxy is added.
+| Scenario | Subhalo mass    | Subhalo redshift                 |
+|----------|-----------------|----------------------------------|
+| A        | ``IsothermalSph``  | fixed at z=0.55                  |
+| B        | ``IsothermalSph``  | free ``UniformPrior(0.2, 0.9)``  |
+| C        | ``NFWMCRLudlowSph``| fixed at z=0.55                  |
+| D        | ``NFWMCRLudlowSph``| free ``UniformPrior(0.2, 0.9)``  |
+
+Each scenario calls ``fitness._vmap`` over a small batch of prior-median
+parameter vectors and ``jax.jit``-wraps ``analysis.fit_from`` on a single
+instance. The vmap result is asserted against a hard-coded regression
+literal; the single-instance ``jit`` log-likelihood is asserted to match
+the NumPy-path log-likelihood within ``rtol=1e-4``. Any failure raises
+(``AssertionError`` or ``TracerBoolConversionError``) and the script
+exits non-zero.
+
+A regression of issue #498 will trip Scenario B's vmap assert. A
+regression of the Ludlow pure_callback path will trip Scenario C or D's
+vmap assert (or raise inside the callback under vmap).
 """
 
 # %matplotlib inline
@@ -92,19 +110,48 @@ positions = al.Grid2DIrregular(
 
 
 """
+__Subhalo Mass Factories__
+
+Each factory builds an ``af.Model`` for the subhalo mass profile. The
+factory receives the subhalo's galaxy redshift so that
+``NFWMCRLudlowSph.redshift_object`` can be tied to it (matching the
+physical setup where the mass-concentration relation is evaluated at
+the subhalo's own redshift). For the Isothermal factory the argument
+is unused — kept for a uniform factory signature.
+"""
+
+
+def isothermal_subhalo_mass(redshift_subhalo):
+    m = af.Model(al.mp.IsothermalSph)
+    m.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+    m.centre_1 = af.UniformPrior(lower_limit=1.2, upper_limit=1.8)
+    m.einstein_radius = af.UniformPrior(lower_limit=0.01, upper_limit=0.4)
+    return m
+
+
+def nfw_mcr_ludlow_subhalo_mass(redshift_subhalo):
+    m = af.Model(al.mp.NFWMCRLudlowSph)
+    m.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+    m.centre_1 = af.UniformPrior(lower_limit=1.2, upper_limit=1.8)
+    m.mass_at_200 = af.LogUniformPrior(lower_limit=1.0e8, upper_limit=1.0e11)
+    m.redshift_object = redshift_subhalo
+    m.redshift_source = 1.0
+    return m
+
+
+"""
 __Model Builder__
 
-A helper that builds the full ``af.Collection`` for a given subhalo redshift.
-The lens and source pieces match ``lp.py``. The subhalo composition matches
-the bug report from @qiuhan96 (``mp.IsothermalSph`` with the same prior
-ranges he supplied), with the galaxy attribute deliberately named
-``subhalo`` so that ``AnalysisLens.tracer_via_instance_from`` enters the
-buggy branch at ``analysis/lens.py:105`` (``hasattr(instance.galaxies,
+A helper that builds the full ``af.Collection`` for a given subhalo
+redshift and mass-profile factory. The lens and source pieces match
+``lp.py``. The galaxy attribute is deliberately named ``subhalo`` so
+that ``AnalysisLens.tracer_via_instance_from`` enters the relevant
+branch at ``analysis/lens.py:105`` (``hasattr(instance.galaxies,
 "subhalo")``).
 """
 
 
-def build_model(redshift_subhalo):
+def build_model(redshift_subhalo, subhalo_mass_factory):
     lens = af.Model(
         al.Galaxy,
         redshift=0.5,
@@ -113,10 +160,7 @@ def build_model(redshift_subhalo):
         shear=af.Model(al.mp.ExternalShear),
     )
 
-    subhalo_mass = af.Model(al.mp.IsothermalSph)
-    subhalo_mass.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
-    subhalo_mass.centre_1 = af.UniformPrior(lower_limit=1.2, upper_limit=1.8)
-    subhalo_mass.einstein_radius = af.UniformPrior(lower_limit=0.01, upper_limit=0.4)
+    subhalo_mass = subhalo_mass_factory(redshift_subhalo)
 
     subhalo = af.Model(al.Galaxy, redshift=redshift_subhalo, mass=subhalo_mass)
 
@@ -134,30 +178,42 @@ def build_model(redshift_subhalo):
 """
 __Scenario Runner__
 
-Builds an ``AnalysisImaging`` (with positions likelihood, mirroring ``lp.py``),
-runs ``fitness._vmap`` over a small batch of prior-median parameter vectors
-and asserts the result matches the regression literal, then jit-wraps
-``analysis.fit_from`` on a single instance and asserts the jit log-likelihood
-matches the NumPy-path log-likelihood within ``rtol=1e-4``. Any failure
-raises (``AssertionError`` or ``TracerBoolConversionError``) and the script
-exits non-zero.
+Builds an ``AnalysisImaging`` (with positions likelihood, mirroring
+``lp.py``), runs ``fitness._vmap`` over a small batch of prior-median
+parameter vectors and asserts the result matches the regression literal,
+then jit-wraps ``analysis.fit_from`` on a single instance and asserts
+the jit log-likelihood matches the NumPy-path log-likelihood within
+``rtol=1e-4``.
+
+If ``expected_vmap`` is ``None`` the script is in calibration mode: it
+prints the computed value and skips the assert so the literal can be
+copied back into the script.
 """
 
 from autofit.non_linear.fitness import Fitness
 from autofit.jax.pytrees import enable_pytrees, register_model
 
-# enable_pytrees once globally so both scenarios benefit from it for the
-# Path-A jit wrap.  ``register_model`` is called per-scenario below.
+# enable_pytrees once globally so all scenarios benefit from it for the
+# single-instance jit wrap. ``register_model`` is called per-scenario below.
 enable_pytrees()
 
 
-def run_scenario(label, redshift_subhalo, batch_size=4):
+def run_scenario(
+    label,
+    redshift_subhalo,
+    subhalo_mass_factory,
+    expected_vmap,
+    batch_size=4,
+):
     print()
     print("=" * 72)
-    print(f"Scenario {label}: redshift_subhalo = {redshift_subhalo!r}")
+    print(
+        f"Scenario {label}: redshift_subhalo={redshift_subhalo!r}, "
+        f"mass={subhalo_mass_factory.__name__}"
+    )
     print("=" * 72)
 
-    model = build_model(redshift_subhalo)
+    model = build_model(redshift_subhalo, subhalo_mass_factory)
     register_model(model)
 
     analysis = al.AnalysisImaging(
@@ -179,16 +235,22 @@ def run_scenario(label, redshift_subhalo, batch_size=4):
     parameters = jnp.array(parameters)
 
     result = fitness._vmap(parameters)
+    first = float(np.array(result)[0])
     print(
         f"  [vmap]   result shape={np.shape(np.array(result))}, "
-        f"first={float(np.array(result)[0]):.6e}"
+        f"first={first:.6e}"
     )
-    np.testing.assert_allclose(
-        np.array(result),
-        -1.412105e09,
-        rtol=1e-4,
-        err_msg="subhalo: JAX vmap likelihood mismatch (issue #498 regression?)",
-    )
+    if expected_vmap is None:
+        print(
+            f"  [vmap]   CALIBRATION — paste expected_vmap={first:.6e} into the script"
+        )
+    else:
+        np.testing.assert_allclose(
+            np.array(result),
+            expected_vmap,
+            rtol=1e-4,
+            err_msg=f"subhalo[{label}]: JAX vmap likelihood mismatch",
+        )
 
     # --- Path 2: jit-wrapped analysis.fit_from on a single instance ---
     instance = model.instance_from_prior_medians()
@@ -215,31 +277,78 @@ def run_scenario(label, redshift_subhalo, batch_size=4):
 
 
 """
-__Scenario A — Fixed Subhalo Redshift__
+__Scenario A — IsothermalSph, Fixed Subhalo Redshift__
 
 The subhalo redshift is a Python float between the lens (z=0.5) and source
 (z=1.0). Exercises the unchanged numpy fast-path through ``tracer_util``.
 """
-run_scenario("A (fixed redshift z=0.55)", redshift_subhalo=0.55)
+run_scenario(
+    "A (Isothermal, fixed redshift z=0.55)",
+    redshift_subhalo=0.55,
+    subhalo_mass_factory=isothermal_subhalo_mass,
+    expected_vmap=-1.412105e09,
+)
 
 
 """
-__Scenario B — Free Subhalo Redshift__
+__Scenario B — IsothermalSph, Free Subhalo Redshift__
 
 The subhalo redshift is an ``af.UniformPrior(0.2, 0.9)`` — a traced scalar
 under ``jax.jit``. Exercises the JAX partition-and-trust-input-order path
 introduced by PyAutoLens PR #499 to fix #498. The vmap regression literal
-``-1.412105e+09`` is identical to Scenario A's because both evaluate at the
-prior median ``z_subhalo = 0.55``; what differs is the code path inside
-``tracer_util`` (numpy sort vs JAX-aware partition).
+is identical to Scenario A's because both evaluate at the prior median
+``z_subhalo = 0.55``; what differs is the code path inside ``tracer_util``
+(numpy sort vs JAX-aware partition).
 """
 run_scenario(
-    "B (free redshift UniformPrior(0.2, 0.9))",
+    "B (Isothermal, free redshift UniformPrior(0.2, 0.9))",
     redshift_subhalo=af.UniformPrior(lower_limit=0.2, upper_limit=0.9),
+    subhalo_mass_factory=isothermal_subhalo_mass,
+    expected_vmap=-1.412105e09,
+)
+
+
+"""
+__Scenario C — NFWMCRLudlowSph, Fixed Subhalo Redshift__
+
+The subhalo mass profile is ``mp.NFWMCRLudlowSph``, which calls into
+``colossus.halo.concentration`` via ``jax.pure_callback`` (in
+``mcr_util.py``) to compute the mass-concentration relation. Under
+``fitness._vmap`` the callback fires once per batch element (because
+``vmap_method="sequential"``), so this scenario is the load-bearing
+regression check for the pure_callback path under JAX.
+
+The single-instance ``jit`` path further down does NOT exercise the
+callback under jit — the model instance is built outside the trace
+with concrete inputs, so ``kappa_s`` is already a concrete float by
+the time ``analysis.fit_from`` is jit-compiled.
+"""
+run_scenario(
+    "C (NFWMCRLudlow, fixed redshift z=0.55)",
+    redshift_subhalo=0.55,
+    subhalo_mass_factory=nfw_mcr_ludlow_subhalo_mass,
+    expected_vmap=-1.349200e09,
+)
+
+
+"""
+__Scenario D — NFWMCRLudlowSph, Free Subhalo Redshift__
+
+Combines the issue #498 fix (free traced subhalo redshift) with the
+NFWMCRLudlow pure_callback chain. The subhalo galaxy redshift and the
+mass profile's ``redshift_object`` are tied (via the factory) so the
+mass-concentration relation is evaluated at the subhalo's own redshift,
+which becomes a traced scalar.
+"""
+run_scenario(
+    "D (NFWMCRLudlow, free redshift UniformPrior(0.2, 0.9))",
+    redshift_subhalo=af.UniformPrior(lower_limit=0.2, upper_limit=0.9),
+    subhalo_mass_factory=nfw_mcr_ludlow_subhalo_mass,
+    expected_vmap=-1.349200e09,
 )
 
 
 print()
 print("=" * 72)
-print("PASS: issue #498 regression check passing")
+print("PASS: subhalo regression checks passing")
 print("=" * 72)
