@@ -137,6 +137,7 @@ Scripts that test JAX can compute log-likelihood gradients and batch evaluations
 | `multi/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
 
 ---
 
