@@ -213,7 +213,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3152.03184792,
+    -3164.286252,
     rtol=1e-4,
     err_msg="interferometer/rectangular_sparse: JAX vmap likelihood mismatch",
 )
@@ -263,12 +263,12 @@ __Path B: TransformerDFT, no sparse operator__
 The Path A run above uses TransformerDFT + `apply_sparse_operator(use_jax=True)`
 (the cached-precision-matrix accelerator for pixelization). This pass uses
 the same TransformerDFT but skips the sparse-operator optimization — the
-plain direct-DFT pixelization path. The two paths give *different*
-log-likelihoods at the ~0.4% level because the sparse-operator
-precomputation is a numerical reformulation, not an exact reproduction;
-this is expected. Path B's literal must therefore match
-`scripts/jax_likelihood_functions/interferometer/rectangular.py` (which is
-the same model + DFT-no-sparse path).
+plain direct-DFT pixelization path. After the Pmax > 1 / extent-indexing fix
+(issue #314), the two paths agree to numerical precision: the sparse-operator
+precomputation is mathematically exact, not a "numerical reformulation".
+Path B's literal therefore matches Path A and
+`scripts/jax_likelihood_functions/interferometer/rectangular.py` (the same
+model + DFT-no-sparse path).
 """
 dataset_dft_nosparse = al.Interferometer.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
