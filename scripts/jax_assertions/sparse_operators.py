@@ -235,18 +235,29 @@ pix_indexes_for_sub_slim_index = np.array([[0], [2], [1], [1], [2], [2], [0], [2
 
 pix_weights_for_sub_slim_index = np.ones(shape=(9, 1))
 
+# Use the unmasked-extent index for the interferometer sparse operator (which
+# lives on the extent grid, not the full native grid). For this fully-unmasked
+# 3x3 grid the two indices are identical, but the extent form is the convention
+# accepted by the operator after the Pmax > 1 fix.
+rows_interferometer, cols_interferometer, vals_interferometer = aa.util.mapper.sparse_triplets_from(
+    pix_indexes_for_sub=pix_indexes_for_sub_slim_index,
+    pix_weights_for_sub=pix_weights_for_sub_slim_index,
+    slim_index_for_sub=np.arange(pix_indexes_for_sub_slim_index.shape[0], dtype=np.int32),
+    fft_index_for_masked_pixel=grid.mask.extent_index_for_masked_pixel,
+    sub_fraction_slim=np.ones(pix_indexes_for_sub_slim_index.shape[0], dtype=np.float64),
+    return_rows_slim=False,
+)
+
 sparse_operator = aa.InterferometerSparseOperator.from_nufft_precision_operator(
     nufft_precision_operator=nufft_precision_operator,
     dirty_image=None,
 )
 
-curvature_matrix_via_preload = (
-    sparse_operator.curvature_matrix_via_sparse_operator_from(
-        pix_indexes_for_sub_slim_index=pix_indexes_for_sub_slim_index,
-        pix_weights_for_sub_slim_index=pix_weights_for_sub_slim_index,
-        fft_index_for_masked_pixel=grid.mask.fft_index_for_masked_pixel,
-        pix_pixels=3,
-    )
+curvature_matrix_via_preload = sparse_operator.curvature_matrix_diag_from(
+    rows=rows_interferometer,
+    cols=cols_interferometer,
+    vals=vals_interferometer,
+    S=3,
 )
 
 npt.assert_allclose(
