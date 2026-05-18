@@ -172,12 +172,66 @@ analysis = al.AnalysisImaging(
 )
 
 """
+__Likelihood Sanity__
+
+Guard against regressions like PyAutoLens PR #504, where the CPU branch of
+``AnalysisImaging.log_likelihood_function`` silently returned ``fit.log_likelihood``
+instead of ``fit.figure_of_merit``. For a pixelization source these differ by
+the regularization log-det terms of the Bayesian log evidence, so a nested
+sampler would drift to ``outer_coefficient ~= 0`` instead of the physical
+Bayesian maximum.
+
+The sanity analysis is built without ``positions_likelihood_list`` so there is
+no ``log_likelihood_penalty`` term to subtract from the comparison.
+"""
+import pytest
+from autofit.non_linear.fitness import Fitness
+
+
+def _assert_likelihood_sanity(label, analysis, model):
+    instance = model.instance_from_prior_medians()
+    analysis_value = analysis.log_likelihood_function(instance=instance)
+    fit = analysis.fit_from(instance=instance)
+    assert float(analysis_value) == pytest.approx(float(fit.figure_of_merit)), (
+        f"{label}: log_likelihood_function ({analysis_value}) does not match "
+        f"fit.figure_of_merit ({fit.figure_of_merit}) — regression of PR #504"
+    )
+    assert float(fit.figure_of_merit) != pytest.approx(
+        float(fit.log_likelihood), rel=1e-6
+    ), (
+        f"{label}: figure_of_merit == log_likelihood — pixelization regularization "
+        f"log-det terms are zero, this script no longer exercises the bug PR #504 fixed"
+    )
+    fitness = Fitness(
+        model=model,
+        analysis=analysis,
+        paths=None,
+        fom_is_log_likelihood=True,
+        resample_figure_of_merit=-1.0e99,
+    )
+    call_wrap_value = fitness.call_wrap(model.physical_values_from_prior_medians)
+    assert float(call_wrap_value) == pytest.approx(float(fit.figure_of_merit)), (
+        f"{label}: Fitness.call_wrap ({call_wrap_value}) does not match "
+        f"fit.figure_of_merit ({fit.figure_of_merit})"
+    )
+    print(f"  PASS {label}: LLF == figure_of_merit != log_likelihood == call_wrap")
+
+
+sanity_analysis_cpu = al.AnalysisImaging(
+    dataset=dataset,
+    adapt_images=adapt_images,
+    use_jax=False,
+)
+_assert_likelihood_sanity("CPU", sanity_analysis_cpu, model)
+
+
+"""
 __Model-Fit__
 
 We can now begin the model-fit by passing the model and analysis object to the search, which performs a non-linear
 search to find which models fit the data with the highest likelihood.
 
-Checkout the output folder for live outputs of the results of the fit, including on-the-fly visualization of the best 
+Checkout the output folder for live outputs of the results of the fit, including on-the-fly visualization of the best
 fit model!
 """
 result = search.fit(model=model, analysis=analysis)
