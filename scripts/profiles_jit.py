@@ -45,6 +45,7 @@ Mass:
   - ag.mp.PowerLaw        → deflections_yx_2d_from, convergence_2d_from
   - ag.mp.NFW             → deflections_yx_2d_from, convergence_2d_from
   - ag.mp.ExternalShear   → deflections_yx_2d_from, convergence_2d_from
+  - ag.mp.ExternalPotential → deflections_yx_2d_from, convergence_2d_from
 """
 
 import jax
@@ -88,6 +89,7 @@ def check_profile_method(
     np_type,
     jax_type,
     rtol: float = 1e-5,
+    atol: float = 0.0,
 ):
     """
     Run the three-step JAX-JIT check for one profile method on one grid.
@@ -108,6 +110,11 @@ def check_profile_method(
         Expected autoarray type on the JAX path (outside JIT).
     rtol
         Relative tolerance for the NumPy vs JAX numerical comparison.
+    atol
+        Absolute tolerance for the NumPy vs JAX numerical comparison. Needed
+        for profiles whose output legitimately crosses zero on a grid point
+        (e.g. ``mp.ExternalPotential`` convergence on the τ-null line), where
+        the rtol-only check blows up on sub-machine-precision reductions.
     """
     method = getattr(profile, method_name)
 
@@ -144,6 +151,7 @@ def check_profile_method(
         np.array(result_jax_jit),
         np.array(result_np._array),
         rtol=rtol,
+        atol=atol,
         err_msg=f"{label}: numpy vs jax (jit) mismatch",
     )
 
@@ -601,5 +609,55 @@ for method_name, np_irr, jax_irr, np_uni, jax_uni in [
     )
 
 print("  mp.ExternalShear OK")
+
+"""
+ag.mp.ExternalPotential
+"""
+external_potential = ag.mp.ExternalPotential(
+    centre=(0.1, 0.2),
+    gamma_1=0.05,
+    gamma_2=0.03,
+    tau_1=0.02,
+    tau_2=-0.01,
+    delta_1=0.015,
+    delta_2=0.01,
+)
+
+for method_name, np_irr, jax_irr, np_uni, jax_uni in [
+    (
+        "deflections_yx_2d_from",
+        aa.VectorYX2DIrregular,
+        aa.VectorYX2DIrregular,
+        aa.VectorYX2D,
+        aa.VectorYX2D,
+    ),
+    (
+        "convergence_2d_from",
+        aa.ArrayIrregular,
+        aa.ArrayIrregular,
+        aa.Array2D,
+        aa.Array2D,
+    ),
+]:
+    check_profile_method(
+        label=f"mp.ExternalPotential.{method_name} (irregular)",
+        profile=external_potential,
+        method_name=method_name,
+        grid=grid_irr,
+        np_type=np_irr,
+        jax_type=jax_irr,
+        atol=1e-12,
+    )
+    check_profile_method(
+        label=f"mp.ExternalPotential.{method_name} (uniform)",
+        profile=external_potential,
+        method_name=method_name,
+        grid=grid_uni,
+        np_type=np_uni,
+        jax_type=jax_uni,
+        atol=1e-12,
+    )
+
+print("  mp.ExternalPotential OK")
 
 print("\nAll profiles_jit.py checks passed.")

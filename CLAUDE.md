@@ -83,7 +83,8 @@ There are four layers of JAX integration testing, each targeting a different lev
 4. **`profiles_jit.py`** — lowest level.  Tests individual light profile
    `image_2d_from` and mass profile `deflections_yx_2d_from` / `convergence_2d_from`
    methods under JAX JIT.  Covers `lp.Sersic`, `lp.Exponential`, `lp.Gaussian`,
-   `lp.DevVaucouleurs`, `mp.Isothermal`, `mp.PowerLaw`, `mp.NFW`, `mp.ExternalShear`.
+   `lp.DevVaucouleurs`, `mp.Isothermal`, `mp.PowerLaw`, `mp.NFW`, `mp.ExternalShear`,
+   `mp.ExternalPotential`.
 
 ## Line Endings — Always Unix (LF)
 

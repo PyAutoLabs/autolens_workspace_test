@@ -165,7 +165,7 @@ targets the methods that are called internally by `LensCalc` and `Tracer`.
 **Light profiles**: `lp.Sersic`, `lp.Exponential`, `lp.Gaussian`, `lp.DevVaucouleurs`
 → `image_2d_from`
 
-**Mass profiles**: `mp.Isothermal`, `mp.PowerLaw`, `mp.NFW`, `mp.ExternalShear`
+**Mass profiles**: `mp.Isothermal`, `mp.PowerLaw`, `mp.NFW`, `mp.ExternalShear`, `mp.ExternalPotential`
 → `deflections_yx_2d_from`, `convergence_2d_from`
 
 Each method is tested on both `Grid2DIrregular` and `Grid2D.uniform`.
