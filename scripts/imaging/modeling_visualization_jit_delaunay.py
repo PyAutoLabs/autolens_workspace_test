@@ -181,6 +181,63 @@ analysis_probe = al.AnalysisImaging(
 
 instance_probe = model.instance_from_prior_medians()
 
+
+"""
+__Likelihood Sanity__
+
+Guard against regressions like PyAutoLens PR #504, where the CPU branch of
+``AnalysisImaging.log_likelihood_function`` silently returned ``fit.log_likelihood``
+instead of ``fit.figure_of_merit``. For a pixelization source these differ by
+the regularization log-det terms of the Bayesian log evidence, so a nested
+sampler would drift to ``outer_coefficient ~= 0`` instead of the physical
+Bayesian maximum.
+
+Both backends (CPU + JAX) are checked: the bug only fired on the CPU branch
+historically, but the guard catches future drift in either direction.
+"""
+import pytest
+from autofit.non_linear.fitness import Fitness
+
+
+def _assert_likelihood_sanity(label, analysis, model):
+    instance = model.instance_from_prior_medians()
+    analysis_value = analysis.log_likelihood_function(instance=instance)
+    fit = analysis.fit_from(instance=instance)
+    assert float(analysis_value) == pytest.approx(float(fit.figure_of_merit)), (
+        f"{label}: log_likelihood_function ({analysis_value}) does not match "
+        f"fit.figure_of_merit ({fit.figure_of_merit}) — regression of PR #504"
+    )
+    assert float(fit.figure_of_merit) != pytest.approx(
+        float(fit.log_likelihood), rel=1e-6
+    ), (
+        f"{label}: figure_of_merit == log_likelihood — pixelization regularization "
+        f"log-det terms are zero, this script no longer exercises the bug PR #504 fixed"
+    )
+    fitness = Fitness(
+        model=model,
+        analysis=analysis,
+        paths=None,
+        fom_is_log_likelihood=True,
+        resample_figure_of_merit=-1.0e99,
+    )
+    call_wrap_value = fitness.call_wrap(model.physical_values_from_prior_medians)
+    assert float(call_wrap_value) == pytest.approx(float(fit.figure_of_merit)), (
+        f"{label}: Fitness.call_wrap ({call_wrap_value}) does not match "
+        f"fit.figure_of_merit ({fit.figure_of_merit})"
+    )
+    print(f"  PASS {label}: LLF == figure_of_merit != log_likelihood == call_wrap")
+
+
+sanity_analysis_cpu = al.AnalysisImaging(
+    dataset=dataset,
+    adapt_images=adapt_images,
+    raise_inversion_positions_likelihood_exception=False,
+    use_jax=False,
+)
+_assert_likelihood_sanity("CPU", sanity_analysis_cpu, model)
+_assert_likelihood_sanity("JAX", analysis_probe, model)
+
+
 t0 = time.perf_counter()
 fit_1 = analysis_probe.fit_for_visualization(instance_probe)
 jax.block_until_ready(fit_1.log_likelihood)
