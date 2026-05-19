@@ -8,17 +8,18 @@ simulator output and asserts each expected PNG is written to disk. The patterns 
 ``aplt.subplot_*`` is touched, by design. Library-side plotter changes are deliberately deferred to
 a follow-up prompt informed by what this prototype surfaces.
 
-Dataset: ``autolens_workspace/dataset/cluster/simple/`` (written by ``cluster/simulator.py`` in
-the user-facing workspace). If absent, the cluster simulator is invoked at the start of this script
-and the dataset is regenerated at full resolution (1000x1000 @ 0.1"/px).
+Dataset: ``autolens_workspace_test/dataset/cluster/test/`` (written by
+``scripts/cluster/simulator.py``, fed by the CSV truth model from ``scripts/cluster/csv_api.py``).
+If absent, both helper scripts are invoked at the start of this script and the dataset is
+regenerated at the workspace_test resolution (500x500 @ 0.1"/px).
 
 Structure
 ---------
-1. Resolve the cluster dataset path *cross-workspace* (``autolens_workspace_test`` does not own the
-   cluster dataset; it lives in ``autolens_workspace``). Auto-simulate if missing.
-2. Load ``data.fits``, ``point_datasets.csv``, ``tracer.json`` and the centre JSON files.
+1. Resolve the cluster dataset path inside this workspace_test repo. Auto-simulate if missing.
+2. Load ``data.fits``, ``point_datasets.csv``, ``tracer.json`` and read the lens / halo centres
+   from ``mass.csv``.
 3. Run three visualization phases, each writing one PNG into a clean
-   ``scripts/imaging/images/visualization_cluster/`` directory:
+   ``scripts/cluster/images/visualization/`` directory:
 
      - ``visualization_overlaid_positions.png`` — full-field cluster image (LogNorm + ``gnuplot2``)
        with every source's positions overlaid in the Wong (2011) colour-blind palette, BCG/halo
@@ -42,7 +43,7 @@ which patterns are worth promoting into ``aplt`` from a working reference.
 Run from the ``autolens_workspace_test`` repo root with the standard cache overrides::
 
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
-        python scripts/imaging/visualization_cluster.py
+        python scripts/cluster/visualization.py
 """
 
 import shutil
@@ -62,17 +63,13 @@ import autolens as al
 """
 __Paths__
 
-The cluster dataset lives in ``autolens_workspace/dataset/cluster/simple/`` (written by
-``autolens_workspace/scripts/cluster/simulator.py``). This integration test lives in
-``autolens_workspace_test/scripts/imaging/`` and resolves the dataset path from ``__file__`` so it
-works whether invoked from the canonical checkout or from a task worktree, regardless of CWD.
-
-``parents[3]`` walks ``visualization_cluster.py → imaging/ → scripts/ → autolens_workspace_test/``
-and points at the PyAutoLabs root that contains every workspace.
+The cluster test dataset lives in ``autolens_workspace_test/dataset/cluster/test/`` (written by
+``scripts/cluster/simulator.py`` in this same workspace). ``parents[2]`` walks
+``visualization.py → cluster/ → scripts/`` and ``parents[3]`` points at the workspace root.
 """
-PYAUTO_ROOT = Path(__file__).resolve().parents[3]
-WORKSPACE_PATH = PYAUTO_ROOT / "autolens_workspace"
-DATASET_PATH = WORKSPACE_PATH / "dataset" / "cluster" / "simple"
+WORKSPACE_PATH = Path(__file__).resolve().parents[2]
+DATASET_PATH = WORKSPACE_PATH / "dataset" / "cluster" / "test"
+CSV_API_PATH = WORKSPACE_PATH / "scripts" / "cluster" / "csv_api.py"
 SIMULATOR_PATH = WORKSPACE_PATH / "scripts" / "cluster" / "simulator.py"
 
 PIXEL_SCALE = 0.1
@@ -81,16 +78,16 @@ PIXEL_SCALE = 0.1
 """
 __Dataset Auto-Simulation__
 
-Mirrors the convention used in ``scripts/imaging/visualization.py`` — if the dataset directory is
-absent, run the simulator once before continuing. The cluster simulator writes paths *relative to
-its own CWD*, so we run it with ``cwd=autolens_workspace`` to land the outputs in the correct place.
+If the dataset is absent (or missing ``data.fits``), run ``csv_api.py`` then ``simulator.py``. Both
+scripts write paths *relative to their own CWD*, so we run them with ``cwd=WORKSPACE_PATH``.
 """
-if not DATASET_PATH.exists():
-    print(f"Cluster dataset missing at {DATASET_PATH} — running simulator...")
+if not (DATASET_PATH / "data.fits").exists():
+    print(f"Cluster test dataset missing at {DATASET_PATH} — running csv_api + simulator...")
     subprocess.run(
-        [sys.executable, str(SIMULATOR_PATH)],
-        cwd=WORKSPACE_PATH,
-        check=True,
+        [sys.executable, str(CSV_API_PATH)], cwd=WORKSPACE_PATH, check=True
+    )
+    subprocess.run(
+        [sys.executable, str(SIMULATOR_PATH)], cwd=WORKSPACE_PATH, check=True
     )
     print("Cluster simulator complete.")
 
@@ -98,7 +95,7 @@ if not DATASET_PATH.exists():
 """
 __Load Dataset__
 
-Three pieces are needed:
+Four pieces are needed:
 
  - ``data.fits`` for the cluster background image (``Array2D`` so ``.native`` returns a plain numpy
    2D array suitable for ``imshow``).
@@ -106,16 +103,21 @@ Three pieces are needed:
    positions and redshift.
  - ``tracer.json`` — the true ``Tracer``; gives multi-plane critical curves and the cosmology /
    lens redshift used by the kpc scale bar.
-
-The two centre JSON files mark the BCG / member centres and the host-halo centre on every panel.
+ - ``mass.csv`` — named-galaxy mass profiles; provides the lens / halo centres for the panel
+   overlays (BCG, satellite, host-halo markers).
 """
 data = al.Array2D.from_fits(
     file_path=DATASET_PATH / "data.fits", pixel_scales=PIXEL_SCALE
 )
 point_datasets = al.list_from_csv(file_path=DATASET_PATH / "point_datasets.csv")
 tracer = al.from_json(file_path=DATASET_PATH / "tracer.json")
-main_lens_centres = al.from_json(file_path=DATASET_PATH / "main_lens_centres.json")
-host_halo_centre = al.from_json(file_path=DATASET_PATH / "host_halo_centre.json")
+
+mass_table = al.galaxy_models_from_csv(DATASET_PATH / "mass.csv", family="mass")
+_centres_by_galaxy = {row.galaxy: row.params["centre"] for row in mass_table.rows}
+main_lens_centres = al.Grid2DIrregular(
+    [_centres_by_galaxy[name] for name in ("lens_0", "lens_1") if name in _centres_by_galaxy]
+)
+host_halo_centre = al.Grid2DIrregular([_centres_by_galaxy["host_halo"]])
 
 
 """
@@ -246,7 +248,7 @@ __Paths__
 Mirrors the imaging visualization integration test: clean a per-script ``images/`` directory on
 each run so assertions reflect this run only.
 """
-image_path = Path("scripts") / "imaging" / "images" / "visualization_cluster"
+image_path = Path("scripts") / "cluster" / "images" / "visualization"
 
 if image_path.exists():
     shutil.rmtree(image_path)
