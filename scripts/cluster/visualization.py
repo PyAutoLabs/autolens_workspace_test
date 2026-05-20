@@ -401,7 +401,11 @@ print("\nRunning plot 3 — critical-curve overlay...")
 _t0 = time.perf_counter()
 
 lens_calc = al.LensCalc.from_tracer(tracer, use_multi_plane=True, plane_j=-1)
-viz_grid = al.Grid2D.uniform(shape_native=(200, 200), pixel_scales=0.5)
+# The cluster host's tangential critical curve sits at ~30-50"; the assertion below requires the
+# grid to extend past it. Opt out of PYAUTO_SMALL_DATASETS' 15x15 @ 0.6" shrink for this one grid.
+viz_grid = al.Grid2D.uniform(
+    shape_native=(200, 200), pixel_scales=0.5, respect_small_datasets=False
+)
 tangential_curves = lens_calc.tangential_critical_curve_list_from(grid=viz_grid)
 
 CURVE_COLOR = "#00FFFF"
