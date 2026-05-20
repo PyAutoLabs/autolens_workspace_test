@@ -304,7 +304,10 @@ fitness_nufft = Fitness(
     resample_figure_of_merit=-1.0e99,
 )
 
-result_nufft = fitness_nufft._vmap(parameters)
+# Path B's TransformerNUFFT JIT compilation peaks at ~15 GB on this corpus,
+# OOM-killing python on 15 GB-RAM machines. The cross-check only needs one
+# sample to prove NUFFT vs DFT agree, so restrict to parameters[:1] here.
+result_nufft = fitness_nufft._vmap(parameters[:1])
 print()
 print("TransformerNUFFT vmap result:", result_nufft)
 
