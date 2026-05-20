@@ -6,7 +6,10 @@
 #
 # Pattern convention (same as no_run.yaml):
 #   - Patterns containing '/' do a substring match against the file path
-#   - Patterns without '/' match the file stem exactly
+#     including extension (so patterns may end in `.py` to anchor against
+#     the script form, e.g. `imaging/visualization.py` matches only the
+#     `.py` script, not `imaging/visualization_jax.py`).
+#   - Patterns without '/' match the file stem exactly.
 
 defaults:
   PYAUTO_TEST_MODE: "2"              # 0=normal, 1=reduced iterations, 2=skip sampler (fastest)
@@ -35,14 +38,18 @@ overrides:
     unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "imaging/model_fit"
     unset: [PYAUTO_SMALL_DATASETS]
+  # imaging/visualization.py asserts subplot PNG / FITS files land on disk
+  # and loads pre-committed FITS at full resolution — both PYAUTO_FAST_PLOTS
+  # (which short-circuits savefig) and PYAUTO_SMALL_DATASETS must be unset.
   - pattern: "imaging/visualization.py"
-    unset: [PYAUTO_SMALL_DATASETS]
+    unset: [PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
   # visualization_jax exercises the jit-cached fit_for_visualization path
   # (registered model + autoarray pytrees). It must run with JAX enabled —
   # PYAUTO_DISABLE_JAX=1 would silently flip use_jax flags off and the
-  # script would no-op.
+  # script would no-op. Also asserts fit.png on disk so PYAUTO_FAST_PLOTS
+  # must be unset.
   - pattern: "imaging/visualization_jax"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS]
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_lp"
     unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_mge"
@@ -51,11 +58,13 @@ overrides:
   # PYAUTO_SMALL_DATASETS=1 reduces total_gaussians and changes prior_count.
   - pattern: "model_composition/"
     unset: [PYAUTO_SMALL_DATASETS]
-  # visualization.py asserts subplot PNG files exist on disk, but
-  # PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray so
-  # no file is ever written.
+  # interferometer/visualization.py asserts subplot PNG / FITS files exist
+  # on disk (PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray)
+  # and loads pre-committed FITS at full resolution with an explicit
+  # (100, 100) shape_native mask — the 15x15 SMALL_DATASETS cap would still
+  # apply, so both must be unset.
   - pattern: "interferometer/visualization.py"
-    unset: [PYAUTO_FAST_PLOTS]
+    unset: [PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
   # interferometer/visualization_jax exercises the jit-cached
   # fit_for_visualization path on the interferometer side. PYAUTO_DISABLE_JAX=1
   # would silently flip use_jax flags off — script needs JAX enabled.
@@ -80,10 +89,16 @@ overrides:
   # full resolution; just unset the cap.
   - pattern: "multi/visualization_imaging"
     unset: [PYAUTO_SMALL_DATASETS]
+  # point_source/visualization.py asserts fit.png lands on disk and uses a
+  # JSON point dataset (no FITS, no mask) — PYAUTO_FAST_PLOTS must be unset
+  # but PYAUTO_SMALL_DATASETS does not affect this script.
+  - pattern: "point_source/visualization.py"
+    unset: [PYAUTO_FAST_PLOTS]
   # point_source/visualization_jax exercises the jit-cached
-  # fit_for_visualization path on the point-source side.
+  # fit_for_visualization path on the point-source side. Also asserts
+  # fit.png on disk so PYAUTO_FAST_PLOTS must be unset.
   - pattern: "point_source/visualization_jax"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS]
+    unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
   # point_source/modeling_visualization_jit — live Nautilus + JIT path.
   - pattern: "point_source/modeling_visualization_jit"
     unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
