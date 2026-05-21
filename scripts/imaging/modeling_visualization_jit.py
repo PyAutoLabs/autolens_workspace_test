@@ -169,6 +169,78 @@ print("PASS: MGE jit-cached fit_for_visualization works and is reused.")
 
 
 """
+__Visualization Sanity__
+
+Guard against the silent-zero visualization failure modes that triggered two
+recent reverts on `zero_contour`-based critical curves and Einstein radii:
+
+1. PyAutoGalaxy commit `abd7b717` (2026-04-19) — `ZeroSolver` raised inside
+   model-fits and the exception was swallowed by the broad `except` in
+   `autolens/imaging/plot/fit_imaging_plots.py::_compute_critical_curve_lines`.
+   Critical curves silently vanished on HPC runs.
+2. PyAutoFit PR #1280 (2026-05-17) — same failure shape on the Euclid DR1
+   pipeline; source-plane images wrote all-zero and Einstein-radius latents
+   collapsed to the full prior.
+3. PyAutoGalaxy #433 (2026-05-21) — `_critical_curve_list_via_zero_contour`
+   rebuilt `f` / `ZeroSolver` on every call, busting JAX's compile cache.
+   Warm calls cost ~10s instead of the expected ~66 ms.
+
+This block builds the prior-median tracer and asserts three properties:
+
+* **Correctness:** `zero_contour` returns a non-empty tangential critical
+  curve and a finite, positive Einstein radius. Catches both the silent-zero
+  source-plane failure mode and any future algorithmic regression.
+* **Perf:** the warm-call latency of
+  `tangential_critical_curve_list_via_zero_contour_from()` on the SAME
+  `LensCalc` is under 100 ms. The first call still pays the ZeroSolver JIT
+  compile (~10 s); the second must hit the closure cache. Regression net
+  for the cache-busting bug.
+"""
+from autogalaxy.operate.lens_calc import LensCalc
+
+# Build a deterministic SIE tracer for the sanity block. The MGE prior-median
+# from this script's `model_mge` is not guaranteed to be a strong-enough lens
+# to produce critical curves on the default coarse grid; the SIE below is the
+# same one used by the perf benchmark in PyAutoGalaxy #433 and always does.
+sanity_lens = al.Galaxy(
+    redshift=0.5,
+    mass=al.mp.Isothermal(
+        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
+    ),
+)
+sanity_source = al.Galaxy(redshift=1.0)
+sanity_tracer = al.Tracer(galaxies=[sanity_lens, sanity_source])
+sanity_od = LensCalc.from_tracer(sanity_tracer)
+
+# Correctness — tangential critical curves exist and Einstein radius is finite.
+tc_list = sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+assert len(tc_list) > 0, (
+    "no tangential critical curves returned by zero_contour — algorithmic "
+    "regression (PyAutoGalaxy abd7b717 / PyAutoFit #1280 family)"
+)
+er_sanity = sanity_od.einstein_radius_via_zero_contour_from()
+assert np.isfinite(float(er_sanity)) and float(er_sanity) > 0.0, (
+    f"Einstein radius via zero_contour returned {er_sanity} — should be finite "
+    "and positive for the SIE sanity tracer (einstein_radius=1.2)"
+)
+print(
+    f"  PASS Visualization Sanity (correctness): "
+    f"{len(tc_list)} tangential CC, einstein_radius={float(er_sanity):.4f}"
+)
+
+# Perf — warm-call latency must be under 100 ms (closure cache hit).
+sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm the cache
+t0 = time.perf_counter()
+sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+warm_dt = time.perf_counter() - t0
+assert warm_dt < 0.1, (
+    f"zero_contour warm call took {warm_dt * 1000:.1f} ms (> 100 ms) — "
+    "closure cache-busting bug from PyAutoGalaxy #433 may have regressed"
+)
+print(f"  PASS Visualization Sanity (perf): warm call {warm_dt * 1000:.1f} ms")
+
+
+"""
 ============================================================================
 Part 2 — Live Nautilus quick-update with MGE linear light profiles
 ============================================================================
