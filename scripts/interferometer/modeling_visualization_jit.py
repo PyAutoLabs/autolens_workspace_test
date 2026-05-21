@@ -172,6 +172,71 @@ print("PASS: MGE jit-cached fit_for_visualization works and is reused.")
 
 
 """
+__Visualization Sanity__
+
+Phase D.1 rollout. Guards both the lensing-side regression class (silent
+zero / collapsed source / unconstrained latent — PyAutoGalaxy abd7b717,
+PyAutoFit #1280, PyAutoGalaxy #433) AND the interferometer-specific
+failure mode where the NUFFT-via-JAX linear inversion silently returns
+zero / NaN model visibilities. Lensing assertions use a deterministic
+SIE sanity tracer; visibility assertions use the script's actual fit.
+"""
+import time as _sanity_time
+from autogalaxy.operate.lens_calc import LensCalc as _SanityLensCalc
+
+# Lensing-side: SIE sanity tracer (independent of the script's MGE model).
+_sanity_lens = al.Galaxy(
+    redshift=0.5,
+    mass=al.mp.Isothermal(
+        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
+    ),
+)
+_sanity_source = al.Galaxy(redshift=1.0)
+_sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
+_sanity_od = _SanityLensCalc.from_tracer(_sanity_tracer)
+
+_tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+assert len(_tc_list) > 0, (
+    "no tangential critical curves returned by zero_contour — algorithmic "
+    "regression (PyAutoGalaxy abd7b717 / PyAutoFit #1280 family)"
+)
+_er_sanity = _sanity_od.einstein_radius_via_zero_contour_from()
+assert np.isfinite(float(_er_sanity)) and float(_er_sanity) > 0.0, (
+    f"Einstein radius via zero_contour returned {_er_sanity} — should be "
+    "finite and positive for the SIE sanity tracer (einstein_radius=1.2)"
+)
+print(
+    f"  PASS Visualization Sanity (lensing): "
+    f"{len(_tc_list)} tangential CC, einstein_radius={float(_er_sanity):.4f}"
+)
+
+# Perf — warm-call latency must be under 100 ms (closure cache hit).
+_sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm cache
+_t0 = _sanity_time.perf_counter()
+_sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+_warm_dt = _sanity_time.perf_counter() - _t0
+assert _warm_dt < 0.1, (
+    f"zero_contour warm call took {_warm_dt * 1000:.1f} ms (> 100 ms) — "
+    "closure cache-busting bug from PyAutoGalaxy #433 may have regressed"
+)
+print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
+
+# Interferometer-specific: `fit.model_data` (an aa.Visibilities — complex
+# array of model visibilities) must be finite + non-zero. Catches NUFFT /
+# linear-inversion collapse on the JAX path that would leave subplot_fit.png
+# cosmetically OK but the underlying visibilities all-zero.
+_mv = np.asarray(fit_2.model_data)
+assert np.isfinite(_mv).all(), "model_data (visibilities) have nan/inf — NUFFT/inversion collapse"
+assert float(np.abs(_mv).sum()) > 0.0, (
+    "model_data (visibilities) all-zero — NUFFT/inversion collapse"
+)
+print(
+    f"  PASS Visualization Sanity (interferometer): "
+    f"|model_data|.sum() = {float(np.abs(_mv).sum()):.4f}"
+)
+
+
+"""
 ============================================================================
 Part 2 — Live Nautilus quick-update with MGE linear light profiles
 ============================================================================
