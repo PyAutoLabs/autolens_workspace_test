@@ -15,7 +15,6 @@
                             "type": "instance",
                             "class_path": "autogalaxy.profiles.mass.total.power_law.PowerLaw",
                             "arguments": {
-                                "einstein_radius": 1.6,
                                 "ell_comps": {
                                     "type": "tuple",
                                     "values": [
@@ -23,14 +22,15 @@
                                         0.0
                                     ]
                                 },
-                                "slope": 1.8,
+                                "einstein_radius": 1.6,
                                 "centre": {
                                     "type": "tuple",
                                     "values": [
                                         0.0,
                                         0.0
                                     ]
-                                }
+                                },
+                                "slope": 1.8
                             }
                         }
                     }
@@ -45,8 +45,8 @@
                             "type": "instance",
                             "class_path": "autogalaxy.profiles.light.standard.exponential.ExponentialSph",
                             "arguments": {
-                                "effective_radius": 0.1,
                                 "intensity": 0.3,
+                                "effective_radius": 0.1,
                                 "centre": {
                                     "type": "tuple",
                                     "values": [

@@ -291,13 +291,10 @@ analysis_list_nufft = [
 ]
 
 analysis_factor_list_nufft = [
-    af.AnalysisFactor(prior_model=model.copy(), analysis=a)
-    for a in analysis_list_nufft
+    af.AnalysisFactor(prior_model=model.copy(), analysis=a) for a in analysis_list_nufft
 ]
 
-factor_graph_nufft = af.FactorGraphModel(
-    *analysis_factor_list_nufft, use_jax=True
-)
+factor_graph_nufft = af.FactorGraphModel(*analysis_factor_list_nufft, use_jax=True)
 
 fitness_nufft = Fitness(
     model=factor_graph_nufft.global_prior_model,

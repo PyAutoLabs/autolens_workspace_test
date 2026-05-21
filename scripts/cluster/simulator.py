@@ -15,6 +15,7 @@ JIT for the point-position solve.
 The truth model is read entirely from CSVs; no parameter values are duplicated in this script.
 Re-running it after editing the CSVs produces a new dataset reflecting whatever you edited.
 """
+
 from autoconf import jax_wrapper  # Sets JAX environment before other imports
 
 import jax
@@ -82,7 +83,9 @@ for centre, luminosity in zip(scaling_galaxies_centres, scaling_galaxies_luminos
     scaling_galaxies.append(
         al.Galaxy(
             redshift=0.5,
-            mass=al.mp.dPIEMassSph(centre=tuple(centre), ra=scaling_ra, rs=scaling_rs, b0=b0),
+            mass=al.mp.dPIEMassSph(
+                centre=tuple(centre), ra=scaling_ra, rs=scaling_rs, b0=b0
+            ),
         )
     )
 
@@ -153,11 +156,7 @@ _source_models = [
             effective_radius=g.bulge.effective_radius,
             sersic_index=g.bulge.sersic_index,
         ),
-        **{
-            f"point_{i}": af.Model(
-                al.ps.Point, centre=getattr(g, f"point_{i}").centre
-            )
-        },
+        **{f"point_{i}": af.Model(al.ps.Point, centre=getattr(g, f"point_{i}").centre)},
     )
     for i, g in enumerate(source_galaxies)
 ]
@@ -283,5 +282,7 @@ __Summary__
 """
 print(f"Cluster test dataset written to {dataset_path}:")
 print(f"  data.fits / noise_map.fits / psf.fits — imaging")
-print(f"  point_datasets.csv — {sum(len(p.positions) for p in dataset_list)} multi-images across {len(dataset_list)} sources")
+print(
+    f"  point_datasets.csv — {sum(len(p.positions) for p in dataset_list)} multi-images across {len(dataset_list)} sources"
+)
 print(f"  tracer.json — truth Tracer")

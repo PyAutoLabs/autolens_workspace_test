@@ -18,6 +18,7 @@ The truth model covers every tier the cluster code path supports:
 Outputs are written to ``dataset/cluster/test/``. The next script in the chain — ``simulator.py``
 — loads these CSVs and runs the lensing simulation to produce ``data.fits`` + ``point_datasets.csv``.
 """
+
 from autoconf import jax_wrapper  # Sets JAX environment before other imports
 
 from pathlib import Path
@@ -211,4 +212,6 @@ print(f"  mass.csv             — {len(mass_profiles)} galaxies")
 print(f"  light.csv            — {len(light_profiles)} galaxies")
 print(f"  point.csv            — {len(point_profiles)} sources")
 print(f"  scaling_galaxies.csv — {len(scaling_galaxies_luminosities)} members")
-print(f"Next: scripts/cluster/simulator.py reads these and produces the lensing dataset.")
+print(
+    f"Next: scripts/cluster/simulator.py reads these and produces the lensing dataset."
+)

@@ -82,10 +82,10 @@ If the dataset is absent (or missing ``data.fits``), run ``csv_api.py`` then ``s
 scripts write paths *relative to their own CWD*, so we run them with ``cwd=WORKSPACE_PATH``.
 """
 if not (DATASET_PATH / "data.fits").exists():
-    print(f"Cluster test dataset missing at {DATASET_PATH} — running csv_api + simulator...")
-    subprocess.run(
-        [sys.executable, str(CSV_API_PATH)], cwd=WORKSPACE_PATH, check=True
+    print(
+        f"Cluster test dataset missing at {DATASET_PATH} — running csv_api + simulator..."
     )
+    subprocess.run([sys.executable, str(CSV_API_PATH)], cwd=WORKSPACE_PATH, check=True)
     subprocess.run(
         [sys.executable, str(SIMULATOR_PATH)], cwd=WORKSPACE_PATH, check=True
     )
@@ -115,7 +115,11 @@ tracer = al.from_json(file_path=DATASET_PATH / "tracer.json")
 mass_table = al.galaxy_models_from_csv(DATASET_PATH / "mass.csv", family="mass")
 _centres_by_galaxy = {row.galaxy: row.params["centre"] for row in mass_table.rows}
 main_lens_centres = al.Grid2DIrregular(
-    [_centres_by_galaxy[name] for name in ("lens_0", "lens_1") if name in _centres_by_galaxy]
+    [
+        _centres_by_galaxy[name]
+        for name in ("lens_0", "lens_1")
+        if name in _centres_by_galaxy
+    ]
 )
 host_halo_centre = al.Grid2DIrregular([_centres_by_galaxy["host_halo"]])
 

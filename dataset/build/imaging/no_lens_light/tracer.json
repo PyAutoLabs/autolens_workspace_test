@@ -14,20 +14,20 @@
                     "type": "instance",
                     "class_path": "autogalaxy.galaxy.galaxy.Galaxy",
                     "arguments": {
-                        "redshift": 0.5,
                         "label": null,
+                        "redshift": 0.5,
                         "mass": {
                             "type": "instance",
                             "class_path": "autogalaxy.profiles.mass.total.isothermal.IsothermalSph",
                             "arguments": {
-                                "einstein_radius": 1.6,
                                 "centre": {
                                     "type": "tuple",
                                     "values": [
                                         0.0,
                                         0.0
                                     ]
-                                }
+                                },
+                                "einstein_radius": 1.6
                             }
                         }
                     }
@@ -36,21 +36,21 @@
                     "type": "instance",
                     "class_path": "autogalaxy.galaxy.galaxy.Galaxy",
                     "arguments": {
-                        "redshift": 1.0,
                         "label": null,
+                        "redshift": 1.0,
                         "bulge": {
                             "type": "instance",
                             "class_path": "autogalaxy.profiles.light.standard.exponential.ExponentialSph",
                             "arguments": {
-                                "intensity": 0.3,
-                                "effective_radius": 0.1,
                                 "centre": {
                                     "type": "tuple",
                                     "values": [
                                         0.0,
                                         0.1
                                     ]
-                                }
+                                },
+                                "intensity": 0.3,
+                                "effective_radius": 0.1
                             }
                         }
                     }

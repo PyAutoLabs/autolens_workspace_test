@@ -37,6 +37,7 @@ Uses ``lp_linear.Sersic`` for both lens and source so the intensity is solved vi
 inversion (the realistic JWST modelling path), exercising the full FitImaging
 inversion chain.
 """
+
 import os
 import numpy as np
 import autoarray as aa
@@ -45,14 +46,12 @@ import autolens as al
 
 
 OFFSET = (0.3, 0.2)
-THETA = 12.0   # degrees, CCW.
+THETA = 12.0  # degrees, CCW.
 
 
 def _ell_comps_rotated_by(axis_ratio, angle_deg, delta_deg):
     """Helper: ell_comps at ``angle_deg + delta_deg``."""
-    return al.convert.ell_comps_from(
-        axis_ratio=axis_ratio, angle=angle_deg + delta_deg
-    )
+    return al.convert.ell_comps_from(axis_ratio=axis_ratio, angle=angle_deg + delta_deg)
 
 
 def _rotate_centre(centre, offset, angle_deg):
@@ -189,7 +188,7 @@ fit_B0 = al.FitImaging(
 )
 fit_B1 = al.FitImaging(
     dataset=masked_1,
-    tracer=tracer_sim_0,   # same reference-frame tracer as A0
+    tracer=tracer_sim_0,  # same reference-frame tracer as A0
     dataset_model=al.DatasetModel(grid_offset=OFFSET, grid_rotation_angle=THETA),
 )
 
@@ -198,21 +197,47 @@ fit_B1 = al.FitImaging(
 # Report and assert
 # ------------------------------------------------------------------
 print("=== lp_linear DatasetModel parity ===")
-print(f"  A0 (dataset_0, profile-baked) : log_likelihood = {fit_A0.log_likelihood:.10e}, chi^2 = {fit_A0.chi_squared:.3e}")
-print(f"  A1 (dataset_1, profile-baked) : log_likelihood = {fit_A1.log_likelihood:.10e}, chi^2 = {fit_A1.chi_squared:.3e}")
-print(f"  B0 (dataset_0, DatasetModel)  : log_likelihood = {fit_B0.log_likelihood:.10e}, chi^2 = {fit_B0.chi_squared:.3e}")
-print(f"  B1 (dataset_1, DatasetModel)  : log_likelihood = {fit_B1.log_likelihood:.10e}, chi^2 = {fit_B1.chi_squared:.3e}")
+print(
+    f"  A0 (dataset_0, profile-baked) : log_likelihood = {fit_A0.log_likelihood:.10e}, chi^2 = {fit_A0.chi_squared:.3e}"
+)
+print(
+    f"  A1 (dataset_1, profile-baked) : log_likelihood = {fit_A1.log_likelihood:.10e}, chi^2 = {fit_A1.chi_squared:.3e}"
+)
+print(
+    f"  B0 (dataset_0, DatasetModel)  : log_likelihood = {fit_B0.log_likelihood:.10e}, chi^2 = {fit_B0.chi_squared:.3e}"
+)
+print(
+    f"  B1 (dataset_1, DatasetModel)  : log_likelihood = {fit_B1.log_likelihood:.10e}, chi^2 = {fit_B1.chi_squared:.3e}"
+)
 
 # Cross-dataset parity: same physical scene + noiseless ⇒ same log-likelihood.
-np.testing.assert_allclose(fit_A0.log_likelihood, fit_A1.log_likelihood, atol=1.0e-6,
-                            err_msg="A0 != A1: profile-baked fits to two datasets of the same scene disagree.")
-np.testing.assert_allclose(fit_B0.log_likelihood, fit_B1.log_likelihood, atol=1.0e-6,
-                            err_msg="B0 != B1: DatasetModel fits to two datasets of the same scene disagree.")
+np.testing.assert_allclose(
+    fit_A0.log_likelihood,
+    fit_A1.log_likelihood,
+    atol=1.0e-6,
+    err_msg="A0 != A1: profile-baked fits to two datasets of the same scene disagree.",
+)
+np.testing.assert_allclose(
+    fit_B0.log_likelihood,
+    fit_B1.log_likelihood,
+    atol=1.0e-6,
+    err_msg="B0 != B1: DatasetModel fits to two datasets of the same scene disagree.",
+)
 
 # Within-dataset parity: DatasetModel reproduces profile-baked exactly.
-np.testing.assert_allclose(fit_A0.log_likelihood, fit_B0.log_likelihood, atol=1.0e-6,
-                            err_msg="A0 != B0: DatasetModel default identity differs from no-DatasetModel.")
-np.testing.assert_allclose(fit_A1.log_likelihood, fit_B1.log_likelihood, atol=1.0e-6,
-                            err_msg="A1 != B1: DatasetModel rotation+shift fit differs from profile-baked fit.")
+np.testing.assert_allclose(
+    fit_A0.log_likelihood,
+    fit_B0.log_likelihood,
+    atol=1.0e-6,
+    err_msg="A0 != B0: DatasetModel default identity differs from no-DatasetModel.",
+)
+np.testing.assert_allclose(
+    fit_A1.log_likelihood,
+    fit_B1.log_likelihood,
+    atol=1.0e-6,
+    err_msg="A1 != B1: DatasetModel rotation+shift fit differs from profile-baked fit.",
+)
 
-print("All four log-likelihoods agree to 1e-6 — lp_linear DatasetModel parity confirmed.")
+print(
+    "All four log-likelihoods agree to 1e-6 — lp_linear DatasetModel parity confirmed."
+)

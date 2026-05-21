@@ -36,6 +36,7 @@ Run from the ``autolens_workspace_test`` repo root::
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/cluster/likelihood_sanity.py
 """
+
 from autoconf import jax_wrapper  # Sets JAX environment before other imports
 
 import copy
@@ -58,9 +59,13 @@ CSV_API_PATH = WORKSPACE_PATH / "scripts" / "cluster" / "csv_api.py"
 SIMULATOR_PATH = WORKSPACE_PATH / "scripts" / "cluster" / "simulator.py"
 
 if not (DATASET_PATH / "data.fits").exists():
-    print(f"Cluster test dataset missing at {DATASET_PATH} — running csv_api + simulator...")
+    print(
+        f"Cluster test dataset missing at {DATASET_PATH} — running csv_api + simulator..."
+    )
     subprocess.run([sys.executable, str(CSV_API_PATH)], cwd=WORKSPACE_PATH, check=True)
-    subprocess.run([sys.executable, str(SIMULATOR_PATH)], cwd=WORKSPACE_PATH, check=True)
+    subprocess.run(
+        [sys.executable, str(SIMULATOR_PATH)], cwd=WORKSPACE_PATH, check=True
+    )
     print("Cluster simulator complete.")
 
 
@@ -96,7 +101,9 @@ SCALING_RA = 0.1
 SCALING_RS = 10.0
 
 
-def _build_scaling_galaxies(scaling_factor=SCALING_FACTOR_TRUTH, scaling_exponent=SCALING_EXPONENT_TRUTH):
+def _build_scaling_galaxies(
+    scaling_factor=SCALING_FACTOR_TRUTH, scaling_exponent=SCALING_EXPONENT_TRUTH
+):
     return [
         al.Galaxy(
             redshift=0.5,
@@ -107,13 +114,18 @@ def _build_scaling_galaxies(scaling_factor=SCALING_FACTOR_TRUTH, scaling_exponen
                 b0=scaling_factor * luminosity**scaling_exponent,
             ),
         )
-        for centre, luminosity in zip(scaling_galaxies_centres, scaling_galaxies_luminosities)
+        for centre, luminosity in zip(
+            scaling_galaxies_centres, scaling_galaxies_luminosities
+        )
     ]
 
 
 def _build_tracer(main_galaxies, halo_galaxy, scaling_gals, source_gals):
     return al.Tracer(
-        galaxies=list(main_galaxies) + list(scaling_gals) + [halo_galaxy] + list(source_gals)
+        galaxies=list(main_galaxies)
+        + list(scaling_gals)
+        + [halo_galaxy]
+        + list(source_gals)
     )
 
 
@@ -236,7 +248,9 @@ if RUN_IMAGE_PLANE:
     _t_image = time.perf_counter() - _t0
     print(f"  FitPositionsImagePair  chi² = {truth_image_chi2:.6e}  ({_t_image:.2f}s)")
 else:
-    print(f"  FitPositionsImagePair  SKIPPED (set RUN_IMAGE_PLANE=True to enable; slow)")
+    print(
+        f"  FitPositionsImagePair  SKIPPED (set RUN_IMAGE_PLANE=True to enable; slow)"
+    )
 
 
 """
@@ -272,6 +286,7 @@ def _perturb_nfw(galaxy, epsilon):
 
 # Build the list of (description, builder) — builder takes ε and returns a perturbed tracer.
 
+
 def _make_dpie_builder(galaxy_index, param_name):
     def build(epsilon):
         perturbed_main = list(main_lens_galaxies)
@@ -281,6 +296,7 @@ def _make_dpie_builder(galaxy_index, param_name):
         return _build_tracer(
             perturbed_main, host_halo_galaxy, _build_scaling_galaxies(), source_galaxies
         )
+
     return build
 
 
@@ -288,8 +304,12 @@ def _make_nfw_builder():
     def build(epsilon):
         perturbed_halo = _perturb_nfw(host_halo_galaxy, epsilon)
         return _build_tracer(
-            main_lens_galaxies, perturbed_halo, _build_scaling_galaxies(), source_galaxies
+            main_lens_galaxies,
+            perturbed_halo,
+            _build_scaling_galaxies(),
+            source_galaxies,
         )
+
     return build
 
 
@@ -422,8 +442,8 @@ if failures:
         "These are NOT hard failures — they are characterised behaviour. Source-plane chi² "
         "in cluster lensing is dominated by the PointSolver precision floor amplified by the "
         "image-plane magnification (~100x at multi-image positions). The absolute chi² scale "
-        "of ~8e7 is consistent with σ_pos=0.005\" × magnification_factor amplifying the "
-        "0.001\"-precision PointSolver residual."
+        'of ~8e7 is consistent with σ_pos=0.005" × magnification_factor amplifying the '
+        '0.001"-precision PointSolver residual.'
     )
 else:
     print("No violations: truth ε=0 is the minimum and chi² is monotone in |ε|.")

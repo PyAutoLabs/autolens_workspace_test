@@ -39,13 +39,14 @@ Qiuhan saw on ``dev_Q``. Without rotating the cached mesh-grid in lockstep
 with the data grid, B1 would diverge from A1 by ~1 or more in log-likelihood
 even for the small (12 degree) rotation used here.
 """
+
 import numpy as np
 import autoarray as aa
 import autolens as al
 
 
 OFFSET = (0.3, 0.2)
-THETA = 12.0   # degrees, CCW.
+THETA = 12.0  # degrees, CCW.
 
 LENS_CENTRE_REF = (0.0, 0.0)
 LENS_ELL_ANGLE_REF = 0.0
@@ -172,11 +173,15 @@ LENS_ELL_ANGLE_DATA = LENS_ELL_ANGLE_REF + THETA
 SOURCE_ELL_ANGLE_DATA = SOURCE_ELL_ANGLE_REF + THETA
 
 dataset_0 = make_dataset(
-    build_sim_galaxies(LENS_CENTRE_REF, LENS_ELL_ANGLE_REF, SOURCE_CENTRE_REF, SOURCE_ELL_ANGLE_REF),
+    build_sim_galaxies(
+        LENS_CENTRE_REF, LENS_ELL_ANGLE_REF, SOURCE_CENTRE_REF, SOURCE_ELL_ANGLE_REF
+    ),
     grid,
 )
 dataset_1 = make_dataset(
-    build_sim_galaxies(LENS_CENTRE_DATA, LENS_ELL_ANGLE_DATA, SOURCE_CENTRE_DATA, SOURCE_ELL_ANGLE_DATA),
+    build_sim_galaxies(
+        LENS_CENTRE_DATA, LENS_ELL_ANGLE_DATA, SOURCE_CENTRE_DATA, SOURCE_ELL_ANGLE_DATA
+    ),
     grid,
 )
 
@@ -200,9 +205,7 @@ mesh_grid_data = aa.Grid2DIrregular(
 # ------------------------------------------------------------------
 lens_A0, src_A0 = build_fit_galaxies(LENS_CENTRE_REF, LENS_ELL_ANGLE_REF)
 tracer_A0 = al.Tracer(galaxies=[lens_A0, src_A0])
-adapt_A0 = al.AdaptImages(
-    galaxy_image_plane_mesh_grid_dict={src_A0: mesh_grid_ref}
-)
+adapt_A0 = al.AdaptImages(galaxy_image_plane_mesh_grid_dict={src_A0: mesh_grid_ref})
 fit_A0 = al.FitImaging(
     dataset=masked_0, tracer=tracer_A0, adapt_images=adapt_A0, settings=settings
 )
@@ -214,9 +217,7 @@ fit_A0 = al.FitImaging(
 # ------------------------------------------------------------------
 lens_A1, src_A1 = build_fit_galaxies(LENS_CENTRE_DATA, LENS_ELL_ANGLE_DATA)
 tracer_A1 = al.Tracer(galaxies=[lens_A1, src_A1])
-adapt_A1 = al.AdaptImages(
-    galaxy_image_plane_mesh_grid_dict={src_A1: mesh_grid_data}
-)
+adapt_A1 = al.AdaptImages(galaxy_image_plane_mesh_grid_dict={src_A1: mesh_grid_data})
 fit_A1 = al.FitImaging(
     dataset=masked_1, tracer=tracer_A1, adapt_images=adapt_A1, settings=settings
 )
@@ -228,9 +229,7 @@ fit_A1 = al.FitImaging(
 # ------------------------------------------------------------------
 lens_B0, src_B0 = build_fit_galaxies(LENS_CENTRE_REF, LENS_ELL_ANGLE_REF)
 tracer_B0 = al.Tracer(galaxies=[lens_B0, src_B0])
-adapt_B0 = al.AdaptImages(
-    galaxy_image_plane_mesh_grid_dict={src_B0: mesh_grid_ref}
-)
+adapt_B0 = al.AdaptImages(galaxy_image_plane_mesh_grid_dict={src_B0: mesh_grid_ref})
 fit_B0 = al.FitImaging(
     dataset=masked_0,
     tracer=tracer_B0,
@@ -249,12 +248,8 @@ fit_B0 = al.FitImaging(
 # ------------------------------------------------------------------
 lens_B1, src_B1 = build_fit_galaxies(LENS_CENTRE_REF, LENS_ELL_ANGLE_REF)
 tracer_B1 = al.Tracer(galaxies=[lens_B1, src_B1])
-mesh_grid_B1 = mesh_grid_data.subtracted_and_rotated_from(
-    offset=OFFSET, angle=-THETA
-)
-adapt_B1 = al.AdaptImages(
-    galaxy_image_plane_mesh_grid_dict={src_B1: mesh_grid_B1}
-)
+mesh_grid_B1 = mesh_grid_data.subtracted_and_rotated_from(offset=OFFSET, angle=-THETA)
+adapt_B1 = al.AdaptImages(galaxy_image_plane_mesh_grid_dict={src_B1: mesh_grid_B1})
 fit_B1 = al.FitImaging(
     dataset=masked_1,
     tracer=tracer_B1,
@@ -277,23 +272,33 @@ print(f"  B1 (dataset_1, DatasetModel ) : log_likelihood = {fit_B1.log_likelihoo
 # at the rotated pixel grid introduces a small (~0.2 in log_likelihood)
 # discretisation residual. Anything > ~0.5 indicates a real misalignment.
 TOL_BETWEEN_FRAMES = 2.0e-1
-TOL_DATASET_MODEL_VS_PROFILE = 5.0e-3   # B0 vs A0 and B1 vs A1 should match tightly.
+TOL_DATASET_MODEL_VS_PROFILE = 5.0e-3  # B0 vs A0 and B1 vs A1 should match tightly.
 
 np.testing.assert_allclose(
-    fit_A0.log_likelihood, fit_A1.log_likelihood, atol=TOL_BETWEEN_FRAMES,
+    fit_A0.log_likelihood,
+    fit_A1.log_likelihood,
+    atol=TOL_BETWEEN_FRAMES,
     err_msg="Delaunay A0 != A1: profile-baked fits to two datasets of the same physical scene disagree by more than the pixel-sampling floor.",
 )
 np.testing.assert_allclose(
-    fit_B0.log_likelihood, fit_B1.log_likelihood, atol=TOL_BETWEEN_FRAMES,
+    fit_B0.log_likelihood,
+    fit_B1.log_likelihood,
+    atol=TOL_BETWEEN_FRAMES,
     err_msg="Delaunay B0 != B1: DatasetModel fits to two datasets of the same physical scene disagree by more than the pixel-sampling floor.",
 )
 np.testing.assert_allclose(
-    fit_A0.log_likelihood, fit_B0.log_likelihood, atol=TOL_DATASET_MODEL_VS_PROFILE,
+    fit_A0.log_likelihood,
+    fit_B0.log_likelihood,
+    atol=TOL_DATASET_MODEL_VS_PROFILE,
     err_msg="Delaunay A0 != B0: DatasetModel default identity differs from no-DatasetModel.",
 )
 np.testing.assert_allclose(
-    fit_A1.log_likelihood, fit_B1.log_likelihood, atol=TOL_DATASET_MODEL_VS_PROFILE,
+    fit_A1.log_likelihood,
+    fit_B1.log_likelihood,
+    atol=TOL_DATASET_MODEL_VS_PROFILE,
     err_msg="Delaunay A1 != B1: DatasetModel rotation+shift fit differs from profile-baked fit (THIS IS THE BUG THE FIX TARGETS).",
 )
 
-print(f"All four log-likelihoods agree within tolerances — Delaunay DatasetModel parity confirmed.")
+print(
+    f"All four log-likelihoods agree within tolerances — Delaunay DatasetModel parity confirmed."
+)
