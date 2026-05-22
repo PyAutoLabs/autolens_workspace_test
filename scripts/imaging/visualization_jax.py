@@ -148,3 +148,52 @@ assert (image_path / "parametric" / "fit.png").exists() or (
     image_path / "fit.png"
 ).exists(), "fit.png was not produced"
 print("PILOT SUCCEEDED — JAX-backed visualization produced fit.png/tracer.png.")
+
+
+"""
+__Visualization Sanity__
+
+Phase D.2.a rollout of the Sanity-block pattern from PR #111 / #113.
+Same imaging-template SIE assertions as the modeling_visualization_jit
+variant — catches the silent-zero / cache-busting failure class on the
+single-shot JAX-backed visualization path. Uses a deterministic SIE
+tracer so assertions are independent of the script's specific model.
+"""
+import time as _sanity_time
+import numpy as _sanity_np
+from autogalaxy.operate.lens_calc import LensCalc as _SanityLensCalc
+
+_sanity_lens = al.Galaxy(
+    redshift=0.5,
+    mass=al.mp.Isothermal(
+        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
+    ),
+)
+_sanity_source = al.Galaxy(redshift=1.0)
+_sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
+_sanity_od = _SanityLensCalc.from_tracer(_sanity_tracer)
+
+_tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+assert len(_tc_list) > 0, (
+    "no tangential critical curves returned by zero_contour — algorithmic "
+    "regression (PyAutoGalaxy abd7b717 / PyAutoFit #1280 family)"
+)
+_er_sanity = _sanity_od.einstein_radius_via_zero_contour_from()
+assert _sanity_np.isfinite(float(_er_sanity)) and float(_er_sanity) > 0.0, (
+    f"Einstein radius via zero_contour returned {_er_sanity} — should be "
+    "finite and positive for the SIE sanity tracer (einstein_radius=1.2)"
+)
+print(
+    f"  PASS Visualization Sanity (correctness): "
+    f"{len(_tc_list)} tangential CC, einstein_radius={float(_er_sanity):.4f}"
+)
+
+_sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm cache
+_t0 = _sanity_time.perf_counter()
+_sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+_warm_dt = _sanity_time.perf_counter() - _t0
+assert _warm_dt < 0.1, (
+    f"zero_contour warm call took {_warm_dt * 1000:.1f} ms (> 100 ms) — "
+    "closure cache-busting bug from PyAutoGalaxy #433 may have regressed"
+)
+print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
