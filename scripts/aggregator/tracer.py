@@ -32,14 +32,14 @@ def clean():
     database_sqlite = path.join(conf.instance.output_path, f"{database_file}.sqlite")
     if path.exists(database_sqlite):
         os.remove(database_sqlite)
-    result_path = path.join(conf.instance.output_path, database_file)
+    result_path = path.join(conf.instance.output_path, "test_mode", database_file)
     if path.exists(result_path):
         shutil.rmtree(result_path)
 
 
 @with_config("general", "output", "samples_to_csv", value=True)
 def aggregator_from(analysis, model, samples):
-    result_path = path.join(conf.instance.output_path, database_file)
+    result_path = path.join(conf.instance.output_path, "test_mode", database_file)
     clean()
     search = al.m.MockSearch(
         samples=samples, result=al.m.MockResult(model=model, samples=samples)
