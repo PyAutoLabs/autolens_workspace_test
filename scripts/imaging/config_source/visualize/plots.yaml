@@ -57,6 +57,3 @@ fit_ellipse:
   data: false
   data_no_ellipse: false
   ellipse_residuals: false
-
-fit_quantity:
-  subplot_fit: false
