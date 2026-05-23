@@ -1,0 +1,9 @@
+# Workspace overrides for the library lensing latent toggles. Enables
+# all five default latents so the smoke test exercises every entry in
+# `autolens.analysis.latent.LATENT_FUNCTIONS`. See
+# `scripts/latent/latent_variables_smoke.py`.
+total_lens_flux_mujy: true
+total_lensed_source_flux_mujy: true
+total_source_flux_mujy: true
+magnification: true
+effective_einstein_radius: true
