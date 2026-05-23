@@ -13,3 +13,4 @@ aggregator/fit_imaging.py
 aggregator/fit_interferometer.py
 aggregator/tracer.py
 model_composition/multi_galaxy_mge.py
+latent/latent_variables_smoke.py
