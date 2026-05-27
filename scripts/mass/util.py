@@ -5,23 +5,42 @@ Mass Profile Self-Consistency Utilities
 Shared numerical differentiation helpers and lensing relation checks used by
 all per-category mass profile test scripts.
 
-Set ``PYAUTO_MASS_FAST=1`` for smaller grids and looser tolerances.
+Modes:
+  PYAUTO_MASS_MODE=fast  (default) — quick sanity check, <30s total
+  PYAUTO_MASS_MODE=full  — stress-test with parameter sweeps, 5-10 min
 """
 
 import os
 import numpy as np
 import autogalaxy as ag
 
-FAST = os.environ.get("PYAUTO_MASS_FAST", "0") == "1"
+MODE = os.environ.get("PYAUTO_MASS_MODE", "fast")
+
+if os.environ.get("PYAUTO_MASS_FAST", "0") == "1":
+    MODE = "fast"
 
 
 def make_grid():
-    shape = (40, 40) if FAST else (100, 100)
-    return ag.Grid2D.uniform(shape_native=shape, pixel_scales=0.05)
+    if MODE == "full":
+        return ag.Grid2D.uniform(shape_native=(200, 200), pixel_scales=0.02)
+    return ag.Grid2D.uniform(shape_native=(40, 40), pixel_scales=0.05)
 
 
 def get_tolerances():
-    return dict(rtol=5e-2) if FAST else dict(rtol=1e-2)
+    if MODE == "full":
+        return dict(rtol=1e-2)
+    return dict(rtol=5e-2)
+
+
+def run_param_sweep(name, profile_cls, param_list, grid, tol, results):
+    if MODE == "fast":
+        mp = profile_cls(**param_list[0])
+        results.append(run_all_checks(name, mp, grid, tol))
+    else:
+        for i, params in enumerate(param_list):
+            tag = f"{name}[{i}]" if len(param_list) > 1 else name
+            mp = profile_cls(**params)
+            results.append(run_all_checks(tag, mp, grid, tol))
 
 
 def trim_border(arr, n=3):

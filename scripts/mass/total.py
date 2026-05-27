@@ -18,7 +18,10 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import autogalaxy as ag
-from mass.util import make_grid, run_all_checks, print_summary_table, get_tolerances
+from mass.util import (
+    make_grid, run_all_checks, run_param_sweep, print_summary_table,
+    get_tolerances, MODE,
+)
 
 """
 __Setup__
@@ -32,55 +35,54 @@ results = []
 __Isothermal Family__
 """
 
-mp = ag.mp.Isothermal(
-    centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.2
-)
-results.append(run_all_checks("Isothermal", mp, grid, tol))
+run_param_sweep("Isothermal", ag.mp.Isothermal, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.2),
+    dict(centre=(0.0, 0.0), ell_comps=(0.01, 0.005), einstein_radius=1.2),
+    dict(centre=(0.0, 0.0), ell_comps=(0.3, 0.15), einstein_radius=1.2),
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=5.0),
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=0.2),
+    dict(centre=(0.5, -0.3), ell_comps=(0.1, 0.05), einstein_radius=1.2),
+], grid, tol, results)
 
-mp = ag.mp.IsothermalSph(centre=(0.0, 0.0), einstein_radius=1.2)
-results.append(run_all_checks("IsothermalSph", mp, grid, tol))
+run_param_sweep("IsothermalSph", ag.mp.IsothermalSph, [
+    dict(centre=(0.0, 0.0), einstein_radius=1.2),
+    dict(centre=(0.0, 0.0), einstein_radius=5.0),
+    dict(centre=(0.0, 0.0), einstein_radius=0.2),
+], grid, tol, results)
 
-mp = ag.mp.IsothermalCore(
-    centre=(0.0, 0.0),
-    ell_comps=(0.1, 0.05),
-    einstein_radius=1.2,
-    core_radius=0.1,
-)
-results.append(run_all_checks("IsothermalCore", mp, grid, tol))
+run_param_sweep("IsothermalCore", ag.mp.IsothermalCore, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.2, core_radius=0.1),
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.2, core_radius=0.001),
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.2, core_radius=0.5),
+], grid, tol, results)
 
-mp = ag.mp.IsothermalCoreSph(
-    centre=(0.0, 0.0), einstein_radius=1.2, core_radius=0.1
-)
-results.append(run_all_checks("IsothermalCoreSph", mp, grid, tol))
+run_param_sweep("IsothermalCoreSph", ag.mp.IsothermalCoreSph, [
+    dict(centre=(0.0, 0.0), einstein_radius=1.2, core_radius=0.1),
+], grid, tol, results)
 
 """
 __Power Law Family__
 """
 
-mp = ag.mp.PowerLaw(
-    centre=(0.0, 0.0),
-    ell_comps=(0.08, 0.04),
-    einstein_radius=1.1,
-    slope=2.1,
-)
-results.append(run_all_checks("PowerLaw", mp, grid, tol))
+run_param_sweep("PowerLaw", ag.mp.PowerLaw, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), einstein_radius=1.1, slope=2.1),
+    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), einstein_radius=1.1, slope=1.8),
+    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), einstein_radius=1.1, slope=2.5),
+    dict(centre=(0.0, 0.0), ell_comps=(0.3, 0.15), einstein_radius=1.1, slope=2.1),
+], grid, tol, results)
 
-mp = ag.mp.PowerLawSph(centre=(0.0, 0.0), einstein_radius=1.1, slope=2.1)
-results.append(run_all_checks("PowerLawSph", mp, grid, tol))
+run_param_sweep("PowerLawSph", ag.mp.PowerLawSph, [
+    dict(centre=(0.0, 0.0), einstein_radius=1.1, slope=2.1),
+    dict(centre=(0.0, 0.0), einstein_radius=1.1, slope=2.0),
+], grid, tol, results)
 
-mp = ag.mp.PowerLawCore(
-    centre=(0.0, 0.0),
-    ell_comps=(0.08, 0.04),
-    einstein_radius=1.1,
-    slope=2.1,
-    core_radius=0.1,
-)
-results.append(run_all_checks("PowerLawCore", mp, grid, tol))
+run_param_sweep("PowerLawCore", ag.mp.PowerLawCore, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), einstein_radius=1.1, slope=2.1, core_radius=0.1),
+], grid, tol, results)
 
-mp = ag.mp.PowerLawCoreSph(
-    centre=(0.0, 0.0), einstein_radius=1.1, slope=2.1, core_radius=0.1
-)
-results.append(run_all_checks("PowerLawCoreSph", mp, grid, tol))
+run_param_sweep("PowerLawCoreSph", ag.mp.PowerLawCoreSph, [
+    dict(centre=(0.0, 0.0), einstein_radius=1.1, slope=2.1, core_radius=0.1),
+], grid, tol, results)
 
 """
 __Power Law Broken__
@@ -88,86 +90,54 @@ __Power Law Broken__
 potential_2d_from computed via MGE decomposition.
 """
 
-mp = ag.mp.PowerLawBroken(
-    centre=(0.0, 0.0),
-    ell_comps=(0.1, 0.05),
-    einstein_radius=1.0,
-    inner_slope=1.3,
-    outer_slope=2.7,
-    break_radius=0.05,
-)
-results.append(run_all_checks("PowerLawBroken", mp, grid, tol))
+run_param_sweep("PowerLawBroken", ag.mp.PowerLawBroken, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.0, inner_slope=1.3, outer_slope=2.7, break_radius=0.05),
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), einstein_radius=1.0, inner_slope=1.0, outer_slope=3.0, break_radius=0.1),
+], grid, tol, results)
 
-mp = ag.mp.PowerLawBrokenSph(
-    centre=(0.0, 0.0),
-    einstein_radius=1.0,
-    inner_slope=1.3,
-    outer_slope=2.7,
-    break_radius=0.05,
-)
-results.append(run_all_checks("PowerLawBrokenSph", mp, grid, tol))
+run_param_sweep("PowerLawBrokenSph", ag.mp.PowerLawBrokenSph, [
+    dict(centre=(0.0, 0.0), einstein_radius=1.0, inner_slope=1.3, outer_slope=2.7, break_radius=0.05),
+], grid, tol, results)
 
 """
 __Power Law Multipole__
 
-convergence_2d_from returns zeros (physically correct for a pure multipole
-perturbation). div(alpha) and lap(psi) checks will SKIP.
+convergence_2d_from returns zeros (physically correct for a pure multipole).
 """
 
-mp = ag.mp.PowerLawMultipole(
-    centre=(0.0, 0.0),
-    einstein_radius=1.0,
-    slope=2.0,
-    m=4,
-    multipole_comps=(0.01, 0.01),
-)
-results.append(run_all_checks("PowerLawMultipole", mp, grid, tol))
+run_param_sweep("PowerLawMultipole", ag.mp.PowerLawMultipole, [
+    dict(centre=(0.0, 0.0), einstein_radius=1.0, slope=2.0, m=4, multipole_comps=(0.01, 0.01)),
+    dict(centre=(0.0, 0.0), einstein_radius=1.0, slope=2.0, m=3, multipole_comps=(0.02, 0.01)),
+], grid, tol, results)
 
 """
 __dPIE Family__
 
-dPIEMass and dPIEPotential potential_2d_from computed via MGE decomposition.
+potential_2d_from computed via MGE decomposition.
 """
 
-mp = ag.mp.dPIEMass(
-    centre=(0.0, 0.0),
-    ell_comps=(0.1, 0.05),
-    ra=0.02,
-    rs=2.5,
-    b0=0.15,
-)
-results.append(run_all_checks("dPIEMass", mp, grid, tol))
+run_param_sweep("dPIEMass", ag.mp.dPIEMass, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), ra=0.02, rs=2.5, b0=0.15),
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), ra=0.1, rs=5.0, b0=0.3),
+], grid, tol, results)
 
-mp = ag.mp.dPIEMassSph(
-    centre=(0.0, 0.0),
-    ra=0.02,
-    rs=2.5,
-    b0=0.15,
-)
-results.append(run_all_checks("dPIEMassSph", mp, grid, tol))
+run_param_sweep("dPIEMassSph", ag.mp.dPIEMassSph, [
+    dict(centre=(0.0, 0.0), ra=0.02, rs=2.5, b0=0.15),
+], grid, tol, results)
 
-mp = ag.mp.dPIEPotential(
-    centre=(0.0, 0.0),
-    ell_comps=(0.1, 0.05),
-    ra=0.02,
-    rs=2.5,
-    b0=0.15,
-)
-results.append(run_all_checks("dPIEPotential", mp, grid, tol))
+run_param_sweep("dPIEPotential", ag.mp.dPIEPotential, [
+    dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), ra=0.02, rs=2.5, b0=0.15),
+], grid, tol, results)
 
-mp = ag.mp.dPIEPotentialSph(
-    centre=(0.0, 0.0),
-    ra=0.02,
-    rs=2.5,
-    b0=0.15,
-)
-results.append(run_all_checks("dPIEPotentialSph", mp, grid, tol))
+run_param_sweep("dPIEPotentialSph", ag.mp.dPIEPotentialSph, [
+    dict(centre=(0.0, 0.0), ra=0.02, rs=2.5, b0=0.15),
+], grid, tol, results)
 
 """
 __Summary__
 """
 
 print("=" * 70)
-print("Total Mass Profiles — Self-Consistency Results")
+print(f"Total Mass Profiles — Self-Consistency Results (mode={MODE})")
 print("=" * 70)
 print_summary_table(results)
