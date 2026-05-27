@@ -85,7 +85,7 @@ results.append(run_all_checks("PowerLawCoreSph", mp, grid, tol))
 """
 __Power Law Broken__
 
-potential_2d_from returns zeros — grad(psi) and lap(psi) checks will SKIP.
+potential_2d_from computed via MGE decomposition.
 """
 
 mp = ag.mp.PowerLawBroken(
@@ -126,7 +126,7 @@ results.append(run_all_checks("PowerLawMultipole", mp, grid, tol))
 """
 __dPIE Family__
 
-dPIEMass and dPIEPotential both return zeros for potential_2d_from.
+dPIEMass and dPIEPotential potential_2d_from computed via MGE decomposition.
 """
 
 mp = ag.mp.dPIEMass(
