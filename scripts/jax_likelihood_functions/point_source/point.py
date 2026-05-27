@@ -248,12 +248,9 @@ state, which triggers a JAX ``UnexpectedTracerError`` under ``jit`` even though
 the vmap path above handles it fine. Once that library-level leak is fixed,
 this block can reuse ``model`` directly.
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
 
 model_jit = af.Collection(galaxies=af.Collection(lens=lens, source=source))
-register_model(model_jit)
 
 instance = model_jit.instance_from_prior_medians()
 

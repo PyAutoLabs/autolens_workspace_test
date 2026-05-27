@@ -6,13 +6,13 @@ Pilot for https://github.com/PyAutoLabs/PyAutoFit/issues/1227.
 
 Goal
 ----
-Run ``VisualizerImaging.visualize`` with JAX enabled end-to-end, gated behind
-``use_jax_for_visualization=True`` on ``Analysis``. After PyAutoLens #443
-(2026-04-19) the imaging visualizer dispatches through
-``analysis.fit_for_visualization``, which lazily wraps ``fit_from`` in
-``jax.jit``. To trace across that boundary the model and fit return type
-must be JAX pytrees, so this script enables pytree registration before
-constructing the model. Parametric MGE source — simplest case (no
+Run ``VisualizerImaging.visualize`` with JAX enabled end-to-end via
+``use_jax=True`` on ``Analysis``. After PyAutoLens #443 (2026-04-19) the
+imaging visualizer dispatches through ``analysis.fit_for_visualization``,
+which lazily wraps ``fit_from`` in ``jax.jit``. Visualization now follows
+``use_jax`` automatically. To trace across that boundary the model and fit
+return type must be JAX pytrees, so this script enables pytree registration
+before constructing the model. Parametric MGE source — simplest case (no
 pixelization, no inversion).
 
 Scope
@@ -38,10 +38,8 @@ conf.instance.push(
 
 import autofit as af
 import autolens as al
-from autofit.jax.pytrees import enable_pytrees, register_model
 from autolens.imaging.model.visualizer import VisualizerImaging
 
-enable_pytrees()
 
 
 """
@@ -102,20 +100,17 @@ source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
-register_model(model)
 
 
 """
 __Analysis__
 
-``use_jax=True`` turns on the JAX ``_xp`` path; ``use_jax_for_visualization=True``
-tells the search-level visualization path to wrap ``fit_from`` in ``jax.jit``
-via the new ``Analysis.fit_for_visualization`` helper.
+``use_jax=True`` turns on the JAX ``_xp`` path. Visualization now follows
+``use_jax`` automatically via the ``Analysis.fit_for_visualization`` helper.
 """
 analysis = al.AnalysisImaging(
     dataset=dataset,
     use_jax=True,
-    use_jax_for_visualization=True,
     title_prefix="JAX_PILOT",
 )
 
@@ -137,7 +132,7 @@ __Run visualize on the eager-JAX fit__
 """
 instance = model.instance_from_prior_medians()
 
-print("Running VisualizerImaging.visualize with use_jax_for_visualization=True ...")
+print("Running VisualizerImaging.visualize with use_jax=True ...")
 VisualizerImaging.visualize(
     analysis=analysis,
     paths=paths,

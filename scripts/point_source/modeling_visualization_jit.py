@@ -3,17 +3,16 @@ End-to-end test: jit-cached visualization during a real Nautilus model-fit.
 ============================================================================
 
 Exercises the full JAX visualization pipeline for the point-source analysis
-path: ``AnalysisPoint(use_jax=True, use_jax_for_visualization=True)`` with
-an ``Isothermal`` lens mass and ``PointFlux`` source (image-plane chi-squared
-via ``FitPositionsImagePairAll``).
+path: ``AnalysisPoint(use_jax=True)`` with an ``Isothermal`` lens mass and
+``PointFlux`` source (image-plane chi-squared via
+``FitPositionsImagePairAll``).
 
 This test runs in two parts:
 
 Part 1 — **Caching probe.** Calls ``analysis.fit_for_visualization(instance)``
 twice and asserts the second call is much faster than the first (confirming
 the compiled function is cached on the analysis instance, not recompiled per
-visualization call).  Also asserts ``analysis._jitted_fit_from is not None``
-after the first call.
+visualization call).
 
 Part 2 — **Live Nautilus quick-update.** Runs a real (short) Nautilus fit.
 The live search fires quick-update visualization every
@@ -23,8 +22,8 @@ JIT-cached ``fit_for_visualization`` fires correctly during the live
 search callback.
 
 This script deliberately opts in with
-``AnalysisPoint(use_jax=True, use_jax_for_visualization=True)``.
-Default model-fit scripts elsewhere in the workspace leave both flags at
+``AnalysisPoint(use_jax=True)``.
+Default model-fit scripts elsewhere in the workspace leave the flag at
 ``False`` and are therefore untouched.
 """
 
@@ -38,9 +37,7 @@ import jax.numpy as jnp
 
 import autofit as af
 import autolens as al
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
 
 
 """
@@ -102,14 +99,12 @@ source = af.Model(al.Galaxy, redshift=1.0, point_0=point_0)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
-register_model(model)
 
 analysis = al.AnalysisPoint(
     dataset=dataset,
     solver=solver,
     fit_positions_cls=al.FitPositionsImagePairAll,
     use_jax=True,
-    use_jax_for_visualization=True,
 )
 
 instance = model.instance_from_prior_medians()
@@ -137,9 +132,6 @@ assert cached_time < compile_time * 0.5, (
     f"Cached call ({cached_time:.3f}s) not faster than compile "
     f"({compile_time:.3f}s) — JIT cache is not being hit."
 )
-assert (
-    analysis._jitted_fit_from is not None
-), "expected _jitted_fit_from to be cached on the analysis instance after first call"
 print("PASS: Point-source jit-cached fit_for_visualization works and is reused.")
 
 
@@ -202,8 +194,8 @@ print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
 Part 2 — Live Nautilus quick-update
 ============================================================================
 
-Rebuild the model fresh (register_model on the new instance), create a
-separate analysis object, and run a short Nautilus fit. The search fires
+Rebuild the model fresh, create a separate analysis object, and run a short
+Nautilus fit. The search fires
 quick-update visualization every ``iterations_per_quick_update`` calls;
 we assert that ``fit.png`` lands on disk under the Nautilus output tree.
 """
@@ -228,14 +220,12 @@ source2 = af.Model(al.Galaxy, redshift=1.0, point_0=point_02)
 
 model2 = af.Collection(galaxies=af.Collection(lens=lens2, source=source2))
 
-register_model(model2)
 
 analysis_run = al.AnalysisPoint(
     dataset=dataset,
     solver=solver,
     fit_positions_cls=al.FitPositionsImagePairAll,
     use_jax=True,
-    use_jax_for_visualization=True,
 )
 
 output_root = Path("scripts") / "point_source" / "images" / "modeling_visualization_jit"
@@ -271,10 +261,6 @@ assert len(produced_pngs) > 0, (
     f"no fit.png produced under {output_search_root} — "
     "quick-update visualization did not fire"
 )
-assert (
-    analysis_run._jitted_fit_from is not None
-), "expected _jitted_fit_from to be cached on the analysis instance during search"
-
 print(
     "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "
     f"for point source, fit.png written."

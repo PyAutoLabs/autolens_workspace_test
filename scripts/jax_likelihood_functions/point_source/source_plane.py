@@ -161,12 +161,9 @@ fitting currently fails Path A with the ``Grid2DIrregular.grid_2d_via_deflection
 xp-propagation bug.  The eager NumPy log-likelihood is still asserted for
 regression coverage.
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
 
 model_jit = af.Collection(galaxies=af.Collection(lens=lens, source=source))
-register_model(model_jit)
 
 instance = model_jit.instance_from_prior_medians()
 

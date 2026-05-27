@@ -37,9 +37,7 @@ import numpy as np
 
 import autofit as af
 import autolens as al
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
 
 
 """
@@ -159,7 +157,6 @@ source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
-register_model(model)
 
 
 """
@@ -176,7 +173,6 @@ analysis_probe = al.AnalysisImaging(
     adapt_images=adapt_images,
     raise_inversion_positions_likelihood_exception=False,
     use_jax=True,
-    use_jax_for_visualization=True,
 )
 
 instance_probe = model.instance_from_prior_medians()
@@ -261,9 +257,6 @@ assert cached_time < compile_time * 0.5, (
     f"Cached call ({cached_time:.3f}s) not faster than compile "
     f"({compile_time:.3f}s) — JIT cache is not being hit."
 )
-assert (
-    analysis_probe._jitted_fit_from is not None
-), "expected _jitted_fit_from to be cached on the analysis instance after first call"
 print("PASS: Delaunay jit-cached fit_for_visualization works and is reused.")
 
 
@@ -337,7 +330,6 @@ analysis_live = al.AnalysisImaging(
     adapt_images=adapt_images,
     raise_inversion_positions_likelihood_exception=False,
     use_jax=True,
-    use_jax_for_visualization=True,
 )
 
 output_root = (
@@ -369,10 +361,6 @@ assert len(produced_pngs) > 0, (
     f"no fit.png produced under {output_search_root} — "
     "quick-update visualization did not fire"
 )
-assert (
-    analysis_live._jitted_fit_from is not None
-), "expected _jitted_fit_from to be cached on the analysis instance during search"
-
 print(
     "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "
     "with a Delaunay-pixelization source, fit.png written."

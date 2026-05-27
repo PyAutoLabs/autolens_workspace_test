@@ -215,10 +215,7 @@ np.testing.assert_allclose(
 """
 __Path A: jit-wrap parameter-vector entry point__
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
-register_model(factor_graph.global_prior_model)
 
 
 @jax.jit

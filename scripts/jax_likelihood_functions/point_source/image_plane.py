@@ -145,12 +145,9 @@ The Path A round-trip uses a model *without* free ``cosmology`` (same caveat
 as ``point.py``): the cosmology distance calc caches intermediate values in
 global state, triggering ``UnexpectedTracerError`` under ``jit``.
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
 
 model_jit = af.Collection(galaxies=af.Collection(lens=lens, source=source))
-register_model(model_jit)
 
 instance = model_jit.instance_from_prior_medians()
 

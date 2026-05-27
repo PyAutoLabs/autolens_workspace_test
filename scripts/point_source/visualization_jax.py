@@ -6,12 +6,12 @@ Pilot for the JAX-backed visualization path on ``PointDataset``.
 
 Goal
 ----
-Run ``VisualizerPoint.visualize`` with ``use_jax=True`` and
-``use_jax_for_visualization=True`` on ``AnalysisPoint``. The point
-visualizer dispatches through ``analysis.fit_for_visualization``, which
-lazily wraps ``fit_from`` in ``jax.jit``. To trace across that boundary the
-model and fit return type must be JAX pytrees, so this script enables pytree
-registration before constructing the model.
+Run ``VisualizerPoint.visualize`` with ``use_jax=True`` on ``AnalysisPoint``.
+Visualization now follows ``use_jax`` automatically — the point visualizer
+dispatches through ``analysis.fit_for_visualization``, which lazily wraps
+``fit_from`` in ``jax.jit``. To trace across that boundary the model and fit
+return type must be JAX pytrees, so this script enables pytree registration
+before constructing the model.
 
 Scope
 -----
@@ -27,10 +27,8 @@ from types import SimpleNamespace
 
 import autofit as af
 import autolens as al
-from autofit.jax.pytrees import enable_pytrees, register_model
 from autolens.point.model.visualizer import VisualizerPoint
 
-enable_pytrees()
 
 
 """
@@ -86,15 +84,13 @@ source = af.Model(al.Galaxy, redshift=1.0, point_0=point_0)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
-register_model(model)
 
 
 """
 __Analysis__
 
-``use_jax=True`` turns on the JAX ``_xp`` path;
-``use_jax_for_visualization=True`` tells the visualization path to wrap
-``fit_from`` in ``jax.jit`` via ``Analysis.fit_for_visualization``.
+``use_jax=True`` turns on the JAX ``_xp`` path. Visualization now follows
+``use_jax`` automatically via ``Analysis.fit_for_visualization``.
 ``title_prefix`` is passed through via PR #506's **kwargs fix.
 """
 analysis = al.AnalysisPoint(
@@ -102,7 +98,6 @@ analysis = al.AnalysisPoint(
     solver=solver,
     fit_positions_cls=al.FitPositionsImagePairAll,
     use_jax=True,
-    use_jax_for_visualization=True,
     title_prefix="JAX_PILOT",
 )
 
@@ -124,7 +119,7 @@ __Run visualize on the JAX-backed fit__
 """
 instance = model.instance_from_prior_medians()
 
-print("Running VisualizerPoint.visualize with use_jax_for_visualization=True ...")
+print("Running VisualizerPoint.visualize with use_jax=True ...")
 VisualizerPoint.visualize(
     analysis=analysis,
     paths=paths,

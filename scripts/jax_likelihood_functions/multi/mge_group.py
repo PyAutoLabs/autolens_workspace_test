@@ -239,10 +239,7 @@ np.testing.assert_allclose(
 """
 __Path A: jit-wrap parameter-vector entry point__
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
-register_model(factor_graph.global_prior_model)
 
 analysis_np_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=False) for dataset in dataset_list
