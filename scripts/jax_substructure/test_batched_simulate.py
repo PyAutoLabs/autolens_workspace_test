@@ -67,17 +67,41 @@ scaling_matrix = substructure_util.precompute_scaling_matrix(
 )
 
 
-def macro_deflections_fn(grid_raw):
+def lens_mass_fn(grid_raw, params):
+    power_law = al.mp.PowerLaw(
+        centre=(params[0], params[1]),
+        ell_comps=(params[2], params[3]),
+        slope=params[4],
+        einstein_radius=params[5],
+    )
+    shear = al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
+    galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return macro_galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+    return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+
+lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
 
 
-def source_image_fn(grid_raw):
+def source_light_fn(grid_raw, params):
+    bulge = al.lp.SersicCore(
+        centre=(params[0], params[1]),
+        ell_comps=(params[2], params[3]),
+        intensity=params[4],
+        effective_radius=params[5],
+        sersic_index=params[6],
+        radius_break=params[7],
+    )
+    galaxy = al.Galaxy(redshift=1.0, bulge=bulge)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return source_galaxy.image_2d_from(grid=g, xp=jnp).array
+    return galaxy.image_2d_from(grid=g, xp=jnp).array
 
+source_light_params = jnp.array([
+    0.02, -0.03,
+    0.05555555555555553, -0.0962250448649376,
+    1.5, 0.15, 3.5, 0.025,
+])
 
-macro_plane_mask = jnp.array([
+lens_plane_mask = jnp.array([
     1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts
 ])
 
@@ -128,6 +152,9 @@ halo_params_batch, halo_mask_batch, sheet_kappas_batch = (
 
 keys = jax.random.split(jax.random.PRNGKey(42), batch_size)
 
+lens_mass_params_batch = jnp.tile(lens_mass_params, (batch_size, 1))
+source_light_params_batch = jnp.tile(source_light_params, (batch_size, 1))
+
 """
 __Path A: sequential loop__
 """
@@ -139,10 +166,15 @@ for i in range(batch_size):
         halo_params=halo_params_batch[i],
         halo_mask=halo_mask_batch[i],
         scaling_matrix=scaling_matrix,
-        macro_deflections_fn=macro_deflections_fn,
-        macro_plane_mask=macro_plane_mask,
+        lens_mass_fn=lens_mass_fn,
+        lens_mass_params=lens_mass_params_batch[i],
+        lens_plane_mask=lens_plane_mask,
         sheet_kappas=sheet_kappas_batch[i],
-        source_image_fn=source_image_fn,
+        source_light_fn=source_light_fn,
+        source_light_params=source_light_params_batch[i],
+        lens_light_fn=None,
+        lens_light_params=None,
+        lens_plane_idx=None,
         psf_kernel=psf_kernel,
         exposure_time=300.0,
         background_sky_level=0.1,
@@ -160,10 +192,15 @@ images_batched = substructure_util.batched_simulate_substructure(
     halo_params_batch=halo_params_batch,
     halo_mask_batch=halo_mask_batch,
     scaling_matrix=scaling_matrix,
-    macro_deflections_fn=macro_deflections_fn,
-    macro_plane_mask=macro_plane_mask,
+    lens_mass_fn=lens_mass_fn,
+    lens_mass_params_batch=lens_mass_params_batch,
+    lens_plane_mask=lens_plane_mask,
     sheet_kappas_batch=sheet_kappas_batch,
-    source_image_fn=source_image_fn,
+    source_light_fn=source_light_fn,
+    source_light_params_batch=source_light_params_batch,
+    lens_light_fn=None,
+    lens_light_params_batch=None,
+    lens_plane_idx=None,
     psf_kernel=psf_kernel,
     exposure_time=300.0,
     background_sky_level=0.1,
@@ -187,16 +224,21 @@ print(f"PASS: All {batch_size} batch elements match sequential results")
 __JIT compilation__
 """
 jitted_batch = jax.jit(
-    lambda hp, hm, sk, k: substructure_util.batched_simulate_substructure(
+    lambda hp, hm, sk, lmp, slp, k: substructure_util.batched_simulate_substructure(
         grid=grid_array,
         image_shape=image_shape,
         halo_params_batch=hp,
         halo_mask_batch=hm,
         scaling_matrix=scaling_matrix,
-        macro_deflections_fn=macro_deflections_fn,
-        macro_plane_mask=macro_plane_mask,
+        lens_mass_fn=lens_mass_fn,
+        lens_mass_params_batch=lmp,
+        lens_plane_mask=lens_plane_mask,
         sheet_kappas_batch=sk,
-        source_image_fn=source_image_fn,
+        source_light_fn=source_light_fn,
+        source_light_params_batch=slp,
+        lens_light_fn=None,
+        lens_light_params_batch=None,
+        lens_plane_idx=None,
         psf_kernel=psf_kernel,
         exposure_time=300.0,
         background_sky_level=0.1,
@@ -206,7 +248,8 @@ jitted_batch = jax.jit(
 )
 
 images_jit = jitted_batch(
-    halo_params_batch, halo_mask_batch, sheet_kappas_batch, keys
+    halo_params_batch, halo_mask_batch, sheet_kappas_batch,
+    lens_mass_params_batch, source_light_params_batch, keys,
 )
 
 np.testing.assert_allclose(
