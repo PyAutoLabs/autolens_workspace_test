@@ -185,10 +185,7 @@ build a JAX-enabled twin and ``jax.jit`` a parameter-vector entry point.
 ``register_model`` is what registers ``DatasetModel`` (along with every other
 class in the model tree) as a JAX pytree.
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
-register_model(factor_graph.global_prior_model)
 
 analysis_np_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=False) for dataset in dataset_list

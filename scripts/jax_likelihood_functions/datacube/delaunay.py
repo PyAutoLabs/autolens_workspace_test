@@ -254,10 +254,7 @@ __Path A: jit-wrap parameter-vector entry point__
 Matches ``multi/delaunay.py``: jit-wrap ``factor_graph.log_likelihood_function``
 through ``instance_from_vector`` and assert the result matches the vmap value.
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
-register_model(factor_graph.global_prior_model)
 
 
 @jax.jit

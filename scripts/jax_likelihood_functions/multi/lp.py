@@ -167,10 +167,7 @@ pre-built instance directly is not viable because
 on the instance, and JAX pytree-flattens the whole instance and chokes on
 that non-registered leaf.
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
-register_model(factor_graph.global_prior_model)
 
 analysis_np_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=False) for dataset in dataset_list

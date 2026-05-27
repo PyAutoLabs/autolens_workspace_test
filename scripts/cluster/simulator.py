@@ -27,7 +27,6 @@ import autofit as af
 import autolens as al
 import autolens.plot as aplt
 
-from autofit.jax import register_model as _register_model_pytrees
 from autoarray.abstract_ndarray import register_instance_pytree
 from autolens.lens.tracer import Tracer
 
@@ -165,7 +164,6 @@ _registration_model = af.Collection(
     galaxies=af.Collection(*(_lens_models + [_halo_model] + _source_models))
 )
 
-_register_model_pytrees(_registration_model)
 register_instance_pytree(Tracer, no_flatten=("cosmology",))
 
 

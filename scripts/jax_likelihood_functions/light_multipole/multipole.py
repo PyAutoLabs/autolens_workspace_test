@@ -149,10 +149,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 """
 __Path A: jit-wrap ``analysis.fit_from``__
 """
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-enable_pytrees()
-register_model(model)
 
 instance = model.instance_from_prior_medians()
 

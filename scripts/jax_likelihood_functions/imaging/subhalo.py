@@ -191,11 +191,7 @@ copied back into the script.
 """
 
 from autofit.non_linear.fitness import Fitness
-from autofit.jax.pytrees import enable_pytrees, register_model
 
-# enable_pytrees once globally so all scenarios benefit from it for the
-# single-instance jit wrap. ``register_model`` is called per-scenario below.
-enable_pytrees()
 
 
 def run_scenario(
@@ -214,7 +210,6 @@ def run_scenario(
     print("=" * 72)
 
     model = build_model(redshift_subhalo, subhalo_mass_factory)
-    register_model(model)
 
     analysis = al.AnalysisImaging(
         dataset=dataset,

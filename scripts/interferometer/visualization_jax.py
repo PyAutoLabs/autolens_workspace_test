@@ -6,15 +6,16 @@ Pilot for https://github.com/PyAutoLabs/PyAutoFit/issues/1227.
 
 Goal
 ----
-Run ``VisualizerInterferometer.visualize`` with JAX enabled end-to-end, gated
-behind ``use_jax_for_visualization=True`` on ``Analysis``. After PyAutoLens #443
-the interferometer visualizer dispatches through
-``analysis.fit_for_visualization``, which lazily wraps ``fit_from`` in
-``jax.jit`` (autolens/interferometer/model/visualizer.py:96). To trace across
-that boundary the model and fit return type must be JAX pytrees, so this script
-enables pytree registration before constructing the model. Parametric MGE
-source — simplest case (no PSF convolution; interferometer operates in Fourier
-space via DFT, no pixelization, no inversion).
+Run ``VisualizerInterferometer.visualize`` with JAX enabled end-to-end via
+``use_jax=True`` on ``Analysis``. After PyAutoLens #443 the interferometer
+visualizer dispatches through ``analysis.fit_for_visualization``, which lazily
+wraps ``fit_from`` in ``jax.jit``
+(autolens/interferometer/model/visualizer.py:96). Visualization now follows
+``use_jax`` automatically. To trace across that boundary the model and fit
+return type must be JAX pytrees, so this script enables pytree registration
+before constructing the model. Parametric MGE source — simplest case (no PSF
+convolution; interferometer operates in Fourier space via DFT, no
+pixelization, no inversion).
 
 Scope
 -----
@@ -31,10 +32,8 @@ from types import SimpleNamespace
 
 import autofit as af
 import autolens as al
-from autofit.jax.pytrees import enable_pytrees, register_model
 from autolens.interferometer.model.visualizer import VisualizerInterferometer
 
-enable_pytrees()
 
 
 """
@@ -95,21 +94,18 @@ source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
-register_model(model)
 
 
 """
 __Analysis__
 
-``use_jax=True`` turns on the JAX ``_xp`` path; ``use_jax_for_visualization=True``
-tells the search-level visualization path to wrap ``fit_from`` in ``jax.jit``
-via the new ``Analysis.fit_for_visualization`` helper.
+``use_jax=True`` turns on the JAX ``_xp`` path. Visualization now follows
+``use_jax`` automatically via the ``Analysis.fit_for_visualization`` helper.
 """
 analysis = al.AnalysisInterferometer(
     dataset=dataset,
     positions_likelihood_list=[al.PositionsLH(threshold=0.4, positions=positions)],
     use_jax=True,
-    use_jax_for_visualization=True,
     title_prefix="JAX_PILOT",
 )
 
@@ -132,7 +128,7 @@ __Run visualize on the eager-JAX fit__
 instance = model.instance_from_prior_medians()
 
 print(
-    "Running VisualizerInterferometer.visualize with use_jax_for_visualization=True ..."
+    "Running VisualizerInterferometer.visualize with use_jax=True ..."
 )
 VisualizerInterferometer.visualize(
     analysis=analysis,
