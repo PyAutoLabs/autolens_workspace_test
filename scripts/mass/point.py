@@ -26,7 +26,10 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import autogalaxy as ag
-from mass.util import make_grid, run_all_checks, print_summary_table, get_tolerances
+from mass.util import (
+    make_grid, run_all_checks, run_param_sweep, print_summary_table,
+    get_tolerances, MODE,
+)
 
 """
 __Setup__
@@ -47,41 +50,37 @@ __PointMass__
 potential_2d_from is analytic: psi = R_E^2 * ln(r).
 """
 
-mp = ag.mp.PointMass(centre=offset_centre, einstein_radius=0.8)
-results.append(run_all_checks("PointMass", mp, grid, tol))
+run_param_sweep("PointMass", ag.mp.PointMass, [
+    dict(centre=offset_centre, einstein_radius=0.8),
+    dict(centre=offset_centre, einstein_radius=2.5),
+    dict(centre=offset_centre, einstein_radius=0.1),
+], grid, tol, results)
 
 """
 __SMBH__
 """
 
-mp = ag.mp.SMBH(
-    centre=offset_centre,
-    mass=1.5e10,
-    redshift_object=0.5,
-    redshift_source=1.2,
-)
-results.append(run_all_checks("SMBH", mp, grid, tol))
+run_param_sweep("SMBH", ag.mp.SMBH, [
+    dict(centre=offset_centre, mass=1.5e10, redshift_object=0.5, redshift_source=1.2),
+    dict(centre=offset_centre, mass=1.0e11, redshift_object=0.5, redshift_source=1.2),
+    dict(centre=offset_centre, mass=1.0e9, redshift_object=0.5, redshift_source=1.2),
+], grid, tol, results)
 
 """
 __SMBHBinary__
 """
 
-mp = ag.mp.SMBHBinary(
-    centre=offset_centre,
-    separation=0.5,
-    angle_binary=45.0,
-    mass=1.0e10,
-    mass_ratio=1.5,
-    redshift_object=0.5,
-    redshift_source=1.2,
-)
-results.append(run_all_checks("SMBHBinary", mp, grid, tol))
+run_param_sweep("SMBHBinary", ag.mp.SMBHBinary, [
+    dict(centre=offset_centre, separation=0.5, angle_binary=45.0, mass=1.0e10, mass_ratio=1.5, redshift_object=0.5, redshift_source=1.2),
+    dict(centre=offset_centre, separation=1.5, angle_binary=45.0, mass=1.0e10, mass_ratio=1.5, redshift_object=0.5, redshift_source=1.2),
+    dict(centre=offset_centre, separation=0.5, angle_binary=45.0, mass=1.0e10, mass_ratio=10.0, redshift_object=0.5, redshift_source=1.2),
+], grid, tol, results)
 
 """
 __Summary__
 """
 
 print("=" * 70)
-print("Point Mass Profiles — Self-Consistency Results")
+print(f"Point Mass Profiles — Self-Consistency Results (mode={MODE})")
 print("=" * 70)
 print_summary_table(results)
