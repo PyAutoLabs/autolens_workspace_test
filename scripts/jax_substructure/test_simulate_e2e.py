@@ -113,17 +113,41 @@ scaling_matrix = substructure_util.precompute_scaling_matrix(
 )
 
 
-def macro_deflections_fn(grid_raw):
+def lens_mass_fn(grid_raw, params):
+    power_law = al.mp.PowerLaw(
+        centre=(params[0], params[1]),
+        ell_comps=(params[2], params[3]),
+        slope=params[4],
+        einstein_radius=params[5],
+    )
+    shear = al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
+    galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return macro_galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+    return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+
+lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
 
 
-def source_image_fn(grid_raw):
+def source_light_fn(grid_raw, params):
+    bulge = al.lp.SersicCore(
+        centre=(params[0], params[1]),
+        ell_comps=(params[2], params[3]),
+        intensity=params[4],
+        effective_radius=params[5],
+        sersic_index=params[6],
+        radius_break=params[7],
+    )
+    galaxy = al.Galaxy(redshift=1.0, bulge=bulge)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return source_galaxy.image_2d_from(grid=g, xp=jnp).array
+    return galaxy.image_2d_from(grid=g, xp=jnp).array
 
+source_light_params = jnp.array([
+    0.02, -0.03,
+    0.05555555555555553, -0.0962250448649376,
+    1.5, 0.15, 3.5, 0.025,
+])
 
-macro_plane_mask = jnp.array([
+lens_plane_mask = jnp.array([
     1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts
 ])
 
@@ -136,10 +160,12 @@ image_scan = substructure_util.simulate_substructure(
     halo_params=halo_params,
     halo_mask=halo_mask,
     scaling_matrix=scaling_matrix,
-    macro_deflections_fn=macro_deflections_fn,
-    macro_plane_mask=macro_plane_mask,
+    lens_mass_fn=lens_mass_fn,
+    lens_mass_params=lens_mass_params,
+    lens_plane_mask=lens_plane_mask,
     sheet_kappas=sheet_kappas,
-    source_image_fn=source_image_fn,
+    source_light_fn=source_light_fn,
+    source_light_params=source_light_params,
     psf_kernel=psf_kernel,
     exposure_time=300.0,
     background_sky_level=0.1,
@@ -172,16 +198,17 @@ source_image_existing = source_galaxy.image_2d_from(
     grid=source_grid_existing,
 ).native.array
 
-scan_lensed_1d = source_image_fn(substructure_util.traced_grids_via_scan(
+scan_lensed_1d = source_light_fn(substructure_util.traced_grids_via_scan(
     grid=grid_array,
     halo_params=halo_params,
     halo_mask=halo_mask,
     scaling_matrix=scaling_matrix,
-    macro_deflections_fn=macro_deflections_fn,
-    macro_plane_mask=macro_plane_mask,
+    lens_mass_fn=lens_mass_fn,
+    lens_mass_params=lens_mass_params,
+    lens_plane_mask=lens_plane_mask,
     sheet_kappas=sheet_kappas,
     halo_profile_cls=ag.mp.NFWTruncatedSph,
-)[-1])
+)[-1], source_light_params)
 scan_lensed_2d = np.array(scan_lensed_1d).reshape(image_shape)
 
 np.testing.assert_allclose(
@@ -196,16 +223,18 @@ print("PASS: Pre-convolution lensed image matches existing Tracer path")
 __JIT compilation__
 """
 jitted_sim = jax.jit(
-    lambda hp, hm, sk: substructure_util.simulate_substructure(
+    lambda hp, hm, sk, lmp, slp: substructure_util.simulate_substructure(
         grid=grid_array,
         image_shape=image_shape,
         halo_params=hp,
         halo_mask=hm,
         scaling_matrix=scaling_matrix,
-        macro_deflections_fn=macro_deflections_fn,
-        macro_plane_mask=macro_plane_mask,
+        lens_mass_fn=lens_mass_fn,
+        lens_mass_params=lmp,
+        lens_plane_mask=lens_plane_mask,
         sheet_kappas=sk,
-        source_image_fn=source_image_fn,
+        source_light_fn=source_light_fn,
+        source_light_params=slp,
         psf_kernel=psf_kernel,
         exposure_time=300.0,
         background_sky_level=0.1,
@@ -214,7 +243,7 @@ jitted_sim = jax.jit(
     )
 )
 
-image_jit = jitted_sim(halo_params, halo_mask, sheet_kappas)
+image_jit = jitted_sim(halo_params, halo_mask, sheet_kappas, lens_mass_params, source_light_params)
 
 np.testing.assert_allclose(
     np.array(image_jit),
@@ -235,10 +264,12 @@ image_noisy = substructure_util.simulate_substructure(
     halo_params=halo_params,
     halo_mask=halo_mask,
     scaling_matrix=scaling_matrix,
-    macro_deflections_fn=macro_deflections_fn,
-    macro_plane_mask=macro_plane_mask,
+    lens_mass_fn=lens_mass_fn,
+    lens_mass_params=lens_mass_params,
+    lens_plane_mask=lens_plane_mask,
     sheet_kappas=sheet_kappas,
-    source_image_fn=source_image_fn,
+    source_light_fn=source_light_fn,
+    source_light_params=source_light_params,
     psf_kernel=psf_kernel,
     exposure_time=300.0,
     background_sky_level=0.1,
@@ -260,10 +291,12 @@ image_noisy_2 = substructure_util.simulate_substructure(
     halo_params=halo_params,
     halo_mask=halo_mask,
     scaling_matrix=scaling_matrix,
-    macro_deflections_fn=macro_deflections_fn,
-    macro_plane_mask=macro_plane_mask,
+    lens_mass_fn=lens_mass_fn,
+    lens_mass_params=lens_mass_params,
+    lens_plane_mask=lens_plane_mask,
     sheet_kappas=sheet_kappas,
-    source_image_fn=source_image_fn,
+    source_light_fn=source_light_fn,
+    source_light_params=source_light_params,
     psf_kernel=psf_kernel,
     exposure_time=300.0,
     background_sky_level=0.1,

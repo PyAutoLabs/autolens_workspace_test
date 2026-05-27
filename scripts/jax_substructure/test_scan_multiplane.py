@@ -105,11 +105,21 @@ scaling_matrix = substructure_util.precompute_scaling_matrix(
     plane_redshifts=plane_redshifts, cosmology=cosmology,
 )
 
-def macro_deflections_fn(grid_raw):
+def lens_mass_fn(grid_raw, params):
+    power_law = al.mp.PowerLaw(
+        centre=(params[0], params[1]),
+        ell_comps=(params[2], params[3]),
+        slope=params[4],
+        einstein_radius=params[5],
+    )
+    shear = al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
+    galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return macro_galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+    return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
 
-macro_plane_mask = jnp.array([
+lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
+
+lens_plane_mask = jnp.array([
     1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts
 ])
 
@@ -118,8 +128,9 @@ traced_grids_scan = substructure_util.traced_grids_via_scan(
     halo_params=halo_params,
     halo_mask=halo_mask,
     scaling_matrix=scaling_matrix,
-    macro_deflections_fn=macro_deflections_fn,
-    macro_plane_mask=macro_plane_mask,
+    lens_mass_fn=lens_mass_fn,
+    lens_mass_params=lens_mass_params,
+    lens_plane_mask=lens_plane_mask,
     sheet_kappas=sheet_kappas,
     halo_profile_cls=ag.mp.NFWTruncatedSph,
 )
@@ -157,19 +168,20 @@ print("PASS: All plane grids match")
 __JIT compilation__
 """
 jitted_scan = jax.jit(
-    lambda hp, hm, sk: substructure_util.traced_grids_via_scan(
+    lambda hp, hm, sk, lmp: substructure_util.traced_grids_via_scan(
         grid=grid_array,
         halo_params=hp,
         halo_mask=hm,
         scaling_matrix=scaling_matrix,
-        macro_deflections_fn=macro_deflections_fn,
-        macro_plane_mask=macro_plane_mask,
+        lens_mass_fn=lens_mass_fn,
+        lens_mass_params=lmp,
+        lens_plane_mask=lens_plane_mask,
         sheet_kappas=sk,
         halo_profile_cls=ag.mp.NFWTruncatedSph,
     )
 )
 
-jit_result = jitted_scan(halo_params, halo_mask, sheet_kappas)
+jit_result = jitted_scan(halo_params, halo_mask, sheet_kappas, lens_mass_params)
 
 np.testing.assert_allclose(
     np.array(jit_result[-1]),
@@ -183,7 +195,7 @@ print("PASS: jax.jit(traced_grids_via_scan) compiles and matches")
 __Verify recompilation avoidance__
 """
 halo_params_shifted = halo_params.at[:, :, 0].add(0.01)
-jit_result_2 = jitted_scan(halo_params_shifted, halo_mask, sheet_kappas)
+jit_result_2 = jitted_scan(halo_params_shifted, halo_mask, sheet_kappas, lens_mass_params)
 
 assert not jnp.allclose(jit_result[-1], jit_result_2[-1]), (
     "Different params produced identical results"
