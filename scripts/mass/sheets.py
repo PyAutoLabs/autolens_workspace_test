@@ -12,7 +12,7 @@ MassSheet, ExternalPotential) satisfy the fundamental lensing relations:
 using numerical differentiation independent of the source code.
 
 ExternalShear has physically zero convergence (pure shear field).
-MassSheet has zero potential_2d_from in the source code (placeholder).
+MassSheet has analytic potential_2d_from: psi = 0.5 * kappa_ext * r^2.
 """
 
 import sys
@@ -46,7 +46,7 @@ results.append(run_all_checks("ExternalShear", mp, grid, tol))
 __Mass Sheet__
 
 A uniform convergence sheet with kappa_ext. The potential is
-psi = 0.5 * kappa_ext * r^2, but potential_2d_from currently returns zeros.
+psi = 0.5 * kappa_ext * r^2 (analytic implementation).
 """
 
 mp = ag.mp.MassSheet(centre=(0.0, 0.0), kappa=0.1)

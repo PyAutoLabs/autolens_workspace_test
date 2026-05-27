@@ -68,7 +68,7 @@ results.append(run_all_checks("gNFWSph", mp, grid, tol))
 """
 __cNFW Family__
 
-convergence_2d_from and potential_2d_from both return zeros.
+convergence_2d_from and potential_2d_from both computed via MGE decomposition.
 """
 
 mp = ag.mp.cNFW(
@@ -88,7 +88,7 @@ results.append(run_all_checks("cNFWSph", mp, grid, tol))
 """
 __NFW Truncated__
 
-potential_2d_from returns zeros.
+potential_2d_from computed via MGE decomposition.
 """
 
 mp = ag.mp.NFWTruncatedSph(

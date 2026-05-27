@@ -34,7 +34,7 @@ results = []
 """
 __Sersic Family__
 
-AbstractSersic.potential_2d_from returns zeros.
+AbstractSersic.potential_2d_from computed via MGE decomposition.
 """
 
 mp = ag.mp.Sersic(
@@ -112,7 +112,7 @@ results.append(run_all_checks("SersicGradientSph", mp, grid, tol))
 """
 __Gaussian Family__
 
-Gaussian.potential_2d_from returns zeros.
+Gaussian.potential_2d_from computed via MGE decomposition.
 """
 
 mp = ag.mp.Gaussian(
@@ -187,7 +187,7 @@ results.append(run_all_checks("DevVaucouleursSph", mp, grid, tol))
 """
 __Chameleon Family__
 
-Chameleon.potential_2d_from returns zeros.
+Chameleon.potential_2d_from computed via MGE decomposition.
 """
 
 mp = ag.mp.Chameleon(

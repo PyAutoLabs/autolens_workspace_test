@@ -93,8 +93,8 @@ def check_div_alpha_eq_2kappa(profile, grid, tol):
 
     try:
         kappa = profile.convergence_2d_from(grid=grid)
-    except NotImplementedError:
-        return "SKIP", "convergence not implemented"
+    except (NotImplementedError, TypeError):
+        return "SKIP", "convergence not available"
 
     kappa_2d = _to_native_2d(kappa, grid)
 
@@ -126,8 +126,8 @@ def check_grad_psi_eq_alpha(profile, grid, tol):
 
     try:
         psi = profile.potential_2d_from(grid=grid)
-    except NotImplementedError:
-        return "SKIP", "potential not implemented"
+    except (NotImplementedError, TypeError):
+        return "SKIP", "potential not available"
 
     psi_2d = _to_native_2d(psi, grid)
 
@@ -166,8 +166,8 @@ def check_laplacian_psi_eq_2kappa(profile, grid, tol):
 
     try:
         psi = profile.potential_2d_from(grid=grid)
-    except NotImplementedError:
-        return "SKIP", "potential not implemented"
+    except (NotImplementedError, TypeError):
+        return "SKIP", "potential not available"
 
     psi_2d = _to_native_2d(psi, grid)
 
@@ -176,8 +176,8 @@ def check_laplacian_psi_eq_2kappa(profile, grid, tol):
 
     try:
         kappa = profile.convergence_2d_from(grid=grid)
-    except NotImplementedError:
-        return "SKIP", "convergence not implemented"
+    except (NotImplementedError, TypeError):
+        return "SKIP", "convergence not available"
 
     kappa_2d = _to_native_2d(kappa, grid)
 

@@ -17,7 +17,7 @@ on the singularity. The div(alpha) = 2*kappa check is only meaningful away
 from the singularity (where kappa ~ 0 everywhere), so it will show as a
 trivial PASS or SKIP depending on numerical noise.
 
-PointMass.potential_2d_from returns zeros (placeholder).
+PointMass has analytic potential_2d_from: psi = R_E^2 * ln(r).
 """
 
 import sys
@@ -44,7 +44,7 @@ offset_centre = (0.3, 0.3)
 """
 __PointMass__
 
-potential_2d_from returns zeros.
+potential_2d_from is analytic: psi = R_E^2 * ln(r).
 """
 
 mp = ag.mp.PointMass(centre=offset_centre, einstein_radius=0.8)
