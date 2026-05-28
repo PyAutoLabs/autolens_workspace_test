@@ -215,7 +215,6 @@ __Path A: jit-wrap parameter-vector entry point__
 """
 
 
-
 @jax.jit
 def log_l_jit_fn(parameters):
     instance = factor_graph.global_prior_model.instance_from_vector(

@@ -42,7 +42,6 @@ import autofit as af
 import autolens as al
 
 
-
 """
 __Dataset__
 
@@ -180,9 +179,7 @@ from autogalaxy.operate.lens_calc import LensCalc as _SanityLensCalc
 # Lensing-side: SIE sanity tracer (independent of the script's MGE model).
 _sanity_lens = al.Galaxy(
     redshift=0.5,
-    mass=al.mp.Isothermal(
-        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
-    ),
+    mass=al.mp.Isothermal(centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)),
 )
 _sanity_source = al.Galaxy(redshift=1.0)
 _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
@@ -219,10 +216,12 @@ print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
 # linear-inversion collapse on the JAX path that would leave subplot_fit.png
 # cosmetically OK but the underlying visibilities all-zero.
 _mv = np.asarray(fit_2.model_data)
-assert np.isfinite(_mv).all(), "model_data (visibilities) have nan/inf — NUFFT/inversion collapse"
-assert float(np.abs(_mv).sum()) > 0.0, (
-    "model_data (visibilities) all-zero — NUFFT/inversion collapse"
-)
+assert np.isfinite(
+    _mv
+).all(), "model_data (visibilities) have nan/inf — NUFFT/inversion collapse"
+assert (
+    float(np.abs(_mv).sum()) > 0.0
+), "model_data (visibilities) all-zero — NUFFT/inversion collapse"
 print(
     f"  PASS Visualization Sanity (interferometer): "
     f"|model_data|.sum() = {float(np.abs(_mv).sum()):.4f}"

@@ -193,7 +193,6 @@ copied back into the script.
 from autofit.non_linear.fitness import Fitness
 
 
-
 def run_scenario(
     label,
     redshift_subhalo,

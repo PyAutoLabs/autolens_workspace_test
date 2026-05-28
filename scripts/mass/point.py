@@ -27,8 +27,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import autogalaxy as ag
 from mass.util import (
-    make_grid, run_all_checks, run_param_sweep, print_summary_table,
-    get_tolerances, MODE,
+    make_grid,
+    run_all_checks,
+    run_param_sweep,
+    print_summary_table,
+    get_tolerances,
+    MODE,
 )
 
 """
@@ -50,31 +54,82 @@ __PointMass__
 potential_2d_from is analytic: psi = R_E^2 * ln(r).
 """
 
-run_param_sweep("PointMass", ag.mp.PointMass, [
-    dict(centre=offset_centre, einstein_radius=0.8),
-    dict(centre=offset_centre, einstein_radius=2.5),
-    dict(centre=offset_centre, einstein_radius=0.1),
-], grid, tol, results)
+run_param_sweep(
+    "PointMass",
+    ag.mp.PointMass,
+    [
+        dict(centre=offset_centre, einstein_radius=0.8),
+        dict(centre=offset_centre, einstein_radius=2.5),
+        dict(centre=offset_centre, einstein_radius=0.1),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __SMBH__
 """
 
-run_param_sweep("SMBH", ag.mp.SMBH, [
-    dict(centre=offset_centre, mass=1.5e10, redshift_object=0.5, redshift_source=1.2),
-    dict(centre=offset_centre, mass=1.0e11, redshift_object=0.5, redshift_source=1.2),
-    dict(centre=offset_centre, mass=1.0e9, redshift_object=0.5, redshift_source=1.2),
-], grid, tol, results)
+run_param_sweep(
+    "SMBH",
+    ag.mp.SMBH,
+    [
+        dict(
+            centre=offset_centre, mass=1.5e10, redshift_object=0.5, redshift_source=1.2
+        ),
+        dict(
+            centre=offset_centre, mass=1.0e11, redshift_object=0.5, redshift_source=1.2
+        ),
+        dict(
+            centre=offset_centre, mass=1.0e9, redshift_object=0.5, redshift_source=1.2
+        ),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __SMBHBinary__
 """
 
-run_param_sweep("SMBHBinary", ag.mp.SMBHBinary, [
-    dict(centre=offset_centre, separation=0.5, angle_binary=45.0, mass=1.0e10, mass_ratio=1.5, redshift_object=0.5, redshift_source=1.2),
-    dict(centre=offset_centre, separation=1.5, angle_binary=45.0, mass=1.0e10, mass_ratio=1.5, redshift_object=0.5, redshift_source=1.2),
-    dict(centre=offset_centre, separation=0.5, angle_binary=45.0, mass=1.0e10, mass_ratio=10.0, redshift_object=0.5, redshift_source=1.2),
-], grid, tol, results)
+run_param_sweep(
+    "SMBHBinary",
+    ag.mp.SMBHBinary,
+    [
+        dict(
+            centre=offset_centre,
+            separation=0.5,
+            angle_binary=45.0,
+            mass=1.0e10,
+            mass_ratio=1.5,
+            redshift_object=0.5,
+            redshift_source=1.2,
+        ),
+        dict(
+            centre=offset_centre,
+            separation=1.5,
+            angle_binary=45.0,
+            mass=1.0e10,
+            mass_ratio=1.5,
+            redshift_object=0.5,
+            redshift_source=1.2,
+        ),
+        dict(
+            centre=offset_centre,
+            separation=0.5,
+            angle_binary=45.0,
+            mass=1.0e10,
+            mass_ratio=10.0,
+            redshift_object=0.5,
+            redshift_source=1.2,
+        ),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __Summary__

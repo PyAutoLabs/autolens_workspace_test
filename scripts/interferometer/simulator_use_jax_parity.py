@@ -72,9 +72,9 @@ simulator_jax = al.SimulatorInterferometer(use_jax=True, **common_kwargs)
 dataset_jax = simulator_jax.via_tracer_from(tracer=tracer, grid=grid)
 data_jax = np.asarray(dataset_jax.data)
 
-assert data_np.shape == data_jax.shape, (
-    f"Shape mismatch: numpy={data_np.shape} vs jax={data_jax.shape}"
-)
+assert (
+    data_np.shape == data_jax.shape
+), f"Shape mismatch: numpy={data_np.shape} vs jax={data_jax.shape}"
 np.testing.assert_allclose(
     data_np,
     data_jax,

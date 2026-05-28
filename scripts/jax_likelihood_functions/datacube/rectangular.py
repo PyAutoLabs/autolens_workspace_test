@@ -239,7 +239,6 @@ through ``instance_from_vector`` and assert the result matches the vmap value.
 """
 
 
-
 @jax.jit
 def log_l_jit_fn(parameters):
     instance = factor_graph.global_prior_model.instance_from_vector(

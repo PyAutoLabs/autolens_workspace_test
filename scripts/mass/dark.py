@@ -23,8 +23,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import autogalaxy as ag
 from mass.util import (
-    make_grid, run_all_checks, run_param_sweep, print_summary_table,
-    get_tolerances, MODE,
+    make_grid,
+    run_all_checks,
+    run_param_sweep,
+    print_summary_table,
+    get_tolerances,
+    MODE,
 )
 
 """
@@ -39,34 +43,80 @@ results = []
 __NFW Family__
 """
 
-run_param_sweep("NFW", ag.mp.NFW, [
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.07, scale_radius=1.2),
-    dict(centre=(0.0, 0.0), ell_comps=(0.3, 0.15), kappa_s=0.07, scale_radius=1.2),
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.07, scale_radius=5.0),
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.07, scale_radius=0.3),
-], grid, tol, results)
+run_param_sweep(
+    "NFW",
+    ag.mp.NFW,
+    [
+        dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.07, scale_radius=1.2),
+        dict(centre=(0.0, 0.0), ell_comps=(0.3, 0.15), kappa_s=0.07, scale_radius=1.2),
+        dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.07, scale_radius=5.0),
+        dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.07, scale_radius=0.3),
+    ],
+    grid,
+    tol,
+    results,
+)
 
-run_param_sweep("NFWSph", ag.mp.NFWSph, [
-    dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2),
-    dict(centre=(0.0, 0.0), kappa_s=0.2, scale_radius=1.2),
-    dict(centre=(0.0, 0.0), kappa_s=0.02, scale_radius=1.2),
-], grid, tol, results)
+run_param_sweep(
+    "NFWSph",
+    ag.mp.NFWSph,
+    [
+        dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2),
+        dict(centre=(0.0, 0.0), kappa_s=0.2, scale_radius=1.2),
+        dict(centre=(0.0, 0.0), kappa_s=0.02, scale_radius=1.2),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __gNFW Family__
 """
 
-run_param_sweep("gNFW", ag.mp.gNFW, [
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.06, inner_slope=1.2, scale_radius=1.1),
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.06, inner_slope=0.5, scale_radius=1.1),
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.06, inner_slope=2.5, scale_radius=1.1),
-], grid, tol, results)
+run_param_sweep(
+    "gNFW",
+    ag.mp.gNFW,
+    [
+        dict(
+            centre=(0.0, 0.0),
+            ell_comps=(0.08, 0.04),
+            kappa_s=0.06,
+            inner_slope=1.2,
+            scale_radius=1.1,
+        ),
+        dict(
+            centre=(0.0, 0.0),
+            ell_comps=(0.08, 0.04),
+            kappa_s=0.06,
+            inner_slope=0.5,
+            scale_radius=1.1,
+        ),
+        dict(
+            centre=(0.0, 0.0),
+            ell_comps=(0.08, 0.04),
+            kappa_s=0.06,
+            inner_slope=2.5,
+            scale_radius=1.1,
+        ),
+    ],
+    grid,
+    tol,
+    results,
+)
 
-run_param_sweep("gNFWSph", ag.mp.gNFWSph, [
-    dict(centre=(0.0, 0.0), kappa_s=0.06, inner_slope=1.2, scale_radius=1.1),
-    dict(centre=(0.0, 0.0), kappa_s=0.06, inner_slope=0.5, scale_radius=1.1),
-    dict(centre=(0.0, 0.0), kappa_s=0.06, inner_slope=2.5, scale_radius=1.1),
-], grid, tol, results)
+run_param_sweep(
+    "gNFWSph",
+    ag.mp.gNFWSph,
+    [
+        dict(centre=(0.0, 0.0), kappa_s=0.06, inner_slope=1.2, scale_radius=1.1),
+        dict(centre=(0.0, 0.0), kappa_s=0.06, inner_slope=0.5, scale_radius=1.1),
+        dict(centre=(0.0, 0.0), kappa_s=0.06, inner_slope=2.5, scale_radius=1.1),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __cNFW Family__
@@ -74,17 +124,49 @@ __cNFW Family__
 convergence_2d_from and potential_2d_from both computed via MGE decomposition.
 """
 
-run_param_sweep("cNFW", ag.mp.cNFW, [
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.06, scale_radius=1.2, core_radius=0.015),
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.06, scale_radius=1.2, core_radius=0.15),
-    dict(centre=(0.0, 0.0), ell_comps=(0.08, 0.04), kappa_s=0.06, scale_radius=1.2, core_radius=0.001),
-], grid, tol, results)
+run_param_sweep(
+    "cNFW",
+    ag.mp.cNFW,
+    [
+        dict(
+            centre=(0.0, 0.0),
+            ell_comps=(0.08, 0.04),
+            kappa_s=0.06,
+            scale_radius=1.2,
+            core_radius=0.015,
+        ),
+        dict(
+            centre=(0.0, 0.0),
+            ell_comps=(0.08, 0.04),
+            kappa_s=0.06,
+            scale_radius=1.2,
+            core_radius=0.15,
+        ),
+        dict(
+            centre=(0.0, 0.0),
+            ell_comps=(0.08, 0.04),
+            kappa_s=0.06,
+            scale_radius=1.2,
+            core_radius=0.001,
+        ),
+    ],
+    grid,
+    tol,
+    results,
+)
 
-run_param_sweep("cNFWSph", ag.mp.cNFWSph, [
-    dict(centre=(0.0, 0.0), kappa_s=0.06, scale_radius=1.2, core_radius=0.015),
-    dict(centre=(0.0, 0.0), kappa_s=0.06, scale_radius=1.2, core_radius=0.15),
-    dict(centre=(0.0, 0.0), kappa_s=0.06, scale_radius=1.2, core_radius=0.001),
-], grid, tol, results)
+run_param_sweep(
+    "cNFWSph",
+    ag.mp.cNFWSph,
+    [
+        dict(centre=(0.0, 0.0), kappa_s=0.06, scale_radius=1.2, core_radius=0.015),
+        dict(centre=(0.0, 0.0), kappa_s=0.06, scale_radius=1.2, core_radius=0.15),
+        dict(centre=(0.0, 0.0), kappa_s=0.06, scale_radius=1.2, core_radius=0.001),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __NFW Truncated__
@@ -92,11 +174,18 @@ __NFW Truncated__
 potential_2d_from computed via MGE decomposition.
 """
 
-run_param_sweep("NFWTruncatedSph", ag.mp.NFWTruncatedSph, [
-    dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2, truncation_radius=3.0),
-    dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2, truncation_radius=10.0),
-    dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2, truncation_radius=0.5),
-], grid, tol, results)
+run_param_sweep(
+    "NFWTruncatedSph",
+    ag.mp.NFWTruncatedSph,
+    [
+        dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2, truncation_radius=3.0),
+        dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2, truncation_radius=10.0),
+        dict(centre=(0.0, 0.0), kappa_s=0.07, scale_radius=1.2, truncation_radius=0.5),
+    ],
+    grid,
+    tol,
+    results,
+)
 
 """
 __Summary__

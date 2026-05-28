@@ -41,7 +41,6 @@ import autolens as al
 from autolens.imaging.model.visualizer import VisualizerImaging
 
 
-
 """
 __Dataset__
 
@@ -99,7 +98,6 @@ source_bulge = al.model_util.mge_model_from(
 source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
-
 
 
 """
@@ -160,9 +158,7 @@ from autogalaxy.operate.lens_calc import LensCalc as _SanityLensCalc
 
 _sanity_lens = al.Galaxy(
     redshift=0.5,
-    mass=al.mp.Isothermal(
-        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
-    ),
+    mass=al.mp.Isothermal(centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)),
 )
 _sanity_source = al.Galaxy(redshift=1.0)
 _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])

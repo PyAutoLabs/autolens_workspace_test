@@ -8,6 +8,7 @@ Compares the deterministic (no-noise) lensed+convolved image.
 
 Ref: PyAutoLens#542, prompt 3.
 """
+
 import numpy as np
 import jax
 import jax.numpy as jnp
@@ -97,7 +98,8 @@ psf_kernel = jnp.array(psf_kernel_np)
 __Build scan-path inputs__
 """
 halo_galaxies = [
-    g for g in all_galaxies
+    g
+    for g in all_galaxies
     if g.redshift < 1.0 and g is not macro_galaxy and g is not source_galaxy
 ]
 
@@ -109,7 +111,8 @@ halo_params, halo_mask, sheet_kappas = substructure_util.galaxies_to_halo_arrays
 )
 
 scaling_matrix = substructure_util.precompute_scaling_matrix(
-    plane_redshifts=plane_redshifts, cosmology=cosmology,
+    plane_redshifts=plane_redshifts,
+    cosmology=cosmology,
 )
 
 
@@ -124,6 +127,7 @@ def lens_mass_fn(grid_raw, params):
     galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
     return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+
 
 lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
 
@@ -141,15 +145,23 @@ def source_light_fn(grid_raw, params):
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
     return galaxy.image_2d_from(grid=g, xp=jnp).array
 
-source_light_params = jnp.array([
-    0.02, -0.03,
-    0.05555555555555553, -0.0962250448649376,
-    1.5, 0.15, 3.5, 0.025,
-])
 
-lens_plane_mask = jnp.array([
-    1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts
-])
+source_light_params = jnp.array(
+    [
+        0.02,
+        -0.03,
+        0.05555555555555553,
+        -0.0962250448649376,
+        1.5,
+        0.15,
+        3.5,
+        0.025,
+    ]
+)
+
+lens_plane_mask = jnp.array(
+    [1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts]
+)
 
 """
 __Path B: simulate_substructure (no noise)__
@@ -176,8 +188,10 @@ image_scan = substructure_util.simulate_substructure(
 assert image_scan.shape == image_shape
 assert not jnp.any(jnp.isnan(image_scan)), "NaN in simulated image"
 assert jnp.max(image_scan) > 0, "Image is all zeros or negative"
-print(f"PASS: simulate_substructure produces valid {image_shape} image "
-      f"(max={float(jnp.max(image_scan)):.4f})")
+print(
+    f"PASS: simulate_substructure produces valid {image_shape} image "
+    f"(max={float(jnp.max(image_scan)):.4f})"
+)
 
 """
 __Path A: existing Tracer lensed image (pre-convolution) for comparison__
@@ -189,8 +203,12 @@ tracer = al.Tracer(galaxies=all_galaxies, cosmology=cosmology)
 tracer_image_np = tracer.image_2d_from(grid=grid).native.array
 
 from autolens.lens import tracer_util
+
 traced_existing = tracer_util.traced_grid_2d_list_from(
-    planes=tracer.planes, grid=grid, cosmology=cosmology, xp=np,
+    planes=tracer.planes,
+    grid=grid,
+    cosmology=cosmology,
+    xp=np,
 )
 source_grid_existing = traced_existing[-1]
 
@@ -198,17 +216,20 @@ source_image_existing = source_galaxy.image_2d_from(
     grid=source_grid_existing,
 ).native.array
 
-scan_lensed_1d = source_light_fn(substructure_util.traced_grids_via_scan(
-    grid=grid_array,
-    halo_params=halo_params,
-    halo_mask=halo_mask,
-    scaling_matrix=scaling_matrix,
-    lens_mass_fn=lens_mass_fn,
-    lens_mass_params=lens_mass_params,
-    lens_plane_mask=lens_plane_mask,
-    sheet_kappas=sheet_kappas,
-    halo_profile_cls=ag.mp.NFWTruncatedSph,
-)[-1], source_light_params)
+scan_lensed_1d = source_light_fn(
+    substructure_util.traced_grids_via_scan(
+        grid=grid_array,
+        halo_params=halo_params,
+        halo_mask=halo_mask,
+        scaling_matrix=scaling_matrix,
+        lens_mass_fn=lens_mass_fn,
+        lens_mass_params=lens_mass_params,
+        lens_plane_mask=lens_plane_mask,
+        sheet_kappas=sheet_kappas,
+        halo_profile_cls=ag.mp.NFWTruncatedSph,
+    )[-1],
+    source_light_params,
+)
 scan_lensed_2d = np.array(scan_lensed_1d).reshape(image_shape)
 
 np.testing.assert_allclose(
@@ -243,7 +264,9 @@ jitted_sim = jax.jit(
     )
 )
 
-image_jit = jitted_sim(halo_params, halo_mask, sheet_kappas, lens_mass_params, source_light_params)
+image_jit = jitted_sim(
+    halo_params, halo_mask, sheet_kappas, lens_mass_params, source_light_params
+)
 
 np.testing.assert_allclose(
     np.array(image_jit),

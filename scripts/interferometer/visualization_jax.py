@@ -35,7 +35,6 @@ import autolens as al
 from autolens.interferometer.model.visualizer import VisualizerInterferometer
 
 
-
 """
 __Dataset__
 
@@ -95,7 +94,6 @@ source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
 
-
 """
 __Analysis__
 
@@ -127,9 +125,7 @@ __Run visualize on the eager-JAX fit__
 """
 instance = model.instance_from_prior_medians()
 
-print(
-    "Running VisualizerInterferometer.visualize with use_jax=True ..."
-)
+print("Running VisualizerInterferometer.visualize with use_jax=True ...")
 VisualizerInterferometer.visualize(
     analysis=analysis,
     paths=paths,
@@ -155,9 +151,7 @@ from autogalaxy.operate.lens_calc import LensCalc as _SanityLensCalc
 
 _sanity_lens = al.Galaxy(
     redshift=0.5,
-    mass=al.mp.Isothermal(
-        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
-    ),
+    mass=al.mp.Isothermal(centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)),
 )
 _sanity_source = al.Galaxy(redshift=1.0)
 _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
@@ -191,12 +185,12 @@ print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
 # Interferometer-specific: model_data (complex Visibilities) finite + non-zero.
 _fit_for_vis = analysis.fit_from(instance=instance)
 _mv = _sanity_np.asarray(_fit_for_vis.model_data)
-assert _sanity_np.isfinite(_mv).all(), (
-    "fit.model_data (visibilities) have nan/inf — NUFFT/inversion collapse"
-)
-assert float(_sanity_np.abs(_mv).sum()) > 0.0, (
-    "fit.model_data (visibilities) all-zero — NUFFT/inversion collapse"
-)
+assert _sanity_np.isfinite(
+    _mv
+).all(), "fit.model_data (visibilities) have nan/inf — NUFFT/inversion collapse"
+assert (
+    float(_sanity_np.abs(_mv).sum()) > 0.0
+), "fit.model_data (visibilities) all-zero — NUFFT/inversion collapse"
 print(
     f"  PASS Visualization Sanity (interferometer): "
     f"|model_data|.sum() = {float(_sanity_np.abs(_mv).sum()):.4f}"

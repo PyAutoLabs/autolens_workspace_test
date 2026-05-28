@@ -6,6 +6,7 @@ Validates that traced_grids_via_scan (jax.lax.scan path) reproduces the
 existing Python-loop Tracer path for a 4-plane system with LOS halos,
 a macro lens, and negative kappa sheets. Ref: PyAutoLens#542, prompt 2.
 """
+
 import numpy as np
 import jax
 import jax.numpy as jnp
@@ -83,16 +84,16 @@ tracer = al.Tracer(galaxies=all_galaxies, cosmology=cosmology)
 planes = tracer.planes
 
 traced_grids_existing = tracer_util.traced_grid_2d_list_from(
-    planes=planes, grid=grid, cosmology=cosmology, xp=np,
+    planes=planes,
+    grid=grid,
+    cosmology=cosmology,
+    xp=np,
 )
 
 """
 __Path B: scan-based path__
 """
-halo_galaxies = [
-    g for g in all_galaxies
-    if g.redshift < 1.0 and g is not macro_galaxy
-]
+halo_galaxies = [g for g in all_galaxies if g.redshift < 1.0 and g is not macro_galaxy]
 
 halo_params, halo_mask, sheet_kappas = substructure_util.galaxies_to_halo_arrays(
     galaxies=halo_galaxies,
@@ -102,8 +103,10 @@ halo_params, halo_mask, sheet_kappas = substructure_util.galaxies_to_halo_arrays
 )
 
 scaling_matrix = substructure_util.precompute_scaling_matrix(
-    plane_redshifts=plane_redshifts, cosmology=cosmology,
+    plane_redshifts=plane_redshifts,
+    cosmology=cosmology,
 )
+
 
 def lens_mass_fn(grid_raw, params):
     power_law = al.mp.PowerLaw(
@@ -117,11 +120,12 @@ def lens_mass_fn(grid_raw, params):
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
     return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
 
+
 lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
 
-lens_plane_mask = jnp.array([
-    1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts
-])
+lens_plane_mask = jnp.array(
+    [1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts]
+)
 
 traced_grids_scan = substructure_util.traced_grids_via_scan(
     grid=grid_array,
@@ -195,11 +199,13 @@ print("PASS: jax.jit(traced_grids_via_scan) compiles and matches")
 __Verify recompilation avoidance__
 """
 halo_params_shifted = halo_params.at[:, :, 0].add(0.01)
-jit_result_2 = jitted_scan(halo_params_shifted, halo_mask, sheet_kappas, lens_mass_params)
-
-assert not jnp.allclose(jit_result[-1], jit_result_2[-1]), (
-    "Different params produced identical results"
+jit_result_2 = jitted_scan(
+    halo_params_shifted, halo_mask, sheet_kappas, lens_mass_params
 )
+
+assert not jnp.allclose(
+    jit_result[-1], jit_result_2[-1]
+), "Different params produced identical results"
 print("PASS: Different params produce different results (no stale cache)")
 
 print("\nAll tests passed.")

@@ -39,7 +39,6 @@ import autofit as af
 import autolens as al
 
 
-
 """
 __Dataset__
 """
@@ -155,9 +154,7 @@ from autogalaxy.operate.lens_calc import LensCalc as _SanityLensCalc
 # Lensing-side sanity (SIE tracer, independent of the script's lens model).
 _sanity_lens = al.Galaxy(
     redshift=0.5,
-    mass=al.mp.Isothermal(
-        centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)
-    ),
+    mass=al.mp.Isothermal(centre=(0.0, 0.0), einstein_radius=1.2, ell_comps=(0.1, 0.0)),
 )
 _sanity_source = al.Galaxy(redshift=1.0)
 _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])

@@ -7,6 +7,7 @@ produces identical results to calling simulate_substructure in a loop.
 
 Ref: PyAutoLens#542, prompt 4.
 """
+
 import numpy as np
 import jax
 import jax.numpy as jnp
@@ -63,7 +64,8 @@ psf_kernel = jnp.array(
 psf_kernel = psf_kernel / psf_kernel.sum()
 
 scaling_matrix = substructure_util.precompute_scaling_matrix(
-    plane_redshifts=plane_redshifts, cosmology=cosmology,
+    plane_redshifts=plane_redshifts,
+    cosmology=cosmology,
 )
 
 
@@ -78,6 +80,7 @@ def lens_mass_fn(grid_raw, params):
     galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
     return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+
 
 lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
 
@@ -95,15 +98,23 @@ def source_light_fn(grid_raw, params):
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
     return galaxy.image_2d_from(grid=g, xp=jnp).array
 
-source_light_params = jnp.array([
-    0.02, -0.03,
-    0.05555555555555553, -0.0962250448649376,
-    1.5, 0.15, 3.5, 0.025,
-])
 
-lens_plane_mask = jnp.array([
-    1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts
-])
+source_light_params = jnp.array(
+    [
+        0.02,
+        -0.03,
+        0.05555555555555553,
+        -0.0962250448649376,
+        1.5,
+        0.15,
+        3.5,
+        0.025,
+    ]
+)
+
+lens_plane_mask = jnp.array(
+    [1.0 if abs(z - 0.5) < 1e-6 else 0.0 for z in plane_redshifts]
+)
 
 """
 __Build B realizations with different random halo populations__
@@ -248,8 +259,12 @@ jitted_batch = jax.jit(
 )
 
 images_jit = jitted_batch(
-    halo_params_batch, halo_mask_batch, sheet_kappas_batch,
-    lens_mass_params_batch, source_light_params_batch, keys,
+    halo_params_batch,
+    halo_mask_batch,
+    sheet_kappas_batch,
+    lens_mass_params_batch,
+    source_light_params_batch,
+    keys,
 )
 
 np.testing.assert_allclose(
@@ -263,9 +278,9 @@ print("PASS: jax.jit(batched_simulate_substructure) compiles and matches")
 """
 __Different realizations produce different images__
 """
-assert not jnp.allclose(images_batched[0], images_batched[1]), (
-    "Different realizations produced identical images"
-)
+assert not jnp.allclose(
+    images_batched[0], images_batched[1]
+), "Different realizations produced identical images"
 print("PASS: Different realizations produce different images")
 
 print(f"\nAll tests passed. Batch shape: {images_batched.shape}")
