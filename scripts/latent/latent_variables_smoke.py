@@ -7,7 +7,10 @@ materialises the latent samples via ``analysis.compute_latent_samples``,
 and asserts every default-enabled key in ``autolens.analysis.latent.LATENT_FUNCTIONS``
 is present with a finite value in a loose order-of-magnitude bracket.
 
-The workspace ``config/latent.yaml`` enables all five library latents.
+The workspace ``config/latent.yaml`` enables every entry in
+``LATENT_FUNCTIONS`` — three raw-flux latents (instrument-input-free),
+three µJy variants (require ``magzero``, which the smoke fixture
+supplies), plus ``magnification`` and ``effective_einstein_radius``.
 The brackets are deliberately loose so PYAUTO_SMALL_DATASETS grid mutations
 (15x15) still yield passing values; the goal is a structural regression
 guard, not Bayesian validation.
@@ -43,6 +46,9 @@ search = af.Nautilus(
 result = search.fit(model=model, analysis=analysis)
 
 EXPECTED_KEYS = [
+    "total_lens_flux",
+    "total_lensed_source_flux",
+    "total_source_flux",
     "total_lens_flux_mujy",
     "total_lensed_source_flux_mujy",
     "total_source_flux_mujy",
