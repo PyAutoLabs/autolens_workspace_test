@@ -24,6 +24,13 @@ overrides:
   # JAX likelihood functions test JIT compilation — need JAX enabled and full-size datasets
   - pattern: "jax_likelihood_functions/"
     unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
+  # JAX substructure scripts test the full simulate_substructure / batched_simulate_substructure
+  # path with an explicit image_shape=(51,51). PYAUTO_SMALL_DATASETS=1 clamps the input grid
+  # to 15x15 (225 points) but image_shape is left alone, so the reshape inside
+  # simulate_substructure (substructure_util.py:168) raises a 225 vs 2601 TypeError.
+  # Same JAX-with-full-dataset pattern as jax_likelihood_functions/.
+  - pattern: "jax_substructure/"
+    unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
   # Database scrape scripts need real search output on disk — no test env vars
   - pattern: "database/scrape/"
     unset:
