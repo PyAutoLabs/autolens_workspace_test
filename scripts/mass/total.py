@@ -23,6 +23,8 @@ from mass.util import (
     run_all_checks,
     run_param_sweep,
     print_summary_table,
+    check_convergence_func_enclosed_mass,
+    print_convergence_func_table,
     get_tolerances,
     MODE,
 )
@@ -303,3 +305,45 @@ print("=" * 70)
 print(f"Total Mass Profiles — Self-Consistency Results (mode={MODE})")
 print("=" * 70)
 print_summary_table(results)
+
+"""
+__convergence_func Enclosed Mass__
+
+Directly exercises `convergence_func` via radial mass integration (the Einstein-radius
+path). PowerLawSph is an analytic positive control; PowerLawBrokenSph is the profile whose
+`convergence_func` was newly added (reached today via its MGE potential too). PowerLawMultipole
+encloses zero net mass (zero monopole).
+"""
+
+cf_results = [
+    check_convergence_func_enclosed_mass(
+        "PowerLawSph",
+        ag.mp.PowerLawSph(centre=(0.0, 0.0), einstein_radius=1.1, slope=2.1),
+        tol,
+    ),
+    check_convergence_func_enclosed_mass(
+        "PowerLawBrokenSph",
+        ag.mp.PowerLawBrokenSph(
+            centre=(0.0, 0.0),
+            einstein_radius=1.0,
+            inner_slope=1.3,
+            outer_slope=2.7,
+            break_radius=0.05,
+        ),
+        tol,
+    ),
+    check_convergence_func_enclosed_mass(
+        "PowerLawMultipole",
+        ag.mp.PowerLawMultipole(
+            centre=(0.0, 0.0),
+            einstein_radius=1.0,
+            slope=2.0,
+            m=4,
+            multipole_comps=(0.01, 0.01),
+        ),
+        tol,
+        expect_zero=True,
+    ),
+]
+
+print_convergence_func_table(cf_results)

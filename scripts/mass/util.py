@@ -233,6 +233,62 @@ def run_all_checks(name, profile, grid, tol):
     }
 
 
+def check_convergence_func_enclosed_mass(name, profile, tol, radius=1.0, expect_zero=False):
+    """Exercise `convergence_func` end-to-end via radial mass integration.
+
+    `mass_angular_within_circle_from(R)` integrates `2*pi*r*kappa(r)` (`mass_integral`),
+    which calls `convergence_func` through `scipy.integrate.quad`. This is the *only* path
+    that reaches `convergence_func` for profiles whose `convergence_2d_from` does not delegate
+    to it (PowerLawBroken via MGE potential, cNFW via MGE-of-3D-density, PowerLawMultipole).
+
+    For a spherical profile the enclosed 2D mass equals `pi * R * alpha_r(R)` from the
+    independent deflection field — a cross-check that needs no source-code internals. For a
+    pure multipole (`expect_zero=True`) the enclosed mass is zero (zero azimuthally-averaged
+    convergence)."""
+
+    try:
+        mass = float(profile.mass_angular_within_circle_from(radius=radius))
+    except Exception as e:  # surface NotImplementedError or any regression as a FAIL row
+        return {"name": name, "status": "FAIL", "detail": f"raised {type(e).__name__}"}
+
+    if expect_zero:
+        status = "PASS" if abs(mass) < 1e-6 else "FAIL"
+        return {"name": name, "status": status, "detail": f"mass={mass:.2e} (expect 0)"}
+
+    alpha = np.asarray(profile.deflections_yx_2d_from(grid=ag.Grid2DIrregular([[0.0, radius]])))
+    alpha_r = float(np.hypot(alpha[0, 0], alpha[0, 1]))
+    expected = np.pi * radius * alpha_r
+
+    if abs(expected) < 1e-10:
+        return {"name": name, "status": "SKIP", "detail": "deflection ~0"}
+
+    rel = abs(mass - expected) / abs(expected)
+    status = "PASS" if rel <= tol["rtol"] else "FAIL"
+    return {"name": name, "status": status, "detail": f"mass={mass:.4f} piRa={expected:.4f} rel={rel:.1e}"}
+
+
+def print_convergence_func_table(results_list):
+    print()
+    print("convergence_func enclosed-mass cross-check (mass_integral -> convergence_func):")
+    print(f"| {'Profile':<28} | {'enclosed mass = pi*R*alpha':<46} |")
+    print(f"|{'-'*30}|{'-'*48}|")
+
+    n_pass = n_fail = n_skip = 0
+    for r in results_list:
+        cell = f"{r['status']} {r['detail']}"
+        print(f"| {r['name']:<28} | {cell:<46} |")
+        if r["status"] == "PASS":
+            n_pass += 1
+        elif r["status"] == "FAIL":
+            n_fail += 1
+        else:
+            n_skip += 1
+
+    print()
+    print(f"convergence_func: {n_pass} PASS / {n_fail} FAIL / {n_skip} SKIP")
+    print()
+
+
 def print_summary_table(results_list):
     hdr = f"| {'Profile':<28} | {'div(a)=2k':<16} | {'grad(p)=a':<16} | {'lap(p)=2k':<16} |"
     sep = f"|{'-'*30}|{'-'*18}|{'-'*18}|{'-'*18}|"
