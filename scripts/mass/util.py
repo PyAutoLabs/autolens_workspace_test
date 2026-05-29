@@ -233,7 +233,9 @@ def run_all_checks(name, profile, grid, tol):
     }
 
 
-def check_convergence_func_enclosed_mass(name, profile, tol, radius=1.0, expect_zero=False):
+def check_convergence_func_enclosed_mass(
+    name, profile, tol, radius=1.0, expect_zero=False
+):
     """Exercise `convergence_func` end-to-end via radial mass integration.
 
     `mass_angular_within_circle_from(R)` integrates `2*pi*r*kappa(r)` (`mass_integral`),
@@ -248,14 +250,18 @@ def check_convergence_func_enclosed_mass(name, profile, tol, radius=1.0, expect_
 
     try:
         mass = float(profile.mass_angular_within_circle_from(radius=radius))
-    except Exception as e:  # surface NotImplementedError or any regression as a FAIL row
+    except (
+        Exception
+    ) as e:  # surface NotImplementedError or any regression as a FAIL row
         return {"name": name, "status": "FAIL", "detail": f"raised {type(e).__name__}"}
 
     if expect_zero:
         status = "PASS" if abs(mass) < 1e-6 else "FAIL"
         return {"name": name, "status": status, "detail": f"mass={mass:.2e} (expect 0)"}
 
-    alpha = np.asarray(profile.deflections_yx_2d_from(grid=ag.Grid2DIrregular([[0.0, radius]])))
+    alpha = np.asarray(
+        profile.deflections_yx_2d_from(grid=ag.Grid2DIrregular([[0.0, radius]]))
+    )
     alpha_r = float(np.hypot(alpha[0, 0], alpha[0, 1]))
     expected = np.pi * radius * alpha_r
 
@@ -264,12 +270,18 @@ def check_convergence_func_enclosed_mass(name, profile, tol, radius=1.0, expect_
 
     rel = abs(mass - expected) / abs(expected)
     status = "PASS" if rel <= tol["rtol"] else "FAIL"
-    return {"name": name, "status": status, "detail": f"mass={mass:.4f} piRa={expected:.4f} rel={rel:.1e}"}
+    return {
+        "name": name,
+        "status": status,
+        "detail": f"mass={mass:.4f} piRa={expected:.4f} rel={rel:.1e}",
+    }
 
 
 def print_convergence_func_table(results_list):
     print()
-    print("convergence_func enclosed-mass cross-check (mass_integral -> convergence_func):")
+    print(
+        "convergence_func enclosed-mass cross-check (mass_integral -> convergence_func):"
+    )
     print(f"| {'Profile':<28} | {'enclosed mass = pi*R*alpha':<46} |")
     print(f"|{'-'*30}|{'-'*48}|")
 
