@@ -27,6 +27,8 @@ from mass.util import (
     run_all_checks,
     run_param_sweep,
     print_summary_table,
+    check_convergence_func_enclosed_mass,
+    print_convergence_func_table,
     get_tolerances,
     MODE,
 )
@@ -195,3 +197,29 @@ print("=" * 70)
 print(f"Dark Matter Profiles — Self-Consistency Results (mode={MODE})")
 print("=" * 70)
 print_summary_table(results)
+
+"""
+__convergence_func Enclosed Mass__
+
+Directly exercises `convergence_func` via radial mass integration (the Einstein-radius
+path) — the only path that reaches cNFW's `convergence_func`, since its `convergence_2d_from`
+goes through MGE-of-3D-density and never calls it. NFWSph is an analytic positive control;
+cNFWSph is the profile whose `convergence_func` was newly added.
+"""
+
+cf_results = [
+    check_convergence_func_enclosed_mass(
+        "NFWSph",
+        ag.mp.NFWSph(centre=(0.0, 0.0), kappa_s=0.2, scale_radius=1.2),
+        tol,
+    ),
+    check_convergence_func_enclosed_mass(
+        "cNFWSph",
+        ag.mp.cNFWSph(
+            centre=(0.0, 0.0), kappa_s=0.2, scale_radius=1.2, core_radius=0.15
+        ),
+        tol,
+    ),
+]
+
+print_convergence_func_table(cf_results)
