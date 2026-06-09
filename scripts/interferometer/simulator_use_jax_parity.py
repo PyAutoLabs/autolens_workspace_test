@@ -20,6 +20,7 @@ import jax
 import numpy as np
 
 import autolens as al
+from autolens.jax import register_tracer_classes
 
 
 grid = al.Grid2D.uniform(shape_native=(64, 64), pixel_scales=0.1)
@@ -88,7 +89,7 @@ print(
 )
 
 # @jax.jit roundtrip.
-al.util.register_tracer_classes(tracer)
+register_tracer_classes(tracer)
 
 
 @jax.jit
