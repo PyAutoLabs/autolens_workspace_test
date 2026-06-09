@@ -235,10 +235,11 @@ print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 """
-Cube log-likelihood ≈ N × single-channel log-likelihood (-3165.42388511) for
-identical channels. Pinned empirically below.
+Cube log-likelihood ≈ N × single-channel log-likelihood for identical
+channels. Pinned empirically below.
 """
-EXPECTED_VMAP_LOG_LIKELIHOOD = n_channels * -3165.42388511
+EXPECTED_SINGLE_CHANNEL_LOG_LIKELIHOOD = -3165.42388511
+EXPECTED_VMAP_LOG_LIKELIHOOD = n_channels * EXPECTED_SINGLE_CHANNEL_LOG_LIKELIHOOD
 
 np.testing.assert_allclose(
     np.array(result),
@@ -278,9 +279,14 @@ print("PASS: jit(log_likelihood_function) round-trip matches vmap scalar.")
 """
 __Path B: TransformerNUFFT cross-check__
 
-Re-run the same cube vmap with ``TransformerNUFFT`` and confirm the result
-matches the ``TransformerDFT`` value.
+Re-run a single-channel vmap with ``TransformerNUFFT`` and confirm the result
+matches the single-channel ``TransformerDFT`` value. The 4-channel DFT path above
+already validates datacube factor-graph summation and JIT routing; duplicating the
+same Delaunay NUFFT graph across four identical channels can exceed the release
+runner memory budget.
 """
+nufft_channels = 1
+
 dataset_list_nufft = [
     al.Interferometer.from_fits(
         data_path=path.join(dataset_path, "data.fits"),
@@ -289,7 +295,7 @@ dataset_list_nufft = [
         real_space_mask=real_space_mask,
         transformer_class=al.TransformerNUFFT,
     )
-    for _ in range(n_channels)
+    for _ in range(nufft_channels)
 ]
 
 analysis_list_nufft = [
@@ -329,7 +335,7 @@ print("TransformerNUFFT cube vmap result:", result_nufft)
 
 np.testing.assert_allclose(
     np.array(result_nufft),
-    EXPECTED_VMAP_LOG_LIKELIHOOD,
+    nufft_channels * EXPECTED_SINGLE_CHANNEL_LOG_LIKELIHOOD,
     rtol=1e-4,
     err_msg="datacube/delaunay: TransformerNUFFT cube vmap disagrees with TransformerDFT",
 )
