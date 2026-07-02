@@ -3,18 +3,27 @@
 # wheel-based release-fidelity path). Distinct from env_vars.yaml, which is the
 # `smoke` profile used by the per-PR CI gate.
 #
-# The `release` profile runs REAL searches (PYAUTO_TEST_MODE=0 — each script's
-# own n_like_max caps keep this bounded) at full resolution: PYAUTO_SMALL_DATASETS
-# and PYAUTO_FAST_PLOTS are deliberately absent from "defaults" below (unset ==
-# full-res grids, real plots), unlike the smoke profile which caps both for
-# speed. Spec + acceptance table: PyAutoHeart/docs/release_validation.md.
+# The `release` profile runs REAL searches (PYAUTO_TEST_MODE="0" — each
+# script's own n_like_max caps keep this bounded) at full resolution.
+# Spec + acceptance table: PyAutoHeart/docs/release_validation.md.
 #
 # "defaults" are applied to every script on top of the inherited environment.
-# "overrides" selectively unset or replace vars for matching path patterns —
-# identical in structure and intent to env_vars.yaml's overrides; they still
-# layer on top of this profile's defaults rather than the smoke ones. Most
-# PYAUTO_SMALL_DATASETS-unsetting overrides are no-ops here (already unset by
-# default) but are kept so the two profiles stay easy to diff against each other.
+# Every var this profile cares about is given an EXPLICIT value in "defaults"
+# (not left absent) — the runner only ever *sets* keys it's given, it never
+# clears unrelated inherited env vars, so an absent key silently falls through
+# to whatever the calling process already had (a leftover smoke-mode "1" from
+# an earlier step, a developer's local shell, ...). Pinning everything here
+# — including PYAUTO_SMALL_DATASETS="0" / PYAUTO_FAST_PLOTS="0" for full-res,
+# real plots — makes the profile self-contained regardless of the caller's
+# environment.
+#
+# "overrides" then only ever `set:` a var to flip it away from this profile's
+# own default for specific scripts — never `unset:` a var that "defaults"
+# already pins, since unsetting just re-exposes the same inherited-env gap
+# `defaults` exists to close. In practice that leaves PYAUTO_DISABLE_JAX as
+# the only var any override here still needs to touch (PYAUTO_TEST_MODE="0"
+# and the full-res/real-plot defaults already satisfy every other unset the
+# smoke profile's env_vars.yaml needs).
 #
 # Pattern convention (same as no_run.yaml):
 #   - Patterns containing '/' do a substring match against the file path
@@ -24,7 +33,9 @@
 #   - Patterns without '/' match the file stem exactly.
 
 defaults:
-  PYAUTO_TEST_MODE: "0"              # real searches (each script caps its own n_like_max)
+  PYAUTO_TEST_MODE: "0"                # real searches (each script caps its own n_like_max)
+  PYAUTO_SMALL_DATASETS: "0"           # full-res grids/masks (release fidelity, not smoke)
+  PYAUTO_FAST_PLOTS: "0"               # real plots (release fidelity, not smoke)
   PYAUTO_DISABLE_JAX: "1"              # force use_jax=False by default; JAX-specific folders re-enable below
   PYAUTO_SKIP_WORKSPACE_VERSION_CHECK: "1"  # TestPyPI dev version won't match the workspace pin
   JAX_ENABLE_X64: "True"               # enable 64-bit precision in JAX
@@ -32,91 +43,37 @@ defaults:
   MPLCONFIGDIR: "/tmp/matplotlib"       # writable config dir for matplotlib
 
 overrides:
-  # JAX likelihood functions test JIT compilation — need JAX enabled and full-size datasets
+  # JAX likelihood functions test JIT compilation — need JAX enabled (already
+  # full-res/real-plots by default above).
   - pattern: "jax_likelihood_functions/"
-    unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
-  # JAX substructure scripts test the full simulate_substructure / batched_simulate_substructure
-  # path with an explicit image_shape=(51,51). PYAUTO_SMALL_DATASETS=1 clamps the input grid
-  # to 15x15 (225 points) but image_shape is left alone, so the reshape inside
-  # simulate_substructure (substructure_util.py:168) raises a 225 vs 2601 TypeError.
-  # Same JAX-with-full-dataset pattern as jax_likelihood_functions/.
+    set: { PYAUTO_DISABLE_JAX: "0" }
+  # JAX substructure scripts test the full simulate_substructure /
+  # batched_simulate_substructure path with an explicit image_shape=(51,51) —
+  # needs JAX enabled; full-res is already the default.
   - pattern: "jax_substructure/"
-    unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
-  # Database scrape scripts need real search output on disk — no test env vars
+    set: { PYAUTO_DISABLE_JAX: "0" }
+  # Database scrape scripts need real search output on disk with JAX enabled;
+  # PYAUTO_TEST_MODE/SMALL_DATASETS/FAST_PLOTS already match this profile's
+  # defaults, only PYAUTO_DISABLE_JAX needs flipping.
   - pattern: "database/scrape/"
-    unset:
-      - PYAUTO_TEST_MODE
-      - PYAUTO_SMALL_DATASETS
-      - PYAUTO_DISABLE_JAX
-      - PYAUTO_FAST_PLOTS
-  # These scripts load pre-committed FITS data at full resolution
-  - pattern: "database/scrape/scaling_relation"
-    unset: [PYAUTO_SMALL_DATASETS]
-  - pattern: "imaging/convolution"
-    unset: [PYAUTO_SMALL_DATASETS]
-  - pattern: "imaging/model_fit"
-    unset: [PYAUTO_SMALL_DATASETS]
-  # imaging/visualization.py asserts subplot PNG / FITS files land on disk
-  # and loads pre-committed FITS at full resolution — both PYAUTO_FAST_PLOTS
-  # (which short-circuits savefig) and PYAUTO_SMALL_DATASETS must be unset.
-  - pattern: "imaging/visualization.py"
-    unset: [PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
-  # visualization_jax exercises the jit-cached fit_for_visualization path
-  # (registered model + autoarray pytrees). It must run with JAX enabled —
-  # PYAUTO_DISABLE_JAX=1 would silently flip use_jax flags off and the
-  # script would no-op. Also asserts fit.png on disk so PYAUTO_FAST_PLOTS
-  # must be unset.
+    set: { PYAUTO_DISABLE_JAX: "0" }
+  # visualization_jax scripts (imaging/interferometer/point_source) exercise
+  # the jit-cached fit_for_visualization path (registered model + autoarray
+  # pytrees) and must run with JAX enabled — PYAUTO_DISABLE_JAX="1" would
+  # silently flip use_jax flags off and the script would no-op.
   - pattern: "imaging/visualization_jax"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
-  - pattern: "jax_grad/imaging_lp"
-    unset: [PYAUTO_SMALL_DATASETS]
-  - pattern: "jax_grad/imaging_mge"
-    unset: [PYAUTO_SMALL_DATASETS]
-  # Model composition scripts assert prior_count for full-size MGE bases.
-  # PYAUTO_SMALL_DATASETS=1 reduces total_gaussians and changes prior_count.
-  - pattern: "model_composition/"
-    unset: [PYAUTO_SMALL_DATASETS]
-  # interferometer/visualization.py asserts subplot PNG / FITS files exist
-  # on disk (PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray)
-  # and loads pre-committed FITS at full resolution with an explicit
-  # (100, 100) shape_native mask — the 15x15 SMALL_DATASETS cap would still
-  # apply, so both must be unset.
-  - pattern: "interferometer/visualization.py"
-    unset: [PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
-  # interferometer/visualization_jax exercises the jit-cached
-  # fit_for_visualization path on the interferometer side. PYAUTO_DISABLE_JAX=1
-  # would silently flip use_jax flags off — script needs JAX enabled.
+    set: { PYAUTO_DISABLE_JAX: "0" }
   - pattern: "interferometer/visualization_jax"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
-  # modeling_visualization_jit{,_delaunay,_rectangular} test the JIT-cached
-  # visualization path: needs JAX enabled (Part 1 asserts log_likelihood is
-  # a jax.Array), the full-resolution mask, a real Nautilus run for Part 2,
-  # and savefig active (Part 2 asserts fit.png lands on disk).
-  - pattern: "imaging/modeling_visualization_jit"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
-  # interferometer/modeling_visualization_jit — same intent as the imaging
-  # analogue but for the interferometer JIT path.
-  - pattern: "interferometer/modeling_visualization_jit"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
-  # multi/visualization_imaging loads the 150x150 lens_sersic dataset from
-  # disk via Imaging.from_fits (which does not honour SMALL_DATASETS) and
-  # builds its mask via al.Mask2D.circular (which DOES cap to 15x15 under
-  # PYAUTO_SMALL_DATASETS=1, even when shape_native is explicit). The
-  # mismatch raises a (150,150) vs (15,15) broadcast error on apply_mask.
-  # The script does not run a non-linear search, so it is only useful at
-  # full resolution; just unset the cap.
-  - pattern: "multi/visualization_imaging"
-    unset: [PYAUTO_SMALL_DATASETS]
-  # point_source/visualization.py asserts fit.png lands on disk and uses a
-  # JSON point dataset (no FITS, no mask) — PYAUTO_FAST_PLOTS must be unset
-  # but PYAUTO_SMALL_DATASETS does not affect this script.
-  - pattern: "point_source/visualization.py"
-    unset: [PYAUTO_FAST_PLOTS]
-  # point_source/visualization_jax exercises the jit-cached
-  # fit_for_visualization path on the point-source side. Also asserts
-  # fit.png on disk so PYAUTO_FAST_PLOTS must be unset.
+    set: { PYAUTO_DISABLE_JAX: "0" }
   - pattern: "point_source/visualization_jax"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
-  # point_source/modeling_visualization_jit — live Nautilus + JIT path.
+    set: { PYAUTO_DISABLE_JAX: "0" }
+  # modeling_visualization_jit (imaging/interferometer/point_source) test the
+  # JIT-cached visualization path: Part 1 asserts log_likelihood is a
+  # jax.Array, so JAX must be enabled. PYAUTO_TEST_MODE="0" (real Nautilus
+  # run) and full-res/real-plots are already this profile's defaults.
+  - pattern: "imaging/modeling_visualization_jit"
+    set: { PYAUTO_DISABLE_JAX: "0" }
+  - pattern: "interferometer/modeling_visualization_jit"
+    set: { PYAUTO_DISABLE_JAX: "0" }
   - pattern: "point_source/modeling_visualization_jit"
-    unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
+    set: { PYAUTO_DISABLE_JAX: "0" }
