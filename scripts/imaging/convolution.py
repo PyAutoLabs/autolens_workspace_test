@@ -135,6 +135,7 @@ via_real_space = dataset.psf.convolved_image_via_real_space_np_from(
 residuals = via_fft.native - via_real_space.native
 
 script_path = Path("scripts") / "imaging" / "images"
+script_path.mkdir(parents=True, exist_ok=True)
 
 print(f"Max residual = {residuals.max()}")
 print(
