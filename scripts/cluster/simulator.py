@@ -26,6 +26,7 @@ from pathlib import Path
 import autofit as af
 import autolens as al
 import autolens.plot as aplt
+from autolens.jax import register_tracer_classes
 
 from autoarray.abstract_ndarray import register_instance_pytree
 from autolens.lens.tracer import Tracer
@@ -165,6 +166,7 @@ _registration_model = af.Collection(
 )
 
 register_instance_pytree(Tracer, no_flatten=("cosmology",))
+register_tracer_classes(tracer)
 
 
 """
@@ -180,21 +182,21 @@ solver = al.PointSolver.for_grid(
 )
 
 
-@jax.jit
-def jitted_solve(tracer, source_plane_coordinate):
-    return solver.solve(
+jitted_solve = jax.jit(
+    lambda source_plane_coordinate: solver.solve(
         tracer=tracer,
         source_plane_coordinate=source_plane_coordinate,
         xp=jnp,
         remove_infinities=False,
     ).array
+)
 
 
 positions_list = []
 for i, src_galaxy in enumerate(source_galaxies):
     src_centre = src_galaxy.bulge.centre
     coord = jnp.asarray(src_centre)
-    raw = np.asarray(jitted_solve(tracer, coord))
+    raw = np.asarray(jitted_solve(coord))
     finite = ~(np.isinf(raw).any(axis=1) | np.isnan(raw).any(axis=1))
     positions_list.append(al.Grid2DIrregular(raw[finite]))
 

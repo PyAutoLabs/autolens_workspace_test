@@ -13,16 +13,14 @@ tested separately (``test_autoarray/dataset/imaging/test_simulator_use_jax.py``
 covers the constructor wiring; this script covers numerical agreement of the
 deterministic image-generation path).
 
-Also tests the @jax.jit roundtrip: the simulator under jit produces a dataset
-whose data array agrees with the eager path. This exercises the
-``register_tracer_classes(tracer)`` registration walker shipped in PR 1
-(PyAutoLens#538) — without prior registration the @jax.jit decoration would fail
-to flatten the Tracer at the JIT boundary.
+This script intentionally stops at eager simulator parity. Lower-level tracer
+and lens-calc scripts cover ``jax.jit`` directly; the imaging simulator still
+rebuilds native ``Array2D`` wrappers with NumPy indexing, which is not a valid
+JIT boundary for traced image values.
 """
 
 from autoconf import jax_wrapper  # Sets JAX float64 before other imports
 
-import jax
 import numpy as np
 
 import autolens as al
@@ -92,29 +90,4 @@ np.testing.assert_allclose(
 print(
     f"PASS: SimulatorImaging(use_jax=True) data matches use_jax=False "
     f"to atol=1e-8 (shape {data_np.shape})."
-)
-
-# @jax.jit roundtrip: register tracer classes so JAX can flatten/unflatten
-# the Tracer pytree at the JIT boundary, then run the simulator under jit
-# and verify the output matches the eager JAX path.
-al.util.register_tracer_classes(tracer)
-
-
-@jax.jit
-def simulate_jit(tracer):
-    dataset = simulator_jax.via_tracer_from(tracer=tracer, grid=grid)
-    return dataset.data._array
-
-
-data_jit = np.asarray(simulate_jit(tracer))
-
-np.testing.assert_allclose(
-    data_jax,
-    data_jit,
-    atol=1e-8,
-    err_msg="SimulatorImaging @jax.jit data differs from eager JAX path",
-)
-print(
-    f"PASS: SimulatorImaging @jax.jit roundtrip matches eager JAX "
-    f"to atol=1e-8 (shape {data_jit.shape})."
 )
