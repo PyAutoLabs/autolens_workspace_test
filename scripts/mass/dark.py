@@ -190,6 +190,14 @@ run_param_sweep(
 )
 
 """
+__Kaplinghat SIDM Cored NFW__
+
+KaplinghatCoredNFWSph uses nested numerical projection for its nonzero SIDM core.
+It is therefore exercised below in the targeted convergence_func enclosed-mass
+cross-check rather than in the full-grid potential finite-difference sweep.
+"""
+
+"""
 __Summary__
 """
 
@@ -217,6 +225,16 @@ cf_results = [
         "cNFWSph",
         ag.mp.cNFWSph(
             centre=(0.0, 0.0), kappa_s=0.2, scale_radius=1.2, core_radius=0.15
+        ),
+        tol,
+    ),
+    check_convergence_func_enclosed_mass(
+        "KaplinghatCoredNFWSph",
+        ag.mp.KaplinghatCoredNFWSph(
+            centre=(0.0, 0.0),
+            kappa_s=0.2,
+            scale_radius=1.2,
+            interaction_radius=0.3,
         ),
         tol,
     ),
