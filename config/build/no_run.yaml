@@ -27,6 +27,7 @@
 - imaging/modeling_visualization_jit_delaunay # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap; same root cause as modeling_visualization_jit
 - imaging/modeling_visualization_jit_rectangular # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 301s cap; same root cause as modeling_visualization_jit
 - interferometer/modeling_visualization_jit # SLOW 2026-05-20 - JIT + full visualization pipeline exceeds 300s cap; same root cause as imaging/modeling_visualization_jit family
+- point_source/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - jax_likelihood_functions/imaging/delaunay_mge # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
 - jax_likelihood_functions/imaging/mge_group # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
 - jax_grad/imaging_lp # NEEDS_FIX 2026-04-10 - JAX traceback in gradient computation for light profile
