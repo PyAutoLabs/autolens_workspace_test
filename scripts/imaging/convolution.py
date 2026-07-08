@@ -304,3 +304,62 @@ print(
     f"  Padded   log_likelihood = {fit_off.log_likelihood:.8f}  chi_squared = {fit_off.chi_squared:.8f}"
 )
 print(f"  Difference = {likelihood_diff:.2e}")
+
+"""
+__Oversampled PSF: FFT vs Real Space__
+
+An oversampled PSF (`convolve_over_sample_size > 1`, supplied at a multiple of the image resolution) runs
+convolution on the upscaled grid and bins back to image resolution. The JAX path uses the FFT formalism and the
+numpy path direct real-space convolution — as with the s=1 checks above, the two must agree.
+
+Full numerical coverage (ground-truth values, every supported model surface through `FitImaging`, guards) is in
+`convolution_over_sampled.py`.
+"""
+s = 2
+
+kernel_fine_n = 11
+kc = (np.arange(kernel_fine_n) - (kernel_fine_n - 1) / 2.0) * (0.2 / s)
+kyy, kxx = np.meshgrid(-kc, kc, indexing="ij")
+kernel_fine = np.exp(-0.5 * (kyy**2 + kxx**2) / 0.15**2)
+
+psf_over = al.Convolver(
+    kernel=al.Array2D.no_mask(values=kernel_fine, pixel_scales=0.2 / s),
+    normalize=True,
+    convolve_over_sample_size=s,
+)
+
+mask_over = al.Mask2D.circular(shape_native=(21, 21), pixel_scales=0.2, radius=1.8)
+grid_over = al.Grid2D.from_mask(mask=mask_over, over_sample_size=s)
+blurring_mask_over = mask_over.derive_mask.blurring_from(
+    kernel_shape_native=psf_over.kernel_shape_image_resolution, allow_padding=True
+)
+blurring_grid_over = al.Grid2D.from_mask(mask=blurring_mask_over, over_sample_size=s)
+
+image_sub = tracer_centred.image_2d_from(grid=grid_over.over_sampled)
+blurring_sub = tracer_centred.image_2d_from(grid=blurring_grid_over.over_sampled)
+
+via_fft_over = psf_over.convolved_image_from(
+    image=jnp.asarray(np.array(image_sub)),
+    blurring_image=jnp.asarray(np.array(blurring_sub)),
+    mask=mask_over,
+    xp=jnp,
+)
+
+via_real_space_over = psf_over.convolved_image_from(
+    image=np.array(image_sub),
+    blurring_image=np.array(blurring_sub),
+    mask=mask_over,
+    xp=np,
+)
+
+residual_over = np.max(
+    np.abs(np.array(via_fft_over) - np.array(via_real_space_over))
+)
+
+print(f"\nOversampled (s={s}) FFT vs real-space max residual = {residual_over:.3e}")
+
+assert residual_over < 1.0e-8, (
+    f"Oversampled FFT and real-space convolution disagree: {residual_over}"
+)
+
+print("Oversampled FFT vs real-space parity PASSED")
