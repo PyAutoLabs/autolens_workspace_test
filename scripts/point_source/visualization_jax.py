@@ -151,7 +151,9 @@ _sanity_source = al.Galaxy(redshift=1.0)
 _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
 _sanity_od = _SanityLensCalc.from_tracer(_sanity_tracer)
 
-_tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+_sanity_t0 = _sanity_time.perf_counter()
+_tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # cold: first call on fresh instance (JIT compile)
+_sanity_cold_dt = _sanity_time.perf_counter() - _sanity_t0
 assert len(_tc_list) > 0, (
     "no tangential critical curves returned by zero_contour — algorithmic "
     "regression (PyAutoGalaxy abd7b717 / PyAutoFit #1280 family)"
@@ -166,12 +168,22 @@ print(
     f"{len(_tc_list)} tangential CC, einstein_radius={float(_er_sanity):.4f}"
 )
 
-_sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm cache
 _t0 = _sanity_time.perf_counter()
-_sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+_sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm (cached solver)
 _warm_dt = _sanity_time.perf_counter() - _t0
-assert _warm_dt < 0.1, (
-    f"zero_contour warm call took {_warm_dt * 1000:.1f} ms (> 100 ms) — "
-    "closure cache-busting bug from PyAutoGalaxy #433 may have regressed"
+# Hardware-independent guard: the warm (cached) call must be much faster than
+# the cold JIT-compiling first call. A closure cache-busting regression
+# (PyAutoGalaxy #433) recompiles the solver every call, so warm ~= cold (ratio
+# near 1). An absolute millisecond budget instead false-positives on slower
+# machines where the honest warm call legitimately exceeds it. Mirrors the
+# compile-vs-cached ratio guard used elsewhere in this suite.
+assert _warm_dt < _sanity_cold_dt * 0.5, (
+    f"zero_contour warm call {_warm_dt * 1000:.1f} ms vs cold "
+    f"{_sanity_cold_dt * 1000:.1f} ms (ratio {_warm_dt / _sanity_cold_dt:.2f}) — "
+    "warm should be much faster than the cold compile; a ratio near 1 means the "
+    "closure cache-busting bug from PyAutoGalaxy #433 has regressed"
 )
-print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
+print(
+    f"  PASS Visualization Sanity (perf): warm {_warm_dt * 1000:.1f} ms vs "
+    f"cold {_sanity_cold_dt * 1000:.1f} ms (ratio {_warm_dt / _sanity_cold_dt:.2f})"
+)
