@@ -386,3 +386,51 @@ assert raised == 3, f"expected 3 guard raises, got {raised}"
 print("Guards PASSED (sparse operator, unequal over-sample size, non-int size)")
 
 print("\nOversampled PSF convolution tests PASSED")
+
+"""
+__Simulate -> Fit Round Trip__
+
+The simulator's oversampled path (evaluate the padded image at the fine resolution, convolve, bin) must be
+exactly consistent with the fit's: simulating noise-free at s=2 and fitting the same tracer at s=2 gives
+chi_squared ~ 0.
+"""
+psf_sim = al.Convolver.from_gaussian(
+    shape_native=(21, 21),
+    pixel_scales=pixel_scales / s,
+    sigma=0.15,
+    normalize=True,
+    convolve_over_sample_size=s,
+)
+
+grid_sim = al.Grid2D.uniform(
+    shape_native=(21, 21), pixel_scales=pixel_scales, over_sample_size=s
+)
+
+simulator = al.SimulatorImaging(
+    exposure_time=300.0, psf=psf_sim, add_poisson_noise_to_data=False
+)
+
+dataset_sim = simulator.via_tracer_from(tracer=tracer_lp, grid=grid_sim)
+dataset_sim.noise_map = al.Array2D.ones(
+    shape_native=dataset_sim.data.shape_native, pixel_scales=pixel_scales
+)
+
+masked_sim = al.Imaging(
+    data=dataset_sim.data,
+    noise_map=dataset_sim.noise_map,
+    psf=psf_sim,
+    over_sample_size_lp=s,
+    over_sample_size_pixelization=s,
+    convolve_over_sample_size_lp=s,
+    convolve_over_sample_size_pixelization=s,
+).apply_mask(mask=mask)
+
+fit_sim = al.FitImaging(dataset=masked_sim, tracer=tracer_lp)
+
+assert fit_sim.chi_squared < 1.0e-8, (
+    f"simulate->fit round trip chi_squared = {fit_sim.chi_squared}"
+)
+
+print(f"Simulate -> fit round trip PASSED  (chi2: {fit_sim.chi_squared:.3e})")
+
+print("\nOversampled PSF convolution tests PASSED (including simulator round trip)")
