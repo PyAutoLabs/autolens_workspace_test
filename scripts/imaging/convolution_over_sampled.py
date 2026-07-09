@@ -362,7 +362,7 @@ try:
             values=np.ones((21, 21)), pixel_scales=pixel_scales
         ),
         psf=psf_fine,
-        over_sample_size_lp=4,
+        over_sample_size_lp=3,  # not divisible by s=2 (4 became legal with k x s)
         convolve_over_sample_size_lp=2,
     )
 except al.exc.DatasetException:
@@ -383,7 +383,7 @@ except TypeError:
 
 assert raised == 3, f"expected 3 guard raises, got {raised}"
 
-print("Guards PASSED (sparse operator, unequal over-sample size, non-int size)")
+print("Guards PASSED (sparse operator, non-divisible over-sample size, non-int size)")
 
 print("\nOversampled PSF convolution tests PASSED")
 
@@ -434,3 +434,149 @@ assert fit_sim.chi_squared < 1.0e-8, (
 print(f"Simulate -> fit round trip PASSED  (chi2: {fit_sim.chi_squared:.3e})")
 
 print("\nOversampled PSF convolution tests PASSED (including simulator round trip)")
+
+"""
+__Adaptive Evaluation (k x s Coupling)__
+
+Adaptive over sampling composes with oversampled convolution: every evaluation size must be divisible by
+`convolve_over_sample_size` (k x s), with each pixel's k_i * s evaluation partially binned to the uniform
+convolution resolution before blurring. The workspace's adaptive radial schemes therefore work unchanged
+with an oversampled PSF.
+"""
+sizes_adaptive = al.util.over_sample.over_sample_size_via_radial_bins_from(
+    grid=al.Grid2D.from_mask(mask=mask, over_sample_size=1),
+    sub_size_list=[8, 4, 2],
+    radial_list=[0.4, 1.0],
+    centre_list=[(0.0, 0.0)],
+)
+
+dataset_adaptive = dataset_from(
+    tracer=tracer_lp, psf=psf_fine, convolve_over_sample_size=s
+).apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+
+# Self-consistency: the data must be rebuilt through the SAME adaptive evaluation,
+# then the fit of the same tracer at the same settings gives chi_squared ~ 0.
+blurred_adaptive = tracer_lp.blurred_image_2d_from(
+    grid=dataset_adaptive.grids.lp,
+    blurring_grid=dataset_adaptive.grids.blurring,
+    psf=dataset_adaptive.psf,
+)
+
+dataset_adaptive = al.Imaging(
+    data=al.Array2D(values=np.array(blurred_adaptive), mask=mask).native,
+    noise_map=al.Array2D.no_mask(values=np.ones((21, 21)), pixel_scales=pixel_scales),
+    psf=psf_fine,
+    over_sample_size_lp=s,
+    over_sample_size_pixelization=s,
+    convolve_over_sample_size_lp=s,
+    convolve_over_sample_size_pixelization=s,
+).apply_mask(mask=mask).apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+
+fit_adaptive = al.FitImaging(dataset=dataset_adaptive, tracer=tracer_lp)
+
+assert fit_adaptive.chi_squared < 1.0e-8, (
+    f"adaptive k x s chi_squared = {fit_adaptive.chi_squared}"
+)
+
+# The adaptive evaluation measurably differs from uniform-s evaluation of the
+# same model (the finer central integration is doing real work).
+diff = np.max(np.abs(np.array(blurred_adaptive) - np.array(dataset_s2.data)))
+assert diff > 1.0e-8, "adaptive evaluation changed nothing — k x s inert?"
+
+print(
+    f"Adaptive k x s (lp surfaces) PASSED  (chi2: {fit_adaptive.chi_squared:.3e}, "
+    f"max|adaptive - uniform| = {diff:.3e})"
+)
+
+"""
+Pixelized sources under adaptive pixelization over sampling: the k x s mapping matrix is exact by
+linearity, so the fit runs and reconstructs the data as before.
+"""
+sizes_pix = al.util.over_sample.over_sample_size_via_radial_bins_from(
+    grid=al.Grid2D.from_mask(mask=mask, over_sample_size=1),
+    sub_size_list=[4, 2],
+    radial_list=[0.8],
+    centre_list=[(0.0, 0.0)],
+)
+
+dataset_pix_adaptive = dataset_pix.apply_over_sampling(
+    over_sample_size_pixelization=sizes_pix
+)
+
+fit_pix_adaptive = al.FitImaging(dataset=dataset_pix_adaptive, tracer=tracer_pix)
+
+assert np.isfinite(fit_pix_adaptive.log_evidence)
+assert fit_pix_adaptive.chi_squared < 1.0e-1, (
+    f"adaptive pixelized k x s chi_squared = {fit_pix_adaptive.chi_squared}"
+)
+
+print(
+    f"Adaptive k x s (pixelized, mapping formalism) PASSED  "
+    f"(chi2: {fit_pix_adaptive.chi_squared:.3e})"
+)
+
+"""
+The divisibility guard: evaluation sizes not divisible by the convolution size raise loudly.
+"""
+try:
+    al.Imaging(
+        data=al.Array2D.no_mask(values=np.zeros((21, 21)), pixel_scales=pixel_scales),
+        noise_map=al.Array2D.no_mask(
+            values=np.ones((21, 21)), pixel_scales=pixel_scales
+        ),
+        psf=psf_fine,
+        over_sample_size_lp=3,
+        convolve_over_sample_size_lp=2,
+    )
+    raise AssertionError("divisibility guard did not raise")
+except al.exc.DatasetException:
+    pass
+
+print("Divisibility guard PASSED")
+
+"""
+Simulate -> fit round trip on an adaptive grid: the simulator's padded frame inherits the adaptive
+evaluation sizes (border padded with s), so simulation and fitting share the same k x s machinery.
+"""
+grid_sim_adaptive = al.Grid2D.uniform(
+    shape_native=(21, 21), pixel_scales=pixel_scales, over_sample_size=s
+)
+sizes_sim = al.util.over_sample.over_sample_size_via_radial_bins_from(
+    grid=grid_sim_adaptive,
+    sub_size_list=[8, 4, 2],
+    radial_list=[0.4, 1.0],
+    centre_list=[(0.0, 0.0)],
+)
+grid_sim_adaptive = grid_sim_adaptive.apply_over_sampling(over_sample_size=sizes_sim)
+
+simulator_adaptive = al.SimulatorImaging(
+    exposure_time=300.0, psf=psf_sim, add_poisson_noise_to_data=False
+)
+dataset_sim_adaptive = simulator_adaptive.via_tracer_from(
+    tracer=tracer_lp, grid=grid_sim_adaptive
+)
+dataset_sim_adaptive.noise_map = al.Array2D.ones(
+    shape_native=dataset_sim_adaptive.data.shape_native, pixel_scales=pixel_scales
+)
+
+masked_sim_adaptive = al.Imaging(
+    data=dataset_sim_adaptive.data,
+    noise_map=dataset_sim_adaptive.noise_map,
+    psf=psf_sim,
+    over_sample_size_lp=s,
+    over_sample_size_pixelization=s,
+    convolve_over_sample_size_lp=s,
+    convolve_over_sample_size_pixelization=s,
+).apply_mask(mask=mask).apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+
+fit_sim_adaptive = al.FitImaging(dataset=masked_sim_adaptive, tracer=tracer_lp)
+
+assert fit_sim_adaptive.chi_squared < 1.0e-8, (
+    f"adaptive simulate->fit chi_squared = {fit_sim_adaptive.chi_squared}"
+)
+
+print(
+    f"Adaptive simulate -> fit round trip PASSED  (chi2: {fit_sim_adaptive.chi_squared:.3e})"
+)
+
+print("\nk x s coupling workspace tests PASSED")
