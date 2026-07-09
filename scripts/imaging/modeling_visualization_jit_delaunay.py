@@ -35,6 +35,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from autoconf.test_mode import with_test_mode_segment
+
 import autofit as af
 import autolens as al
 
@@ -348,7 +350,7 @@ search = af.Nautilus(
 print("Running Nautilus ...")
 result = search.fit(model=model, analysis=analysis_live)
 
-output_search_root = Path("output") / output_root / "delaunay"
+output_search_root = with_test_mode_segment(Path("output")) / output_root / "delaunay"
 produced_pngs = list(output_search_root.rglob("fit.png"))
 print(f"fit.png files produced: {len(produced_pngs)}")
 for p in produced_pngs:

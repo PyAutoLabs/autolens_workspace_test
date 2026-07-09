@@ -38,6 +38,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from autoconf.test_mode import with_test_mode_segment
+
 import autofit as af
 import autolens as al
 
@@ -294,7 +296,7 @@ output_root.mkdir(parents=True)
 # the previous run's cached samples.csv and skips live sampling — so the
 # quick-update visualizer never fires, _jitted_fit_from is never set, and
 # the assertion below would fail on every rerun. Force a fresh run.
-output_search_root = Path("output") / output_root / "mge_linear"
+output_search_root = with_test_mode_segment(Path("output")) / output_root / "mge_linear"
 if output_search_root.exists():
     shutil.rmtree(output_search_root)
 
