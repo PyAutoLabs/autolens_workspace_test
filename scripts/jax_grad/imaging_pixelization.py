@@ -8,6 +8,18 @@ parameter and autodiff agrees with central finite differences across the
 board (validated: AD = FD to 7 significant figures, stable over FD step
 sizes 1e-7..1e-5). The strict FD comparison runs on all parameters.
 
+**Variant C — ``RectangularAdaptImage`` (production config)** and
+**Variant D — ``RectangularAdaptDensity``, both at pixelization over-sampling 4**:
+with over-sampling > 1 (how these meshes are used in production) the
+interpolation queries no longer coincide with the transform knots, so sub-pixel
+strain carries a genuine smooth mass signal and every parameter's gradient is
+live and FD-matched. Variant C runs the full production shape: ``reg.Adapt()``,
+``al.AdaptImages``, and the border relocator. Tolerances are looser (5%) than
+the smooth variants because the finite differences — not autodiff — are
+contaminated by micro-staircase jumps from rank re-orderings; the measured
+FD-vs-step-size drift (2026-07-09) confirms FD converges toward autodiff as
+h → 0. Mixed precision is deliberately off: float64 is required for FD.
+
 **Variant B — ``RectangularAdaptDensity`` (pixelization over-sampling 1)**:
 the adaptive mesh maps ray-traced points to rank space via a sort +
 ``jnp.interp`` CDF transform (`create_transforms` — the "ray-guided
@@ -76,12 +88,7 @@ mask = al.Mask2D.circular(
     radius=mask_radius,
 )
 
-dataset = dataset.apply_mask(mask=mask)
-
-dataset = dataset.apply_over_sampling(
-    over_sample_size_lp=4,
-    over_sample_size_pixelization=1,
-)
+dataset_masked = dataset.apply_mask(mask=mask)
 
 """
 __Model__
@@ -94,7 +101,7 @@ source arcs land on the mesh and every parameter has likelihood sensitivity.
 """
 
 
-def model_from(mesh):
+def model_from(mesh, regularization=None):
     lens_bulge = af.Model(al.lp.Sersic)
     lens_bulge.centre.centre_0 = af.GaussianPrior(mean=0.0, sigma=0.005)
     lens_bulge.centre.centre_1 = af.GaussianPrior(mean=0.0, sigma=0.005)
@@ -125,9 +132,12 @@ def model_from(mesh):
         shear=shear,
     )
 
+    if regularization is None:
+        regularization = al.reg.Constant(coefficient=1.0)
+
     pixelization = al.Pixelization(
         mesh=mesh,
-        regularization=al.reg.Constant(coefficient=1.0),
+        regularization=regularization,
     )
 
     source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
@@ -138,9 +148,29 @@ def model_from(mesh):
 from autofit.non_linear.fitness import Fitness
 
 
-def fitness_and_params(mesh):
-    model = model_from(mesh=mesh)
-    analysis = al.AnalysisImaging(dataset=dataset)
+def fitness_and_params(mesh, regularization=None, os_pix=1, production_settings=False):
+    dataset = dataset_masked.apply_over_sampling(
+        over_sample_size_lp=4,
+        over_sample_size_pixelization=os_pix,
+    )
+    model = model_from(mesh=mesh, regularization=regularization)
+    analysis_kwargs = {}
+    if production_settings:
+        analysis_kwargs["adapt_images"] = al.AdaptImages(
+            galaxy_name_image_dict={
+                "('galaxies', 'lens')": dataset.data,
+                "('galaxies', 'source')": dataset.data,
+            }
+        )
+        analysis_kwargs["settings"] = al.Settings(
+            use_border_relocator=True,
+            use_positive_only_solver=True,
+        )
+    analysis = al.AnalysisImaging(
+        dataset=dataset,
+        raise_inversion_positions_likelihood_exception=False,
+        **analysis_kwargs,
+    )
     fitness = Fitness(
         model=model,
         analysis=analysis,
@@ -256,5 +286,61 @@ print(
     "RectangularAdaptDensity: lens-light gradients FD-matched; mass/shear "
     "staircase invariance confirmed (autodiff zero is correct)."
 )
+
+"""
+__Variants C + D: adaptive meshes at production over-sampling (os_pix=4)__
+
+The FD step is small (rel 1e-7) to stay below the rank-reordering scale, and the
+tolerance (5%) reflects the residual micro-staircase contamination of the finite
+differences — autodiff is the h-consistent reference here (FD drifts toward it as
+h shrinks).
+"""
+for variant, mesh, regularization, production_settings in [
+    (
+        "RectangularAdaptImage + reg.Adapt + adapt images + border relocator (os_pix=4)",
+        al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0),
+        al.reg.Adapt(),
+        True,
+    ),
+    (
+        "RectangularAdaptDensity (os_pix=4)",
+        al.mesh.RectangularAdaptDensity(shape=mesh_shape),
+        None,
+        False,
+    ),
+]:
+    print(f"\n=== {variant} ===")
+
+    fitness, param_vector, param_names = fitness_and_params(
+        mesh=mesh,
+        regularization=regularization,
+        os_pix=4,
+        production_settings=production_settings,
+    )
+
+    grad = finiteness_checks(fitness, param_vector, n_params=len(param_names))
+
+    f_jit = jax.jit(fitness.call)
+
+    util.assert_eager_jit_consistent(fitness.call, f_jit, param_vector)
+
+    comparison = util.compare_gradients(
+        fitness.call,
+        param_vector,
+        param_names=param_names,
+        rel_step=1e-7,
+        f_fd=f_jit,
+    )
+
+    util.assert_gradients_match(comparison, rtol=0.05, atol=1.0)
+
+    # Every parameter — including mass and shear — must be live at production
+    # over-sampling: this is the configuration gradient-based inference will use.
+    assert np.all(np.abs(comparison["ad"]) > 1.0), (
+        "A parameter gradient is ~zero at os_pix=4 — the adaptive mesh has lost "
+        f"smooth sensitivity: {[(n, a) for n, a in zip(param_names, comparison['ad']) if abs(a) <= 1.0]}"
+    )
+
+    print(f"{variant}: all gradients live and FD-matched (5% tolerance).")
 
 print("\nimaging_pixelization.py JAX gradient checks passed.")
