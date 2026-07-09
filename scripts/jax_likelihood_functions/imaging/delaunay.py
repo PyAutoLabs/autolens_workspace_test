@@ -324,7 +324,10 @@ print("JIT fit.log_likelihood:", fit.log_likelihood)
 assert isinstance(
     fit.log_likelihood, jnp.ndarray
 ), f"expected jax.Array, got {type(fit.log_likelihood)}"
+# rtol 1e-8 (was 1e-4): the qhull-only callback (PyAutoArray#367) makes the
+# JAX point locator exact vs the eager scipy path, so eager vs JIT differs
+# only by fp reduction ordering (~1e-13 relative, measured).
 np.testing.assert_allclose(
-    float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
+    float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-8
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
