@@ -302,19 +302,19 @@ print("Running Nautilus ...")
 result = search.fit(model=model_mge2, analysis=analysis_mge2)
 
 # The Nautilus output goes to output/<path_prefix>/<name>/<hash>/image/
-# The quick-update visualizer writes fit.png (via subplot_fit function)
+# The lens quick-update visualizer writes fit_quick.png (via subplot_fit_quick)
 # to that image folder during each quick update.
 output_search_root = Path("output") / output_root / "mge_linear"
-produced_pngs = list(output_search_root.rglob("fit.png"))
-print(f"fit.png files produced: {len(produced_pngs)}")
+produced_pngs = list(output_search_root.rglob("fit_quick.png"))
+print(f"fit_quick.png files produced: {len(produced_pngs)}")
 for p in produced_pngs:
     print(f"  {p}")
 assert len(produced_pngs) > 0, (
-    f"no fit.png produced under {output_search_root} — "
+    f"no fit_quick.png produced under {output_search_root} — "
     "quick-update visualization did not fire"
 )
 print(
     "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "
-    "with MGE linear profiles, fit.png written, no KeyError from "
+    "with MGE linear profiles, fit_quick.png written, no KeyError from "
     "linear_light_profile_intensity_dict lookup."
 )
