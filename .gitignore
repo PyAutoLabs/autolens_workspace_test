@@ -10,6 +10,7 @@ root.log
 
 # Generated artifacts — never check in
 image.fits
+data.fits
 path/
 scripts/path/
 scripts/scripts/
