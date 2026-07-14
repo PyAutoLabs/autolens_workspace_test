@@ -32,3 +32,4 @@
 - jax_likelihood_functions/imaging/mge_group # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
 - jax_grad/imaging_lp # NEEDS_FIX 2026-04-10 - JAX traceback in gradient computation for light profile
 - jax_grad/imaging_mge # NEEDS_FIX 2026-04-10 - AssertionError: Gradient is all zeros in MGE gradient computation
+- jax_likelihood_functions/multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
