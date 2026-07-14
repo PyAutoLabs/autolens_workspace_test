@@ -14,10 +14,11 @@ or incorrect custom VJPs). These helpers make correctness checkable:
   per-parameter table and returns the arrays plus error metrics.
 - ``assert_gradients_match`` — the assertion used by the scripts. A parameter
   passes if ``|ad - fd| <= atol + rtol * max(|ad|, |fd|)``. Parameters whose
-  gradient is *intentionally* approximate (documented ``stop_gradient``
-  drops) can be excluded via ``skip_indices`` — the point is that every
-  exclusion is explicit and visible in the calling script, never hidden by a
-  loose global tolerance.
+  comparison is knowingly unreliable (an intentionally approximate gradient,
+  or finite differences that cross a documented discontinuity) can be
+  excluded via ``skip_indices`` — the point is that every exclusion is
+  explicit and visible in the calling script, never hidden by a loose global
+  tolerance.
 
 Evaluation honesty: ``f`` is evaluated eagerly (no ``jax.jit``) by default.
 Under a single JIT trace, ``jax.pure_callback`` results can be constant-folded
@@ -156,10 +157,12 @@ def assert_gradients_match(comparison, rtol=1e-3, atol=1e-4, skip_indices=()):
     Assert autodiff and finite differences agree parameter-wise:
     ``|ad - fd| <= atol + rtol * max(|ad|, |fd|)``.
 
-    ``skip_indices`` names parameters whose autodiff gradient is knowingly
-    approximate (each exclusion must be justified by a comment at the call
-    site). The skipped parameters are still printed by ``compare_gradients``
-    so the deviation stays measured and visible.
+    ``skip_indices`` names parameters whose autodiff-vs-FD comparison is
+    knowingly unreliable (for example, an approximate autodiff rule or FD
+    samples that cross a documented discontinuity). Each exclusion must be
+    justified by a comment at the call site. The skipped parameters are still
+    printed by ``compare_gradients`` so the deviation stays measured and
+    visible.
     """
     ad, fd, abs_err = comparison["ad"], comparison["fd"], comparison["abs_err"]
     tol = atol + rtol * np.maximum(np.abs(ad), np.abs(fd))
