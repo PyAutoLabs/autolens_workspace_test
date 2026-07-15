@@ -1,7 +1,21 @@
 """
-Tests that jax.value_and_grad can compute finite, non-NaN gradients of the log-likelihood
-for an imaging model with parametric light profiles. This tests the core JAX differentiability
-that enables gradient-based inference.
+Tests JAX gradients of the imaging log-likelihood for a Multi-Gaussian
+Expansion (MGE) source model, in two stages:
+
+ 1. Finiteness — ``jax.value_and_grad`` returns a finite log-likelihood and a
+    finite, non-zero gradient vector (the original check).
+ 2. Correctness — the autodiff gradient agrees with central finite differences
+    parameter-by-parameter (see ``util.py``).
+
+Because the MGE model uses only linear light profiles (``lp_linear.Gaussian``),
+there is no non-linear intensity parameter — all light is reconstructed via the
+linear inversion (positive-only NNLS solve), so this also exercises gradient
+flow through the inversion.
+
+Autodiff runs on the eager (un-jitted) likelihood; the finite-difference
+evaluations use a jitted likelihood for speed, guarded by an eager-vs-jit
+consistency check at the base point so ``pure_callback`` constant-folding
+cannot fake the comparison.
 """
 
 import numpy as np
@@ -12,7 +26,9 @@ from os import path
 import autofit as af
 import autolens as al
 
-dataset_name = "source_complex"
+import util
+
+dataset_name = "jax_test"
 dataset_path = path.join("dataset", "imaging", dataset_name)
 
 """
@@ -21,7 +37,7 @@ __Dataset Auto-Simulation__
 If the dataset does not already exist on your system, it will be created by running the corresponding
 simulator script. This ensures that all example scripts can be run without manually simulating data first.
 """
-if not path.exists(dataset_path):
+if al.util.dataset.should_simulate(dataset_path):
     import subprocess
     import sys
 
@@ -34,7 +50,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.05,
+    pixel_scales=0.2,
 )
 
 mask_radius = 3.5
@@ -120,5 +136,21 @@ assert np.all(
     np.isfinite(np.array(grad))
 ), f"Gradient contains non-finite values: {np.array(grad)}"
 assert not np.all(np.array(grad) == 0.0), "Gradient is all zeros"
+
+"""
+__Finite-Difference Correctness__
+"""
+f_jit = jax.jit(fitness.call)
+
+util.assert_eager_jit_consistent(fitness.call, f_jit, param_vector)
+
+comparison = util.compare_gradients(
+    fitness.call,
+    param_vector,
+    param_names=util.parameter_names_from(model),
+    f_fd=f_jit,
+)
+
+util.assert_gradients_match(comparison)
 
 print("imaging_mge.py JAX gradient checks passed.")

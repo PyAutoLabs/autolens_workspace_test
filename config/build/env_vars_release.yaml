@@ -52,6 +52,13 @@ overrides:
   # needs JAX enabled; full-res is already the default.
   - pattern: "jax_substructure/"
     set: { PYAUTO_DISABLE_JAX: "0" }
+  # jax_grad scripts compute autodiff gradients (jax.value_and_grad) and assert
+  # finite, non-zero gradients — JAX MUST be enabled, or use_jax=False makes the
+  # likelihood numpy and the gradient of a non-traced function is all-zeros
+  # (AssertionError: Gradient is all zeros). autogalaxy_workspace_test already
+  # has this override; it was missing here (release-validation PyAutoHeart#72).
+  - pattern: "jax_grad/"
+    set: { PYAUTO_DISABLE_JAX: "0" }
   # Database scrape scripts need real search output on disk with JAX enabled;
   # PYAUTO_TEST_MODE/SMALL_DATASETS/FAST_PLOTS already match this profile's
   # defaults, only PYAUTO_DISABLE_JAX needs flipping.

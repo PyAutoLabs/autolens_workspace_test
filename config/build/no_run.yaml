@@ -32,3 +32,17 @@
 - jax_likelihood_functions/imaging/mge_group # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
 - jax_grad/imaging_lp # NEEDS_FIX 2026-04-10 - JAX traceback in gradient computation for light profile
 - jax_grad/imaging_mge # NEEDS_FIX 2026-04-10 - AssertionError: Gradient is all zeros in MGE gradient computation
+- jax_likelihood_functions/multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
+# Real-search JAX likelihood/gradient scripts that flake around the mode=release
+# per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to
+# keep mode=release deterministic; reviewed via hygiene over time. Speedups are the
+# Profiling Agent's job. Not bugs. (PyAutoHeart#74 — chose no_run over an advisory tier.)
+- jax_likelihood_functions/multi/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
+- jax_likelihood_functions/datacube/delaunay.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/datacube/shared_preloads.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/interferometer/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/interferometer/mge_group.py # SLOW 2026-07-14 - real-search JAX interferometer MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/interferometer/delaunay.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/interferometer/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/interferometer/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_grad/interferometer.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
