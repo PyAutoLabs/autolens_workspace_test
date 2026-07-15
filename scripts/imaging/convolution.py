@@ -352,14 +352,12 @@ via_real_space_over = psf_over.convolved_image_from(
     xp=np,
 )
 
-residual_over = np.max(
-    np.abs(np.array(via_fft_over) - np.array(via_real_space_over))
-)
+residual_over = np.max(np.abs(np.array(via_fft_over) - np.array(via_real_space_over)))
 
 print(f"\nOversampled (s={s}) FFT vs real-space max residual = {residual_over:.3e}")
 
-assert residual_over < 1.0e-8, (
-    f"Oversampled FFT and real-space convolution disagree: {residual_over}"
-)
+assert (
+    residual_over < 1.0e-8
+), f"Oversampled FFT and real-space convolution disagree: {residual_over}"
 
 print("Oversampled FFT vs real-space parity PASSED")

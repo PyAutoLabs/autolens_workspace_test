@@ -147,8 +147,8 @@ np.testing.assert_allclose(
     err_msg="weak/shear: scaled JAX vmap likelihood mismatch vs eager NumPy",
 )
 
-assert not np.isclose(log_likelihood_scaled_numpy, log_likelihood_numpy), (
-    "scaling changed nothing — redshift scale factors not applied"
-)
+assert not np.isclose(
+    log_likelihood_scaled_numpy, log_likelihood_numpy
+), "scaling changed nothing — redshift scale factors not applied"
 
 print("WEAK JAX PARITY PASSED")

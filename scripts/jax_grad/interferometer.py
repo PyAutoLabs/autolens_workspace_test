@@ -68,7 +68,10 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/interferometer/simulator.py"],
+        [
+            sys.executable,
+            "scripts/jax_likelihood_functions/interferometer/simulator.py",
+        ],
         check=True,
     )
 
@@ -308,9 +311,7 @@ assert np.all(np.abs(comparison["ad"]) > 1e-2), (
 # FoM parity vs the linear AdaptDensity mesh (variant B, same base point): the
 # mesh geometry changes slightly but reconstruction quality must not degrade.
 fom_kernel = float(fitness.call(param_vector))
-fom_rel = abs(fom_kernel - value_linear_adapt_density) / abs(
-    value_linear_adapt_density
-)
+fom_rel = abs(fom_kernel - value_linear_adapt_density) / abs(value_linear_adapt_density)
 print(
     f"FoM parity: kernel = {fom_kernel:.6f}, "
     f"linear = {value_linear_adapt_density:.6f}, rel diff = {fom_rel:.3e}"
@@ -356,9 +357,6 @@ assert np.all(np.abs(comparison["ad"]) > 0.0), (
     f"path: {[(n, a) for n, a in zip(param_names, comparison['ad']) if a == 0.0]}"
 )
 
-print(
-    "interferometer sparse RectangularUniform: all gradients live and "
-    "FD-matched."
-)
+print("interferometer sparse RectangularUniform: all gradients live and " "FD-matched.")
 
 print("\ninterferometer.py JAX gradient checks passed.")

@@ -153,7 +153,9 @@ def _log_likelihood(factor_graph, use_jax):
     xp = jnp if use_jax else np
     params = factor_graph.global_prior_model.physical_values_from_prior_medians
     vector = jnp.array(params) if use_jax else params
-    instance = factor_graph.global_prior_model.instance_from_vector(vector=vector, xp=xp)
+    instance = factor_graph.global_prior_model.instance_from_vector(
+        vector=vector, xp=xp
+    )
     return float(factor_graph.log_likelihood_function(instance))
 
 
@@ -165,7 +167,9 @@ def _assert_identical_exposure_parity(use_jax):
     ll_unshared = _log_likelihood(_factor_graph(["g", "g"], False, use_jax), use_jax)
     ll_shared = _log_likelihood(_factor_graph(["g", "g"], True, use_jax), use_jax)
 
-    print(f"[{backend}] 2x g-band log likelihood  unshared={ll_unshared}  shared={ll_shared}")
+    print(
+        f"[{backend}] 2x g-band log likelihood  unshared={ll_unshared}  shared={ll_shared}"
+    )
 
     np.testing.assert_allclose(
         ll_shared,
@@ -181,7 +185,8 @@ def _assert_identical_exposure_parity(use_jax):
 
 def _assert_two_band_shared_jit():
     """Realistic g + r graph under the shared mesh: vmap and jit round-trip must agree,
-    proving the shared path (lead-factor mesh trace + per-exposure mapping) is jit-safe."""
+    proving the shared path (lead-factor mesh trace + per-exposure mapping) is jit-safe.
+    """
     from autofit.non_linear.fitness import Fitness
 
     factor_graph = _factor_graph(["g", "r"], True, use_jax=True)

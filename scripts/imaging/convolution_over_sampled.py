@@ -57,12 +57,22 @@ for s, kernel_n, expected in [
     (
         1,
         5,
-        {"sum": 2.807349652595196e00, 0: 3.655472905370449e-02, 17: 2.069771979137382e-01, 36: 1.042470837248629e-02},
+        {
+            "sum": 2.807349652595196e00,
+            0: 3.655472905370449e-02,
+            17: 2.069771979137382e-01,
+            36: 1.042470837248629e-02,
+        },
     ),
     (
         2,
         9,
-        {"sum": 2.796562184524787e00, 0: 3.726289901353439e-02, 17: 2.025075336159483e-01, 36: 1.090767109119494e-02},
+        {
+            "sum": 2.796562184524787e00,
+            0: 3.726289901353439e-02,
+            17: 2.025075336159483e-01,
+            36: 1.090767109119494e-02,
+        },
     ),
 ]:
     kernel = al.Array2D.no_mask(
@@ -144,8 +154,12 @@ def dataset_from(tracer, psf, convolve_over_sample_size):
             values=np.ones((21, 21)), pixel_scales=pixel_scales
         ),
         psf=psf,
-        over_sample_size_lp=convolve_over_sample_size if convolve_over_sample_size > 1 else 4,
-        over_sample_size_pixelization=convolve_over_sample_size if convolve_over_sample_size > 1 else 4,
+        over_sample_size_lp=(
+            convolve_over_sample_size if convolve_over_sample_size > 1 else 4
+        ),
+        over_sample_size_pixelization=(
+            convolve_over_sample_size if convolve_over_sample_size > 1 else 4
+        ),
         convolve_over_sample_size_lp=convolve_over_sample_size,
         convolve_over_sample_size_pixelization=convolve_over_sample_size,
     ).apply_mask(mask=mask)
@@ -160,8 +174,12 @@ def dataset_from(tracer, psf, convolve_over_sample_size):
             values=np.ones((21, 21)), pixel_scales=pixel_scales
         ),
         psf=psf,
-        over_sample_size_lp=convolve_over_sample_size if convolve_over_sample_size > 1 else 4,
-        over_sample_size_pixelization=convolve_over_sample_size if convolve_over_sample_size > 1 else 4,
+        over_sample_size_lp=(
+            convolve_over_sample_size if convolve_over_sample_size > 1 else 4
+        ),
+        over_sample_size_pixelization=(
+            convolve_over_sample_size if convolve_over_sample_size > 1 else 4
+        ),
         convolve_over_sample_size_lp=convolve_over_sample_size,
         convolve_over_sample_size_pixelization=convolve_over_sample_size,
     ).apply_mask(mask=mask)
@@ -273,9 +291,7 @@ tracer_linear = al.Tracer(
         ),
         al.Galaxy(
             redshift=1.0,
-            bulge=al.lp_linear.Exponential(
-                centre=(0.05, 0.05), effective_radius=0.2
-            ),
+            bulge=al.lp_linear.Exponential(centre=(0.05, 0.05), effective_radius=0.2),
         ),
     ]
 )
@@ -284,9 +300,9 @@ fit_linear = al.FitImaging(dataset=dataset_s2, tracer=tracer_linear)
 
 intensities = np.array(fit_linear.inversion.reconstruction)
 
-assert fit_linear.chi_squared < 1.0e-6, (
-    f"linear s=2 chi_squared = {fit_linear.chi_squared}"
-)
+assert (
+    fit_linear.chi_squared < 1.0e-6
+), f"linear s=2 chi_squared = {fit_linear.chi_squared}"
 assert np.allclose(
     np.sort(intensities), np.sort(np.array([0.5, 0.3])), atol=1.0e-4
 ), f"linear intensities not recovered: {intensities}"
@@ -334,9 +350,9 @@ dataset_pix = dataset_from(
 fit_pix = al.FitImaging(dataset=dataset_pix, tracer=tracer_pix)
 
 assert np.isfinite(fit_pix.log_evidence), "pixelized s=2 log_evidence not finite"
-assert fit_pix.chi_squared < 1.0e-1, (
-    f"pixelized s=2 reconstruction poor: chi_squared = {fit_pix.chi_squared}"
-)
+assert (
+    fit_pix.chi_squared < 1.0e-1
+), f"pixelized s=2 reconstruction poor: chi_squared = {fit_pix.chi_squared}"
 
 print(
     f"Pixelized source (mapping formalism) PASSED  "
@@ -427,9 +443,9 @@ masked_sim = al.Imaging(
 
 fit_sim = al.FitImaging(dataset=masked_sim, tracer=tracer_lp)
 
-assert fit_sim.chi_squared < 1.0e-8, (
-    f"simulate->fit round trip chi_squared = {fit_sim.chi_squared}"
-)
+assert (
+    fit_sim.chi_squared < 1.0e-8
+), f"simulate->fit round trip chi_squared = {fit_sim.chi_squared}"
 
 print(f"Simulate -> fit round trip PASSED  (chi2: {fit_sim.chi_squared:.3e})")
 
@@ -462,21 +478,27 @@ blurred_adaptive = tracer_lp.blurred_image_2d_from(
     psf=dataset_adaptive.psf,
 )
 
-dataset_adaptive = al.Imaging(
-    data=al.Array2D(values=np.array(blurred_adaptive), mask=mask).native,
-    noise_map=al.Array2D.no_mask(values=np.ones((21, 21)), pixel_scales=pixel_scales),
-    psf=psf_fine,
-    over_sample_size_lp=s,
-    over_sample_size_pixelization=s,
-    convolve_over_sample_size_lp=s,
-    convolve_over_sample_size_pixelization=s,
-).apply_mask(mask=mask).apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+dataset_adaptive = (
+    al.Imaging(
+        data=al.Array2D(values=np.array(blurred_adaptive), mask=mask).native,
+        noise_map=al.Array2D.no_mask(
+            values=np.ones((21, 21)), pixel_scales=pixel_scales
+        ),
+        psf=psf_fine,
+        over_sample_size_lp=s,
+        over_sample_size_pixelization=s,
+        convolve_over_sample_size_lp=s,
+        convolve_over_sample_size_pixelization=s,
+    )
+    .apply_mask(mask=mask)
+    .apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+)
 
 fit_adaptive = al.FitImaging(dataset=dataset_adaptive, tracer=tracer_lp)
 
-assert fit_adaptive.chi_squared < 1.0e-8, (
-    f"adaptive k x s chi_squared = {fit_adaptive.chi_squared}"
-)
+assert (
+    fit_adaptive.chi_squared < 1.0e-8
+), f"adaptive k x s chi_squared = {fit_adaptive.chi_squared}"
 
 # The adaptive evaluation measurably differs from uniform-s evaluation of the
 # same model (the finer central integration is doing real work).
@@ -506,9 +528,9 @@ dataset_pix_adaptive = dataset_pix.apply_over_sampling(
 fit_pix_adaptive = al.FitImaging(dataset=dataset_pix_adaptive, tracer=tracer_pix)
 
 assert np.isfinite(fit_pix_adaptive.log_evidence)
-assert fit_pix_adaptive.chi_squared < 1.0e-1, (
-    f"adaptive pixelized k x s chi_squared = {fit_pix_adaptive.chi_squared}"
-)
+assert (
+    fit_pix_adaptive.chi_squared < 1.0e-1
+), f"adaptive pixelized k x s chi_squared = {fit_pix_adaptive.chi_squared}"
 
 print(
     f"Adaptive k x s (pixelized, mapping formalism) PASSED  "
@@ -559,21 +581,25 @@ dataset_sim_adaptive.noise_map = al.Array2D.ones(
     shape_native=dataset_sim_adaptive.data.shape_native, pixel_scales=pixel_scales
 )
 
-masked_sim_adaptive = al.Imaging(
-    data=dataset_sim_adaptive.data,
-    noise_map=dataset_sim_adaptive.noise_map,
-    psf=psf_sim,
-    over_sample_size_lp=s,
-    over_sample_size_pixelization=s,
-    convolve_over_sample_size_lp=s,
-    convolve_over_sample_size_pixelization=s,
-).apply_mask(mask=mask).apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+masked_sim_adaptive = (
+    al.Imaging(
+        data=dataset_sim_adaptive.data,
+        noise_map=dataset_sim_adaptive.noise_map,
+        psf=psf_sim,
+        over_sample_size_lp=s,
+        over_sample_size_pixelization=s,
+        convolve_over_sample_size_lp=s,
+        convolve_over_sample_size_pixelization=s,
+    )
+    .apply_mask(mask=mask)
+    .apply_over_sampling(over_sample_size_lp=sizes_adaptive)
+)
 
 fit_sim_adaptive = al.FitImaging(dataset=masked_sim_adaptive, tracer=tracer_lp)
 
-assert fit_sim_adaptive.chi_squared < 1.0e-8, (
-    f"adaptive simulate->fit chi_squared = {fit_sim_adaptive.chi_squared}"
-)
+assert (
+    fit_sim_adaptive.chi_squared < 1.0e-8
+), f"adaptive simulate->fit chi_squared = {fit_sim_adaptive.chi_squared}"
 
 print(
     f"Adaptive simulate -> fit round trip PASSED  (chi2: {fit_sim_adaptive.chi_squared:.3e})"

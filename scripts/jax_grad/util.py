@@ -145,9 +145,7 @@ def compare_gradients(
         f"  {'abs err':>10}  {'rel err':>10}"
     )
     for name, a, d, ae, re in zip(param_names, ad, fd, abs_err, rel_err):
-        print(
-            f"{name:<{name_width}}  {a:>14.6e}  {d:>14.6e}  {ae:>10.3e}  {re:>10.3e}"
-        )
+        print(f"{name:<{name_width}}  {a:>14.6e}  {d:>14.6e}  {ae:>10.3e}  {re:>10.3e}")
 
     return {"ad": ad, "fd": fd, "abs_err": abs_err, "rel_err": rel_err}
 
@@ -167,9 +165,7 @@ def assert_gradients_match(comparison, rtol=1e-3, atol=1e-4, skip_indices=()):
     ad, fd, abs_err = comparison["ad"], comparison["fd"], comparison["abs_err"]
     tol = atol + rtol * np.maximum(np.abs(ad), np.abs(fd))
     failures = [
-        i
-        for i in range(len(ad))
-        if i not in set(skip_indices) and abs_err[i] > tol[i]
+        i for i in range(len(ad)) if i not in set(skip_indices) and abs_err[i] > tol[i]
     ]
     assert not failures, (
         f"Autodiff vs finite-difference mismatch at parameter indices {failures}: "

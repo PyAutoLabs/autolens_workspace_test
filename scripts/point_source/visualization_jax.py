@@ -152,7 +152,9 @@ _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
 _sanity_od = _SanityLensCalc.from_tracer(_sanity_tracer)
 
 _sanity_t0 = _sanity_time.perf_counter()
-_tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # cold: first call on fresh instance (JIT compile)
+_tc_list = (
+    _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+)  # cold: first call on fresh instance (JIT compile)
 _sanity_cold_dt = _sanity_time.perf_counter() - _sanity_t0
 assert len(_tc_list) > 0, (
     "no tangential critical curves returned by zero_contour — algorithmic "

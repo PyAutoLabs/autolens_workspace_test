@@ -258,9 +258,7 @@ f_jit = jax.jit(fitness.call)
 util.assert_eager_jit_consistent(fitness.call, f_jit, param_vector)
 
 light_indices = [i for i, n in enumerate(param_names) if ".bulge." in n]
-mass_indices = [
-    i for i, n in enumerate(param_names) if ".mass." in n or ".shear." in n
-]
+mass_indices = [i for i, n in enumerate(param_names) if ".mass." in n or ".shear." in n]
 
 # Lens-light parameters bypass the adaptive mesh: strict FD comparison.
 comparison = util.compare_gradients(

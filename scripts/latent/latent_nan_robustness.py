@@ -107,7 +107,9 @@ assert surviving, "No latents survived — expected at least the finite raw-flux
 
 for key in surviving:
     value = float(getattr(instance, key))
-    assert math.isfinite(value), f"Surviving latent '{key}' is not finite (got {value})."
+    assert math.isfinite(
+        value
+    ), f"Surviving latent '{key}' is not finite (got {value})."
 
 print(
     f"PASSED: latent summary survived arbitrary NaN injection "

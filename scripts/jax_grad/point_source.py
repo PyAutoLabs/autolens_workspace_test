@@ -161,9 +161,7 @@ util.assert_gradients_match(comparison)
 
 # The positional parameters (everything except flux and H0) must be live.
 positional_indices = [
-    i
-    for i, name in enumerate(param_names)
-    if "flux" not in name and "H0" not in name
+    i for i, name in enumerate(param_names) if "flux" not in name and "H0" not in name
 ]
 assert np.all(
     np.abs(comparison["ad"][positional_indices]) > 0.0
