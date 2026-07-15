@@ -35,6 +35,8 @@ from pathlib import Path
 import jax
 import jax.numpy as jnp
 
+from autoconf.test_mode import with_test_mode_segment
+
 import autofit as af
 import autolens as al
 
@@ -245,7 +247,7 @@ output_root.mkdir(parents=True)
 # Also clean the autofit search output so Nautilus performs live sampling
 # instead of resuming from a cached samples.csv — without this the
 # quick-update visualizer never fires on reruns.
-output_search_root = Path("output") / output_root / "point_image_plane"
+output_search_root = with_test_mode_segment(Path("output")) / output_root / "point_image_plane"
 if output_search_root.exists():
     shutil.rmtree(output_search_root)
 

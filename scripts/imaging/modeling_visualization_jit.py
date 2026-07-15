@@ -38,6 +38,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from autoconf.test_mode import with_test_mode_segment
+
 import autofit as af
 import autolens as al
 
@@ -304,7 +306,7 @@ result = search.fit(model=model_mge2, analysis=analysis_mge2)
 # The Nautilus output goes to output/<path_prefix>/<name>/<hash>/image/
 # The lens quick-update visualizer writes fit_quick.png (via subplot_fit_quick)
 # to that image folder during each quick update.
-output_search_root = Path("output") / output_root / "mge_linear"
+output_search_root = with_test_mode_segment(Path("output")) / output_root / "mge_linear"
 produced_pngs = list(output_search_root.rglob("fit_quick.png"))
 print(f"fit_quick.png files produced: {len(produced_pngs)}")
 for p in produced_pngs:
