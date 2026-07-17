@@ -137,7 +137,18 @@ assert dist < 0.5, f"one-shot dkappa peak {dist:.2f}\" from true subhalo (thresh
 __Iterative LM engine__
 
 The iterative reconstruction (re-ray-tracing through the corrected lens each accepted step, gauge-constrained)
-must also localize the subhalo.
+must also localize the subhalo. It is warm-started from the one-shot joint solution `[s | dpsi]` — the certified
+recipe (PyAutoLens#630, mirroring the interferometer uv campaign #627): under the Marquardt-scale LM damping
+`mu * diag(H)`, cold-starting from zeros no longer reliably lands in the subhalo basin, but refining inside the
+one-shot basin does. The LM then confirms the one-shot correction is a genuine cost minimum rather than drifting
+off it.
+
+Each accepted LM step re-imposes the gauge constraints <dpsi,1> = <dpsi,x> = <dpsi,y> = 0 on the updated state,
+but from the (un-gauged) one-shot solution the gauge-fixing move slides along the model-degenerate constant /
+deflection-drift modes and is not cost-decreasing, so it is rejected and the solve would stall off the constraint
+surface. Passing `gauge_project_x0=True` has the engine project those modes out of x0 first; they are the null
+space of the Hamiltonian dpsi -> dkappa map, so the recovered convergence correction (and every assertion below)
+is unchanged while the gauge-constrained solve stays on the constraint surface.
 """
 iter_fit = al.pc.IterFitDpsiSrcImaging(
     masked_imaging=masked_imaging,
@@ -148,7 +159,8 @@ iter_fit = al.pc.IterFitDpsiSrcImaging(
     gauge_constraints=True,
     n_iter=5,
 )
-s_opt, dpsi_opt = iter_fit.solve_joint_optimization()
+x0 = np.concatenate([np.asarray(fit.best_fit_source), np.asarray(fit.best_fit_dpsi)])
+s_opt, dpsi_opt = iter_fit.solve_joint_optimization(x0=x0, gauge_project_x0=True)
 print(f"iterative Laplace log evidence = {iter_fit.log_evidence():.4e}")
 
 dkappa_iter = np.asarray(iter_fit.pair_dpsi_data_obj.hamiltonian_dpsi @ dpsi_opt)
