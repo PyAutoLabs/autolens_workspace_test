@@ -64,27 +64,36 @@ source_galaxies = [galaxies_by_name["source_0"], galaxies_by_name["source_1"]]
 """
 __Scaling Galaxies__
 
-The 10 lower-mass members each get a ``dPIEMassSph`` derived from the scaling relation
-``b0 = scaling_factor * luminosity ** scaling_exponent``. Core/truncation radii are held fixed
-across the tier — matches the truth values used by ``autolens_workspace/scripts/cluster/simulator.py``.
+The 10 lower-mass members each get a ``dPIEMassSph`` (Lenstool-native parameters) derived from the
+reference-anchored scaling relation ``sigma = sigma_ref * (L / L_ref) ** 0.25``,
+``r_core / r_cut ∝ (L / L_ref) ** 0.5`` — matches the truth convention used by
+``autolens_workspace/scripts/cluster/simulator.py``.
 """
 scaling_galaxies_table = al.galaxy_table_from_csv(dataset_path / "scaling_galaxies.csv")
 scaling_galaxies_centres = list(scaling_galaxies_table.centres.in_list)
 scaling_galaxies_luminosities = scaling_galaxies_table.luminosities
 
-scaling_factor_truth = 0.3
-scaling_exponent_truth = 1.0
-scaling_ra = 0.1
-scaling_rs = 10.0
+scaling_sigma_ref_truth = 85.0
+scaling_sigma_exponent = 0.25
+scaling_radius_exponent = 0.5
+scaling_r_core_ref = 0.158
+scaling_r_cut_ref = 15.8
+reference_luminosity = 1.0
+redshift_source_max = max(g.redshift for g in source_galaxies)
 
 scaling_galaxies = []
 for centre, luminosity in zip(scaling_galaxies_centres, scaling_galaxies_luminosities):
-    b0 = scaling_factor_truth * luminosity**scaling_exponent_truth
+    ratio = luminosity / reference_luminosity
     scaling_galaxies.append(
         al.Galaxy(
             redshift=0.5,
             mass=al.mp.dPIEMassSph(
-                centre=tuple(centre), ra=scaling_ra, rs=scaling_rs, b0=b0
+                centre=tuple(centre),
+                sigma=scaling_sigma_ref_truth * ratio**scaling_sigma_exponent,
+                r_core=scaling_r_core_ref * ratio**scaling_radius_exponent,
+                r_cut=scaling_r_cut_ref * ratio**scaling_radius_exponent,
+                redshift_object=0.5,
+                redshift_source=redshift_source_max,
             ),
         )
     )
@@ -124,9 +133,13 @@ _lens_models = [
         mass=af.Model(
             al.mp.dPIEMassSph,
             centre=g.mass.centre,
-            ra=g.mass.ra,
-            rs=g.mass.rs,
-            b0=g.mass.b0,
+            sigma=g.mass.sigma,
+            r_core=g.mass.r_core,
+            r_cut=g.mass.r_cut,
+            redshift_object=g.mass.redshift_object,
+            redshift_source=g.mass.redshift_source,
+            H0=g.mass.H0,
+            Om0=g.mass.Om0,
         ),
     )
     for g in main_lens_galaxies

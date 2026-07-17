@@ -49,13 +49,34 @@ members carry their own simpler 3-column schema, written separately below.
 """
 mass_profiles = {
     "lens_0": {
-        "mass": al.mp.dPIEMassSph(centre=(0.0, 0.0), ra=8.0, rs=20.0, b0=3.0),
+        "mass": al.mp.dPIEMassSph(
+            centre=(0.0, 0.0),
+            sigma=330.0,
+            r_core=8.0,
+            r_cut=20.0,
+            redshift_object=0.5,
+            redshift_source=2.0,
+        ),
     },
     "lens_1": {
-        "mass": al.mp.dPIEMassSph(centre=(10.0, 8.0), ra=5.0, rs=12.0, b0=1.2),
+        "mass": al.mp.dPIEMassSph(
+            centre=(10.0, 8.0),
+            sigma=210.0,
+            r_core=5.0,
+            r_cut=12.0,
+            redshift_object=0.5,
+            redshift_source=2.0,
+        ),
     },
     "extra_0": {
-        "mass": al.mp.dPIEMassSph(centre=(-7.0, -4.0), ra=2.0, rs=8.0, b0=0.5),
+        "mass": al.mp.dPIEMassSph(
+            centre=(-7.0, -4.0),
+            sigma=135.0,
+            r_core=2.0,
+            r_cut=8.0,
+            redshift_object=0.5,
+            redshift_source=2.0,
+        ),
     },
     "host_halo": {
         "dark": al.mp.NFWMCRLudlowSph(

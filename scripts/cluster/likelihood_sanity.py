@@ -8,7 +8,7 @@ Stress-test the cluster point-source likelihood path end to end:
  - Compute the source-plane chi² (``FitPositionsSource`` — ray-trace observed positions back,
    measure scatter relative to the truth Point centre) against the truth model and at a sweep of
    perturbed mass parameters.
- - Perturb each numeric mass parameter (``ra``, ``rs``, ``b0`` on every dPIE galaxy; ``mass_at_200``
+ - Perturb each numeric mass parameter (``sigma``, ``r_core``, ``r_cut`` on every dPIE galaxy; ``mass_at_200``
    on the NFW host halo) by ε ∈ {-0.2, -0.1, -0.05, -0.01, -0.001, 0, 0.001, 0.01, 0.05, 0.1, 0.2}.
    Assert:
      a) For LARGE perturbations (|ε| ≥ 0.10) the truth (ε=0) chi² is strictly less than the
@@ -74,7 +74,8 @@ __Load Truth Model__
 
 The truth tracer is rebuilt from the CSVs the simulator consumed/produced, exactly as
 ``simulator.py`` builds it. Scaling-tier members come from the legacy 3-column CSV via the
-``b0 = scaling_factor * luminosity ** scaling_exponent`` truth relation.
+reference-anchored truth relation ``sigma = sigma_ref * (L / L_ref) ** 0.25``,
+``r_core / r_cut ∝ (L / L_ref) ** 0.5`` (Lenstool convention).
 """
 mass_table = al.galaxy_models_from_csv(DATASET_PATH / "mass.csv", family="mass")
 light_table = al.galaxy_models_from_csv(DATASET_PATH / "light.csv", family="light")
@@ -95,23 +96,31 @@ scaling_galaxies_table = al.galaxy_table_from_csv(DATASET_PATH / "scaling_galaxi
 scaling_galaxies_centres = list(scaling_galaxies_table.centres.in_list)
 scaling_galaxies_luminosities = scaling_galaxies_table.luminosities
 
-SCALING_FACTOR_TRUTH = 0.3
-SCALING_EXPONENT_TRUTH = 1.0
-SCALING_RA = 0.1
-SCALING_RS = 10.0
+SCALING_SIGMA_REF_TRUTH = 85.0
+SCALING_SIGMA_EXPONENT = 0.25
+SCALING_RADIUS_EXPONENT = 0.5
+SCALING_R_CORE_REF = 0.158
+SCALING_R_CUT_REF = 15.8
+REFERENCE_LUMINOSITY = 1.0
+REDSHIFT_SOURCE_MAX = 2.0
 
 
 def _build_scaling_galaxies(
-    scaling_factor=SCALING_FACTOR_TRUTH, scaling_exponent=SCALING_EXPONENT_TRUTH
+    sigma_ref=SCALING_SIGMA_REF_TRUTH, sigma_exponent=SCALING_SIGMA_EXPONENT
 ):
     return [
         al.Galaxy(
             redshift=0.5,
             mass=al.mp.dPIEMassSph(
                 centre=tuple(centre),
-                ra=SCALING_RA,
-                rs=SCALING_RS,
-                b0=scaling_factor * luminosity**scaling_exponent,
+                sigma=sigma_ref
+                * (luminosity / REFERENCE_LUMINOSITY) ** sigma_exponent,
+                r_core=SCALING_R_CORE_REF
+                * (luminosity / REFERENCE_LUMINOSITY) ** SCALING_RADIUS_EXPONENT,
+                r_cut=SCALING_R_CUT_REF
+                * (luminosity / REFERENCE_LUMINOSITY) ** SCALING_RADIUS_EXPONENT,
+                redshift_object=0.5,
+                redshift_source=REDSHIFT_SOURCE_MAX,
             ),
         )
         for centre, luminosity in zip(
@@ -256,8 +265,8 @@ else:
 """
 __Perturbation Sweep__
 
-For each numeric mass parameter, evaluate chi² at a small grid of relative perturbations. ``ra``,
-``rs``, ``b0`` are perturbed multiplicatively in linear space (ε relative to truth). ``mass_at_200``
+For each numeric mass parameter, evaluate chi² at a small grid of relative perturbations. ``sigma``,
+``r_core``, ``r_cut`` are perturbed multiplicatively in linear space (ε relative to truth). ``mass_at_200``
 is also perturbed multiplicatively but the effect on lensing is super-linear, so the same ε grid
 produces a different chi² response.
 """
@@ -269,10 +278,26 @@ LARGE_PERTURB = 0.10
 
 
 def _perturb_dpie(galaxy, param_name, epsilon):
-    """Return a copy of ``galaxy`` with ``mass.<param_name>`` perturbed by factor (1+epsilon)."""
+    """Return a copy of ``galaxy`` with ``mass.<param_name>`` perturbed by factor (1+epsilon).
+
+    The Lenstool-parameterized dPIE derives its internal lens strength ``b0`` from ``sigma``
+    and the redshifts in ``__init__``, so the profile must be REBUILT with the perturbed
+    constructor argument — mutating the attribute would not propagate to the deflections.
+    """
+    mass = galaxy.mass
+    kwargs = dict(
+        centre=mass.centre,
+        sigma=mass.sigma,
+        r_core=mass.r_core,
+        r_cut=mass.r_cut,
+        redshift_object=mass.redshift_object,
+        redshift_source=mass.redshift_source,
+        H0=mass.H0,
+        Om0=mass.Om0,
+    )
+    kwargs[param_name] = kwargs[param_name] * (1.0 + epsilon)
     new_galaxy = copy.deepcopy(galaxy)
-    truth = getattr(new_galaxy.mass, param_name)
-    setattr(new_galaxy.mass, param_name, truth * (1.0 + epsilon))
+    new_galaxy.mass = al.mp.dPIEMassSph(**kwargs)
     return new_galaxy
 
 
@@ -317,7 +342,7 @@ GALAXY_LABELS = ["lens_0", "lens_1", "extra_0"]
 
 PERTURBATIONS = []
 for idx, label in enumerate(GALAXY_LABELS):
-    for param in ("ra", "rs", "b0"):
+    for param in ("sigma", "r_core", "r_cut"):
         PERTURBATIONS.append((f"{label}.mass.{param}", _make_dpie_builder(idx, param)))
 PERTURBATIONS.append(("host_halo.dark.mass_at_200", _make_nfw_builder()))
 
