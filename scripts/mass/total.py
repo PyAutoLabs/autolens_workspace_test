@@ -253,8 +253,8 @@ potential_2d_from computed via MGE decomposition.
 """
 
 run_param_sweep(
-    "dPIEMass",
-    ag.mp.dPIEMass,
+    "dPIEMassB0",
+    ag.mp.dPIEMassB0,
     [
         dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), ra=0.02, rs=2.5, b0=0.15),
         dict(centre=(0.0, 0.0), ell_comps=(0.1, 0.05), ra=0.1, rs=5.0, b0=0.3),
@@ -265,10 +265,50 @@ run_param_sweep(
 )
 
 run_param_sweep(
+    "dPIEMassB0Sph",
+    ag.mp.dPIEMassB0Sph,
+    [
+        dict(centre=(0.0, 0.0), ra=0.02, rs=2.5, b0=0.15),
+    ],
+    grid,
+    tol,
+    results,
+)
+
+# Default (Lenstool-native) parameterization — same physics reached through the
+# sigma / r_core / r_cut constructor.
+run_param_sweep(
+    "dPIEMass",
+    ag.mp.dPIEMass,
+    [
+        dict(
+            centre=(0.0, 0.0),
+            ellipticity=0.1,
+            angle_pos=30.0,
+            sigma=150.0,
+            r_core=0.02,
+            r_cut=2.5,
+            redshift_object=0.5,
+            redshift_source=1.0,
+        ),
+    ],
+    grid,
+    tol,
+    results,
+)
+
+run_param_sweep(
     "dPIEMassSph",
     ag.mp.dPIEMassSph,
     [
-        dict(centre=(0.0, 0.0), ra=0.02, rs=2.5, b0=0.15),
+        dict(
+            centre=(0.0, 0.0),
+            sigma=150.0,
+            r_core=0.02,
+            r_cut=2.5,
+            redshift_object=0.5,
+            redshift_source=1.0,
+        ),
     ],
     grid,
     tol,

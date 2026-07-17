@@ -2,9 +2,10 @@
 Lenstool dPIE Parity Check
 ==========================
 
-Validate the Lenstool-native dPIE parameterization (``dPIEMass.from_lenstool`` /
-``dPIEMassSph.from_lenstool``) and the internal consistency of the dPIE port, so the
-"PyAutoLens for Lenstool users" workflow can trust the parameter mapping end to end.
+Validate the Lenstool-native dPIE parameterization (the default ``dPIEMass`` / ``dPIEMassSph``
+constructors and the general-cosmology ``dPIEMassB0.from_lenstool`` / ``dPIEMassB0Sph.from_lenstool``
+converters) and the internal consistency of the dPIE port, so the "PyAutoLens for Lenstool users"
+workflow can trust the parameter mapping end to end.
 
 Conventions verified against the Lenstool C source (git-cral.univ-lyon1.fr/lenstool/lenstool):
 
@@ -67,7 +68,7 @@ cosmology = ag.cosmo.Planck15()
 sigma_lt = 1200.0
 z_l, z_s = 0.375, 2.0
 
-mp_sph = al.mp.dPIEMassSph.from_lenstool(
+mp_sph = al.mp.dPIEMassB0Sph.from_lenstool(
     sigma=sigma_lt,
     r_core=0.5,
     r_cut=40.0,
@@ -95,10 +96,30 @@ print(f"  sigma_0 = {sigma_0:.2f} km/s = sqrt(3/2) * sigma_LT  OK")
 
 # Ellipticity: emass -> epot equals Lenstool's set_lens.c conversion.
 for emass in (0.05, 0.2, 0.4, 0.6):
-    mp_ell = al.mp.dPIEMass.from_lenstool(ellipticity=emass, angle_pos=30.0)
+    mp_ell = al.mp.dPIEMassB0.from_lenstool(ellipticity=emass, angle_pos=30.0)
     epot_lenstool = (1.0 - np.sqrt(1.0 - emass**2)) / emass
     assert abs(mp_ell._ellip() / epot_lenstool - 1.0) < 1e-10
 print("  emass -> epot = (1-sqrt(1-e^2))/e = |ell_comps|  OK for e in {0.05..0.6}")
+
+# Default-class equivalence: the default (Lenstool-native) constructor with flat H0/Om0
+# must reproduce the from_lenstool conversion under the same background cosmology.
+mp_default = al.mp.dPIEMassSph(
+    sigma=sigma_lt,
+    r_core=0.5,
+    r_cut=40.0,
+    redshift_object=z_l,
+    redshift_source=z_s,
+)
+mp_flat = al.mp.dPIEMassB0Sph.from_lenstool(
+    sigma=sigma_lt,
+    r_core=0.5,
+    r_cut=40.0,
+    redshift_object=z_l,
+    redshift_source=z_s,
+    cosmology=ag.cosmo.FlatLambdaCDM(),
+)
+assert abs(mp_default.b0 / mp_flat.b0 - 1.0) < 1e-10
+print("  default dPIEMassSph(sigma, r_core, r_cut) == dPIEMassB0Sph.from_lenstool  OK")
 
 """
 __Leg 2: Spherical deflection vs convergence integral__
@@ -128,7 +149,7 @@ __Leg 3: Analytic aperture "mass" (ra -> 0 closed form)__
 """
 print("Leg 3: analytic enclosed-convergence anchor (ra -> 0)")
 
-mp_zero_core = al.mp.dPIEMassSph(centre=(0.0, 0.0), ra=1e-8, rs=25.0, b0=8.0)
+mp_zero_core = al.mp.dPIEMassB0Sph(centre=(0.0, 0.0), ra=1e-8, rs=25.0, b0=8.0)
 
 max_frac = 0.0
 for R in (0.5, 2.0, 10.0, 40.0):
@@ -147,7 +168,7 @@ __Leg 4: Elliptical deflection vs potential gradient__
 """
 print("Leg 4: elliptical deflections vs finite-difference potential gradient")
 
-mp_ell = al.mp.dPIEMass.from_lenstool(
+mp_ell = al.mp.dPIEMassB0.from_lenstool(
     ellipticity=0.4,
     angle_pos=20.0,
     sigma=800.0,
@@ -192,7 +213,7 @@ unaffected; this leg therefore tests an unrotated profile.
 """
 print("Leg 5: analytical hessian vs deflection finite differences (profile frame)")
 
-mp_ell_frame = al.mp.dPIEMass.from_lenstool(
+mp_ell_frame = al.mp.dPIEMassB0.from_lenstool(
     ellipticity=0.4,
     angle_pos=0.0,
     sigma=800.0,
@@ -243,7 +264,7 @@ print("Leg 6: Lenstool port reference values via from_lenstool")
 b0_target = 5.2
 sigma_from_b0 = C_KM_S * np.sqrt(b0_target / (6.0 * 648000.0 * (d_ls / d_s)))
 
-mp_ref = al.mp.dPIEMassSph.from_lenstool(
+mp_ref = al.mp.dPIEMassB0Sph.from_lenstool(
     centre=(-0.7, 0.5),
     sigma=sigma_from_b0,
     r_core=2.0,
