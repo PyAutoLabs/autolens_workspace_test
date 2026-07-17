@@ -11,6 +11,8 @@ jax_likelihood_functions/point_source/point.py
 jax_likelihood_functions/datacube/shared_preloads.py
 jax_likelihood_functions/multi/shared_preloads.py
 jax_likelihood_functions/multi/mge.py
+jax_likelihood_functions/imaging/potential_correction.py
+potential_correction/subhalo_recovery.py
 aggregator/fit_imaging.py
 aggregator/fit_interferometer.py
 aggregator/tracer.py
