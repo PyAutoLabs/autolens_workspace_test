@@ -31,6 +31,12 @@ overrides:
   # Same JAX-with-full-dataset pattern as jax_likelihood_functions/.
   - pattern: "jax_substructure/"
     unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
+  # potential_correction/subhalo_recovery.py simulates its own 120x120
+  # dataset inline and asserts dkappa-recovery metrics whose thresholds are
+  # calibrated at that resolution — the 15x15 SMALL_DATASETS grid cap would
+  # break the mask/mesh geometry.
+  - pattern: "potential_correction/"
+    unset: [PYAUTO_SMALL_DATASETS]
   # Database scrape scripts need real search output on disk — no test env vars
   - pattern: "database/scrape/"
     unset:
