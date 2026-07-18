@@ -19,7 +19,7 @@ Outputs are written to ``dataset/cluster/test/``. The next script in the chain â
 â€” loads these CSVs and runs the lensing simulation to produce ``data.fits`` + ``point_datasets.csv``.
 """
 
-from autoconf import jax_wrapper  # Sets JAX environment before other imports
+from autolens import jax_wrapper  # Sets JAX environment before other imports
 
 from pathlib import Path
 

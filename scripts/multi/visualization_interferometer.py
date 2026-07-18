@@ -36,7 +36,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 # Push the interferometer test's all-true plots.yaml so subplot_fit lands on disk.
-from autoconf import conf
+from autolens import conf
 
 conf.instance.push(
     new_path=path.join(

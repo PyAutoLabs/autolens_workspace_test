@@ -39,7 +39,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 # Push the bespoke all-true plots.yaml before any visualization method reads config.
-from autoconf import conf
+from autolens import conf
 
 conf.instance.push(
     new_path=path.join(path.dirname(path.realpath(__file__)), "config"),

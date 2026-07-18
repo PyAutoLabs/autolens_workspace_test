@@ -41,7 +41,7 @@ from types import SimpleNamespace
 
 # Push the bespoke all-true plots.yaml before any visualization method reads config.
 # This must come before autolens imports trigger config reads in visualization code paths.
-from autoconf import conf
+from autolens import conf
 
 conf.instance.push(
     new_path=path.join(path.dirname(path.realpath(__file__)), "config"),

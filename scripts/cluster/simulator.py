@@ -16,7 +16,7 @@ The truth model is read entirely from CSVs; no parameter values are duplicated i
 Re-running it after editing the CSVs produces a new dataset reflecting whatever you edited.
 """
 
-from autoconf import jax_wrapper  # Sets JAX environment before other imports
+from autolens import jax_wrapper  # Sets JAX environment before other imports
 
 import jax
 import jax.numpy as jnp

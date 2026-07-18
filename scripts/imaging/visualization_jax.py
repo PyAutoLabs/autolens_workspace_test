@@ -29,7 +29,7 @@ from os import path
 from pathlib import Path
 from types import SimpleNamespace
 
-from autoconf import conf
+from autolens import conf
 
 conf.instance.push(
     new_path=path.join(path.dirname(path.realpath(__file__)), "config_source"),

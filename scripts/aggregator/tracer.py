@@ -9,8 +9,8 @@ import os
 import shutil
 from os import path
 
-from autoconf import conf
-from autoconf.conf import with_config
+from autolens import conf
+from autolens import with_config
 import autofit as af
 import autolens as al
 from autolens import fixtures

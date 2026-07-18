@@ -38,7 +38,7 @@ from pathlib import Path
 
 import autofit as af
 import autolens as al
-from autoconf import conf
+from autolens import conf
 
 
 """

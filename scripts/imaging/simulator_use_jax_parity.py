@@ -19,7 +19,7 @@ rebuilds native ``Array2D`` wrappers with NumPy indexing, which is not a valid
 JIT boundary for traced image values.
 """
 
-from autoconf import jax_wrapper  # Sets JAX float64 before other imports
+from autolens import jax_wrapper  # Sets JAX float64 before other imports
 
 import numpy as np
 
