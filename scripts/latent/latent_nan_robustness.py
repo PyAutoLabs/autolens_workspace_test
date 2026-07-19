@@ -20,7 +20,7 @@ image lookup fails for a degenerate source, which is easy to hit on a long
 SLaM run.
 
 How this test forces the condition deterministically: the
-``PYAUTO_LATENT_NAN_INJECT=stride:N`` knob (``autoconf.test_mode``) sets NaN on
+``PYAUTO_LATENT_NAN_INJECT=stride:N`` knob (``autonerves.test_mode``) sets NaN on
 latent column 0 for every sample whose absolute index is a non-zero multiple
 of ``N``. With the latent ``batch_size`` chosen so ``N >= batch_size``, batch 0
 stays fully finite (seeds the model with the complete key set) and a later
