@@ -28,7 +28,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from autoconf import conf
+from autolens import conf
 import autofit as af
 import autolens as al
 from autolens import fixtures

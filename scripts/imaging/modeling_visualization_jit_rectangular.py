@@ -34,7 +34,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from autoconf.test_mode import with_test_mode_segment
+from autolens import with_test_mode_segment
 
 import autofit as af
 import autolens as al

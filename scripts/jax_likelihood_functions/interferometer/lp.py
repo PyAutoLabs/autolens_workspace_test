@@ -17,7 +17,7 @@ from os import path
 
 import autofit as af
 import autolens as al
-from autoconf import conf
+from autolens import conf
 
 """
 __Mask__

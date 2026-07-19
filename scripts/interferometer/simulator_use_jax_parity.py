@@ -14,7 +14,7 @@ deterministic Fourier-transform path.
 Also tests the @jax.jit roundtrip for the interferometer simulator.
 """
 
-from autoconf import jax_wrapper  # Sets JAX float64 before other imports
+from autolens import jax_wrapper  # Sets JAX float64 before other imports
 
 import jax
 import numpy as np

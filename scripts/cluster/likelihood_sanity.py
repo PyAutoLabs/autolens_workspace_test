@@ -37,7 +37,7 @@ Run from the ``autolens_workspace_test`` repo root::
         python scripts/cluster/likelihood_sanity.py
 """
 
-from autoconf import jax_wrapper  # Sets JAX environment before other imports
+from autolens import jax_wrapper  # Sets JAX environment before other imports
 
 import copy
 import subprocess
