@@ -133,3 +133,11 @@ overrides:
   # point_source/modeling_visualization_jit — live Nautilus + JIT path.
   - pattern: "point_source/modeling_visualization_jit"
     unset: [PYAUTO_DISABLE_JAX, PYAUTO_SMALL_DATASETS, PYAUTO_TEST_MODE, PYAUTO_FAST_PLOTS]
+  # cluster/visualization.py asserts 5 subplot PNGs land on disk
+  # (PYAUTO_FAST_PLOTS=1 short-circuits subplot_save() in PyAutoArray) and
+  # loads its data.fits at full resolution while asserting per-plane tangential
+  # critical-curve recovery on a full-extent 250x250 viz_grid — the 15x15
+  # SMALL_DATASETS cap would break the mask geometry. Both must be unset.
+  # (Also no_run-listed as SLOW: the curve computation is ~580s > 300s cap.)
+  - pattern: "cluster/visualization.py"
+    unset: [PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]

@@ -163,8 +163,8 @@ _tc_list = (
 )  # cold: first call on fresh instance (JIT compile)
 _sanity_cold_dt = _sanity_time.perf_counter() - _sanity_t0
 assert len(_tc_list) > 0, (
-    "no tangential critical curves returned by zero_contour — algorithmic "
-    "regression (PyAutoGalaxy abd7b717 / PyAutoFit #1280 family)"
+    "no tangential critical curves returned by zero_contour — expected a "
+    "non-empty tangential critical curve for this lens at this grid resolution"
 )
 _er_sanity = _sanity_od.einstein_radius_via_zero_contour_from()
 assert _sanity_np.isfinite(float(_er_sanity)) and float(_er_sanity) > 0.0, (
