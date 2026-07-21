@@ -270,8 +270,8 @@ _sanity_od = _SanityLensCalc.from_tracer(_sanity_tracer)
 
 _tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
 assert len(_tc_list) > 0, (
-    "no tangential critical curves returned by zero_contour — algorithmic "
-    "regression (PyAutoGalaxy abd7b717 / PyAutoFit #1280 family)"
+    "no tangential critical curves returned by zero_contour — expected a "
+    "non-empty tangential critical curve for this lens at this grid resolution"
 )
 _er_sanity = _sanity_od.einstein_radius_via_zero_contour_from()
 assert np.isfinite(float(_er_sanity)) and float(_er_sanity) > 0.0, (
