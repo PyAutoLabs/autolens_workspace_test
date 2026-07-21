@@ -30,9 +30,6 @@
 - point_source/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - jax_likelihood_functions/imaging/delaunay_mge # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
 - jax_likelihood_functions/imaging/mge_group # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
-- jax_grad/imaging_lp # NEEDS_FIX 2026-04-10 - JAX traceback in gradient computation for light profile
-- jax_grad/imaging_mge # NEEDS_FIX 2026-04-10 - AssertionError: Gradient is all zeros in MGE gradient computation
-- jax_grad/imaging_pixelization # NEEDS_FIX 2026-07-21 - AssertionError: Gradient is all zeros in pixelization gradient computation (same family as imaging_mge above; likely needs custom_jvp). The env_vars.yaml PYAUTO_SMALL_DATASETS override was added so it runs at full data — previously it fault-masked as a 256-vs-441 ArrayException — but the underlying zero-gradient bug remains; remove this marker once fixed.
 - jax_likelihood_functions/multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
 # Real-search JAX likelihood/gradient scripts that flake around the mode=release
 # per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to

@@ -64,16 +64,20 @@ overrides:
   # must be unset.
   - pattern: "imaging/visualization_jax"
     unset: [PYAUTO_DISABLE_JAX, PYAUTO_FAST_PLOTS, PYAUTO_SMALL_DATASETS]
-  - pattern: "jax_grad/imaging_lp"
-    unset: [PYAUTO_SMALL_DATASETS]
-  - pattern: "jax_grad/imaging_mge"
-    unset: [PYAUTO_SMALL_DATASETS]
-  # jax_grad/imaging_pixelization spawns jax_likelihood_functions/imaging/simulator.py
-  # as a subprocess; under PYAUTO_SMALL_DATASETS=1 the simulator builds a slim 256 (16x16)
-  # array against a 441 (21x21) mask -> ArrayException. subprocess.run inherits os.environ,
-  # so unsetting the cap for the parent propagates to the simulator.
-  - pattern: "jax_grad/imaging_pixelization"
-    unset: [PYAUTO_SMALL_DATASETS]
+  # jax_grad/ scripts drive jax.value_and_grad + finite-difference gradient
+  # correctness checks. They need JAX enabled — PYAUTO_DISABLE_JAX=1 forces the
+  # numpy xp path while autodiff traces the likelihood, so the traced input is
+  # never differentiated: imaging_lp (positions path) raises
+  # TracerArrayConversionError; imaging_mge / imaging_pixelization return an
+  # all-zero gradient. They also need full-resolution float64 data for the FD
+  # comparison. (imaging_pixelization additionally spawns
+  # jax_likelihood_functions/imaging/simulator.py as a subprocess; under
+  # PYAUTO_SMALL_DATASETS=1 the simulator builds a slim 256 (16x16) array
+  # against a 441 (21x21) mask -> ArrayException. subprocess.run inherits
+  # os.environ, so unsetting the cap for the parent propagates to the
+  # simulator.) Same pattern as jax_likelihood_functions/.
+  - pattern: "jax_grad/"
+    unset: [PYAUTO_SMALL_DATASETS, PYAUTO_DISABLE_JAX]
   # Model composition scripts assert prior_count for full-size MGE bases.
   # PYAUTO_SMALL_DATASETS=1 reduces total_gaussians and changes prior_count.
   - pattern: "model_composition/"
