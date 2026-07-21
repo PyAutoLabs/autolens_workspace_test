@@ -17,7 +17,6 @@
 #   banner. Investigate the failure, fix the underlying bug, and remove
 #   the NEEDS_FIX marker.
 
-- database/scrape/general # NEEDS_FIX 2026-04-27 - PyAutoGalaxy abstract_fit.linear_light_profile_intensity_dict raises "TypeError: __hash__ method should return an integer" during subplot_fit_imaging after the search completes (a light-profile object's __hash__ returns a non-int). Surfaced once the dataset_label="build" path fix let the script progress past Imaging.from_fits.
 - database/scrape/multi_analysis # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_general # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - database/scrape/slam_multi_one_by_one # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
@@ -28,8 +27,8 @@
 - interferometer/modeling_visualization_jit # SLOW 2026-05-20 - JIT + full visualization pipeline exceeds 300s cap; same root cause as imaging/modeling_visualization_jit family
 - point_source/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. env_vars.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
-- jax_likelihood_functions/imaging/delaunay_mge # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
-- jax_likelihood_functions/imaging/mge_group # NEEDS_FIX 2026-04-10 - timeout in JAX likelihood function benchmark
+- jax_likelihood_functions/imaging/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- jax_likelihood_functions/imaging/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - jax_likelihood_functions/multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
 # Real-search JAX likelihood/gradient scripts that flake around the mode=release
 # per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to
