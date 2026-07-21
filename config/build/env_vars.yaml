@@ -68,6 +68,12 @@ overrides:
     unset: [PYAUTO_SMALL_DATASETS]
   - pattern: "jax_grad/imaging_mge"
     unset: [PYAUTO_SMALL_DATASETS]
+  # jax_grad/imaging_pixelization spawns jax_likelihood_functions/imaging/simulator.py
+  # as a subprocess; under PYAUTO_SMALL_DATASETS=1 the simulator builds a slim 256 (16x16)
+  # array against a 441 (21x21) mask -> ArrayException. subprocess.run inherits os.environ,
+  # so unsetting the cap for the parent propagates to the simulator.
+  - pattern: "jax_grad/imaging_pixelization"
+    unset: [PYAUTO_SMALL_DATASETS]
   # Model composition scripts assert prior_count for full-size MGE bases.
   # PYAUTO_SMALL_DATASETS=1 reduces total_gaussians and changes prior_count.
   - pattern: "model_composition/"
@@ -102,6 +108,13 @@ overrides:
   # The script does not run a non-linear search, so it is only useful at
   # full resolution; just unset the cap.
   - pattern: "multi/visualization_imaging"
+    unset: [PYAUTO_SMALL_DATASETS]
+  # multi/dataset_model_parity_delaunay asserts the two-frame Delaunay parity
+  # (profile-baked vs DatasetModel) agrees within a ~0.2 log_likelihood pixel-
+  # sampling floor. PYAUTO_SMALL_DATASETS=1 caps the grid to 16x16, where that
+  # floor is meaningless (the frames disagree by ~90). CONFIRMED it agrees at
+  # full size (A0=-1144.359, A1=-1144.384); the parity test is only useful there.
+  - pattern: "multi/dataset_model_parity_delaunay"
     unset: [PYAUTO_SMALL_DATASETS]
   # point_source/visualization.py asserts fit.png lands on disk and uses a
   # JSON point dataset (no FITS, no mask) — PYAUTO_FAST_PLOTS must be unset
