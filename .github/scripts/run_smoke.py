@@ -6,6 +6,11 @@ for per-script env var overrides, then runs each listed script with the
 appropriate environment. Continues through failures and exits non-zero
 if any script failed.
 
+Each script is capped at `BUILD_SCRIPT_TIMEOUT` seconds (default 300), the same
+env var and default PyAutoHands's `build_util.py` uses, so the PR gate and the
+release runner agree about how long a script may take. On expiry the script's
+whole process group is killed and the entry is reported as TIMEOUT.
+
 The env resolution itself is NOT implemented here: it is PyAutoHands's
 `autobuild/env_config.py`, imported below. This file used to carry a copy, and
 the copy had already drifted (its `load_env_config` hardcoded
@@ -20,11 +25,19 @@ in sync.
 
 from __future__ import annotations
 
+import os
+import signal
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+
+# Per-script wall-clock cap, shared with PyAutoHands's build_util.py so the PR
+# gate and the release runner agree about how long a script may take. Same env
+# var, same 300s default; workspace-validation raises it to 1800 for
+# mode=release.
+TIMEOUT_SECS = int(os.environ.get("BUILD_SCRIPT_TIMEOUT", "300"))
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 SMOKE_FILE = WORKSPACE / "smoke_tests.txt"
@@ -64,19 +77,61 @@ def load_cfg() -> dict | None:
 
 
 def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str]:
+    """Run one smoke script, capped at TIMEOUT_SECS.
+
+    The script runs in its own session (``start_new_session=True``) so that a
+    timeout can kill the whole process group rather than just the direct child.
+    That distinction is load-bearing: capturing output means waiting for the
+    stdout pipe to reach EOF, and any grandchild that inherited the pipe holds
+    it open even after the child itself has exited. A script whose work has
+    finished can therefore hang the runner indefinitely, which is exactly how
+    smoke CI came to sit at the 6-hour GitHub Actions ceiling (issue #196) while
+    reporting nothing since the last completed script. Killing the group closes
+    the inherited pipe and lets the read finish.
+    """
     env = build_env_for_script(Path(script_rel), cfg)
     script_path = SCRIPTS_DIR / script_rel
     t0 = time.time()
-    result = subprocess.run(
+    proc = subprocess.Popen(
         [sys.executable, str(script_path)],
         cwd=str(WORKSPACE),
         env=env,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
+        start_new_session=True,
     )
+    timed_out = False
+    try:
+        output, _ = proc.communicate(timeout=TIMEOUT_SECS)
+        returncode = proc.returncode
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        _kill_group(proc)
+        # The group is gone, so this drains whatever was buffered and returns.
+        output, _ = proc.communicate()
+        # Always 124 (the conventional timeout code), never the signal we just
+        # sent. Reporting proc.returncode here would surface -9 for a script
+        # killed mid-run and mislabel a timeout as an ordinary failure; the two
+        # need distinguishing because only one of them means "raise the cap or
+        # SLOW-skip it".
+        returncode = 124
     elapsed = time.time() - t0
-    output = result.stdout + result.stderr
-    return script_rel, result.returncode, elapsed, output
+    if timed_out:
+        output = (output or "") + (
+            f"\n::error::TIMEOUT after {TIMEOUT_SECS}s — killed the process group. "
+            f"Raise BUILD_SCRIPT_TIMEOUT if this script is legitimately slow, or "
+            f"add it to config/build/no_run.yaml with a dated SLOW marker.\n"
+        )
+    return script_rel, returncode, elapsed, output or ""
+
+
+def _kill_group(proc: subprocess.Popen) -> None:
+    """SIGKILL the script's whole process group, tolerating an already-dead one."""
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):  # pragma: no cover - race
+        proc.kill()
 
 
 def main() -> int:
@@ -95,7 +150,12 @@ def main() -> int:
         print(f"::group::{script_rel}")
         name, rc, elapsed, output = run_one(script_rel, cfg)
         print(output, end="")
-        status = "PASS" if rc == 0 else f"FAIL (exit {rc})"
+        if rc == 0:
+            status = "PASS"
+        elif rc == 124:
+            status = f"TIMEOUT ({TIMEOUT_SECS}s)"
+        else:
+            status = f"FAIL (exit {rc})"
         print(f"\n[{status}] {name} — {elapsed:.1f}s")
         print("::endgroup::")
         if rc != 0:
@@ -105,7 +165,8 @@ def main() -> int:
     passed = total - len(failures)
     print(f"\n=== Smoke test summary: {passed}/{total} passed ===")
     for name, rc, _ in failures:
-        print(f"  FAIL  {name}  (exit {rc})")
+        label = f"TIMEOUT ({TIMEOUT_SECS}s)" if rc == 124 else f"FAIL  (exit {rc})"
+        print(f"  {label}  {name}")
     return 0 if not failures else 1
 
 
