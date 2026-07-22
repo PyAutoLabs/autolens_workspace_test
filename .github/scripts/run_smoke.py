@@ -110,7 +110,12 @@ def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str]:
         _kill_group(proc)
         # The group is gone, so this drains whatever was buffered and returns.
         output, _ = proc.communicate()
-        returncode = proc.returncode if proc.returncode not in (None, 0) else 124
+        # Always 124 (the conventional timeout code), never the signal we just
+        # sent. Reporting proc.returncode here would surface -9 for a script
+        # killed mid-run and mislabel a timeout as an ordinary failure; the two
+        # need distinguishing because only one of them means "raise the cap or
+        # SLOW-skip it".
+        returncode = 124
     elapsed = time.time() - t0
     if timed_out:
         output = (output or "") + (
