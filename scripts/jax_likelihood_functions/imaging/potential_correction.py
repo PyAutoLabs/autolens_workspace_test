@@ -54,7 +54,10 @@ dataset = simulator.via_tracer_from(
 )
 
 mask_array = al.pc.util.arc_mask_from(
-    np.asarray(dataset.signal_to_noise_map.native), threshold=3.0, ignore_size=10, ext_size=3
+    np.asarray(dataset.signal_to_noise_map.native),
+    threshold=3.0,
+    ignore_size=10,
+    ext_size=3,
 )
 masked_imaging = dataset.apply_mask(
     mask=al.Mask2D(mask=mask_array, pixel_scales=dataset.pixel_scales)

@@ -103,7 +103,9 @@ tracer_smooth = al.Tracer(
 )
 arc_image = np.asarray(tracer_smooth.image_2d_from(grid=grid).native)
 arc_snr_proxy = arc_image / (0.05 * arc_image.max())
-arc_mask = al.pc.util.arc_mask_from(arc_snr_proxy, threshold=3.0, ignore_size=10, ext_size=3)
+arc_mask = al.pc.util.arc_mask_from(
+    arc_snr_proxy, threshold=3.0, ignore_size=10, ext_size=3
+)
 dpsi_mask = ~((~arc_mask) & (~np.asarray(real_space_mask)))
 print(f"dpsi mesh restricted to {int(np.count_nonzero(~dpsi_mask))} arc pixels")
 
@@ -131,7 +133,7 @@ def dkappa_metrics(pair_obj, dkappa_rec, tag):
     corr = float(np.corrcoef(dkappa_rec, dkappa_true)[0, 1])
     peak = points[int(np.argmax(dkappa_rec))]
     dist = float(np.hypot(peak[0] - subhalo_centre[0], peak[1] - subhalo_centre[1]))
-    print(f"{tag}: corr(dkappa_rec, dkappa_true) = {corr:.4f}; peak dist = {dist:.2f}\"")
+    print(f'{tag}: corr(dkappa_rec, dkappa_true) = {corr:.4f}; peak dist = {dist:.2f}"')
     return corr, dist
 
 
@@ -162,9 +164,9 @@ fit_dense = al.pc.FitDpsiSrcInterferometer(
 evidence_dense = fit_dense.log_evidence
 print(f"one-shot dense-route  log evidence = {evidence_dense:.4e}")
 
-assert np.isclose(evidence_sparse, evidence_dense, rtol=1e-3), (
-    f"sparse/dense evidence mismatch: {evidence_sparse} vs {evidence_dense}"
-)
+assert np.isclose(
+    evidence_sparse, evidence_dense, rtol=1e-3
+), f"sparse/dense evidence mismatch: {evidence_sparse} vs {evidence_dense}"
 
 dkappa = np.asarray(
     fit_sparse.pair_dpsi_data_obj.hamiltonian_dpsi @ fit_sparse.best_fit_dpsi
@@ -172,7 +174,9 @@ dkappa = np.asarray(
 corr, dist = dkappa_metrics(fit_sparse.pair_dpsi_data_obj, dkappa, "one-shot")
 
 assert corr > 0.1, f"one-shot dkappa correlation {corr:.3f} below threshold 0.1"
-assert dist < 0.6, f"one-shot dkappa peak {dist:.2f}\" from true subhalo (threshold 0.6\")"
+assert (
+    dist < 0.6
+), f'one-shot dkappa peak {dist:.2f}" from true subhalo (threshold 0.6")'
 
 """
 __Iterative LM engine (sparse route)__

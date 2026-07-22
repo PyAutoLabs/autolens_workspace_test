@@ -113,8 +113,7 @@ def _build_scaling_galaxies(
             redshift=0.5,
             mass=al.mp.dPIEMassSph(
                 centre=tuple(centre),
-                sigma=sigma_ref
-                * (luminosity / REFERENCE_LUMINOSITY) ** sigma_exponent,
+                sigma=sigma_ref * (luminosity / REFERENCE_LUMINOSITY) ** sigma_exponent,
                 r_core=SCALING_R_CORE_REF
                 * (luminosity / REFERENCE_LUMINOSITY) ** SCALING_RADIUS_EXPONENT,
                 r_cut=SCALING_R_CUT_REF

@@ -30,7 +30,9 @@ Gaussian source.
 rng = np.random.default_rng(1)
 uv_wavelengths = rng.uniform(-3.0e5, 3.0e5, size=(600, 2))
 
-real_space_mask = al.Mask2D.circular(shape_native=(48, 48), pixel_scales=0.1, radius=2.0)
+real_space_mask = al.Mask2D.circular(
+    shape_native=(48, 48), pixel_scales=0.1, radius=2.0
+)
 
 simulator = al.SimulatorInterferometer(
     uv_wavelengths=uv_wavelengths,

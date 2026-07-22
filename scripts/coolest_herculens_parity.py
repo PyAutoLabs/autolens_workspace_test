@@ -132,9 +132,7 @@ __Spherical (q = 1) limit__
 mass_sph = al.mp.PowerLawIntermediate(
     centre=(0.0, 0.0), ell_comps=(0.0, 0.0), einstein_radius=1.0, slope=2.0
 )
-kwargs_sph = [
-    dict(theta_E=1.0, gamma=2.0, e1=0.0, e2=0.0, center_x=0.0, center_y=0.0)
-]
+kwargs_sph = [dict(theta_E=1.0, gamma=2.0, e1=0.0, e2=0.0, center_x=0.0, center_y=0.0)]
 
 kappa_herculens_sph = np.asarray(mass_model_herculens.kappa(x, y, kwargs_sph))
 kappa_al_sph = np.asarray(mass_sph.convergence_2d_from(grid=grid_al))

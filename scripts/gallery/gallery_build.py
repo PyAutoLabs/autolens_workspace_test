@@ -81,10 +81,18 @@ def scan_images():
 
 def render_html(manifest, embed=False):
     n_png = sum(
-        1 for scripts in manifest.values() for e in scripts.values() for x in e if x["kind"] == "png"
+        1
+        for scripts in manifest.values()
+        for e in scripts.values()
+        for x in e
+        if x["kind"] == "png"
     )
     n_fits = sum(
-        1 for scripts in manifest.values() for e in scripts.values() for x in e if x["kind"] == "fits"
+        1
+        for scripts in manifest.values()
+        for e in scripts.values()
+        for x in e
+        if x["kind"] == "fits"
     )
     lines = [
         "<meta charset='utf-8'><title>PyAuto Visualization Gallery</title>",
@@ -103,11 +111,15 @@ def render_html(manifest, embed=False):
             lines.append("<div class='grid'>")
             for e in pngs:
                 if embed:
-                    data = base64.b64encode((WORKSPACE_PATH / e["file"]).read_bytes()).decode()
+                    data = base64.b64encode(
+                        (WORKSPACE_PATH / e["file"]).read_bytes()
+                    ).decode()
                     src = f"data:image/png;base64,{data}"
                 else:
                     src = "../../" + e["file"]
-                caption = (e["group"] + "/" if e["group"] else "") + Path(e["file"]).name
+                caption = (e["group"] + "/" if e["group"] else "") + Path(
+                    e["file"]
+                ).name
                 lines.append(
                     f"<figure><img loading='lazy' src='{html.escape(src)}'>"
                     f"<figcaption>{html.escape(caption)}</figcaption></figure>"
@@ -145,14 +157,20 @@ if __name__ == "__main__":
 
     manifest = scan_images()
     if not manifest:
-        print("No images found under scripts/*/images — run scripts/gallery/gallery_run.sh first.")
+        print(
+            "No images found under scripts/*/images — run scripts/gallery/gallery_run.sh first."
+        )
         sys.exit(1)
 
     GALLERY_PATH.mkdir(parents=True, exist_ok=True)
-    (GALLERY_PATH / "viz_manifest.yaml").write_text(yaml.safe_dump(manifest, sort_keys=True))
+    (GALLERY_PATH / "viz_manifest.yaml").write_text(
+        yaml.safe_dump(manifest, sort_keys=True)
+    )
     (GALLERY_PATH / "gallery.html").write_text(render_html(manifest))
     if args.embed:
-        (GALLERY_PATH / "gallery_embedded.html").write_text(render_html(manifest, embed=True))
+        (GALLERY_PATH / "gallery_embedded.html").write_text(
+            render_html(manifest, embed=True)
+        )
 
     for domain, scripts in manifest.items():
         for script, entries in scripts.items():

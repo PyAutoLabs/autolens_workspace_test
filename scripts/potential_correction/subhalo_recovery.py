@@ -70,7 +70,10 @@ dataset = simulator.via_tracer_from(
 )
 
 mask_array = al.pc.util.arc_mask_from(
-    np.asarray(dataset.signal_to_noise_map.native), threshold=3.0, ignore_size=25, ext_size=5
+    np.asarray(dataset.signal_to_noise_map.native),
+    threshold=3.0,
+    ignore_size=25,
+    ext_size=5,
 )
 masked_imaging = dataset.apply_mask(
     mask=al.Mask2D(mask=mask_array, pixel_scales=dataset.pixel_scales)
@@ -108,7 +111,7 @@ def dkappa_metrics(pair_obj, dkappa_rec, tag):
     corr = float(np.corrcoef(dkappa_rec, dkappa_true)[0, 1])
     peak = points[int(np.argmax(dkappa_rec))]
     dist = float(np.hypot(peak[0] - subhalo_centre[0], peak[1] - subhalo_centre[1]))
-    print(f"{tag}: corr(dkappa_rec, dkappa_true) = {corr:.4f}; peak dist = {dist:.2f}\"")
+    print(f'{tag}: corr(dkappa_rec, dkappa_true) = {corr:.4f}; peak dist = {dist:.2f}"')
     return corr, dist
 
 
@@ -131,7 +134,9 @@ dkappa = np.asarray(fit.pair_dpsi_data_obj.hamiltonian_dpsi @ fit.best_fit_dpsi)
 corr, dist = dkappa_metrics(fit.pair_dpsi_data_obj, dkappa, "one-shot")
 
 assert corr > 0.5, f"one-shot dkappa correlation {corr:.3f} below threshold 0.5"
-assert dist < 0.5, f"one-shot dkappa peak {dist:.2f}\" from true subhalo (threshold 0.5\")"
+assert (
+    dist < 0.5
+), f'one-shot dkappa peak {dist:.2f}" from true subhalo (threshold 0.5")'
 
 """
 __Iterative LM engine__
@@ -164,7 +169,9 @@ s_opt, dpsi_opt = iter_fit.solve_joint_optimization(x0=x0, gauge_project_x0=True
 print(f"iterative Laplace log evidence = {iter_fit.log_evidence():.4e}")
 
 dkappa_iter = np.asarray(iter_fit.pair_dpsi_data_obj.hamiltonian_dpsi @ dpsi_opt)
-corr_iter, dist_iter = dkappa_metrics(iter_fit.pair_dpsi_data_obj, dkappa_iter, "iterative")
+corr_iter, dist_iter = dkappa_metrics(
+    iter_fit.pair_dpsi_data_obj, dkappa_iter, "iterative"
+)
 
 n_dpsi = dpsi_opt.shape[0]
 gauge = np.array(
@@ -175,7 +182,11 @@ gauge = np.array(
     ]
 )
 assert np.allclose(gauge, 0.0, atol=1.0e-5), f"gauge constraints violated: {gauge}"
-assert corr_iter > 0.3, f"iterative dkappa correlation {corr_iter:.3f} below threshold 0.3"
-assert dist_iter < 0.7, f"iterative dkappa peak {dist_iter:.2f}\" from true subhalo (threshold 0.7\")"
+assert (
+    corr_iter > 0.3
+), f"iterative dkappa correlation {corr_iter:.3f} below threshold 0.3"
+assert (
+    dist_iter < 0.7
+), f'iterative dkappa peak {dist_iter:.2f}" from true subhalo (threshold 0.7")'
 
 print("potential_correction subhalo recovery checks all passed")
