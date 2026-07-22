@@ -44,3 +44,7 @@
 - jax_likelihood_functions/interferometer/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - jax_likelihood_functions/interferometer/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - jax_grad/interferometer.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
+
+# Permanent skips (NOT to-do markers — these scripts are correct as-is and simply
+# do not belong in the validated script set).
+- gallery/gallery_build # PERMANENT - build tool, not a test. Consumes the images produced by scripts/gallery/gallery_run.sh; validation runs it standalone, so scan_images() finds nothing and it takes its documented early exit ("No images found under scripts/*/images", gallery_build.py:159-163). Runs clean wherever the images exist.
