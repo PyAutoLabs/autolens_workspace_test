@@ -41,14 +41,7 @@ TIMEOUT_SECS = int(os.environ.get("BUILD_SCRIPT_TIMEOUT", "300"))
 
 WORKSPACE = Path(__file__).resolve().parents[2]
 SMOKE_FILE = WORKSPACE / "smoke_tests.txt"
-# Prefer the canonical profile name; the legacy fallback below dies at the
-# stage-3 cleanup (PyAutoHands#161 step 6).
-_SMOKE_PROFILE = WORKSPACE / "config" / "build" / "profile_smoke.yaml"
-ENV_VARS_FILE = (
-    _SMOKE_PROFILE
-    if _SMOKE_PROFILE.exists()
-    else WORKSPACE / "config" / "build" / "env_vars.yaml"
-)
+ENV_VARS_FILE = WORKSPACE / "config" / "build" / "profile_smoke.yaml"
 SCRIPTS_DIR = WORKSPACE / "scripts"
 
 # CI puts PyAutoHands/autohands on PYTHONPATH (PyAutoHeart's reusable
