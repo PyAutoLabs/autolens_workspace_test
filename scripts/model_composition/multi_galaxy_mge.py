@@ -28,9 +28,16 @@ __Contents__
 - **Serialization Round-Trip:** dict/from_dict preserves prior count and path structure.
 - **Model Info:** Human-readable info string contains expected component names.
 """
-# ENV: full_datasets
-# Asserts prior_count for full-size MGE bases; SMALL_DATASETS
-# reduces total_gaussians and changes prior_count.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Asserts prior_count for full-size MGE bases; SMALL_DATASETS reduces
+total_gaussians and changes prior_count.
+
+ENV: full_datasets
+"""
 
 import autofit as af
 import autolens as al

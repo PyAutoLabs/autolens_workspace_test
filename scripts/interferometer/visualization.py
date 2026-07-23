@@ -32,9 +32,16 @@ Expected outputs are derived directly from the source code of:
   - autolens/analysis/plotter.py                        (Plotter: tracer, galaxies, inversion)
   - autogalaxy/analysis/plotter.py                      (Plotter: galaxies, inversion)
 """
-# ENV: full_datasets real_plots
-# Asserts subplot PNG / FITS land on disk (needs real plots) and
-# reads full-resolution data.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Asserts subplot PNG / FITS land on disk (needs real plots) and reads full-
+resolution data.
+
+ENV: full_datasets real_plots
+"""
 
 import shutil
 from os import path
