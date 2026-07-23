@@ -319,7 +319,7 @@ analysis_live = al.AnalysisImaging(
 )
 
 output_root = (
-    Path("scripts") / "imaging" / "images" / "modeling_visualization_jit_rectangular"
+    Path("scripts") / "imaging" / "images" / "modeling_visualization_rectangular_jit"
 )
 if output_root.exists():
     shutil.rmtree(output_root)

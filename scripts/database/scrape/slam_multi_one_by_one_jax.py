@@ -401,7 +401,7 @@ def fit():
     dataset = dataset.apply_over_sampling(over_sample_size_lp=over_sample_size)
 
     settings_search = af.SettingsSearch(
-        path_prefix=path.join("database", "scrape", "slam_multi_one_by_one"),
+        path_prefix=path.join("database", "scrape", "slam_multi_one_by_one_jax"),
         number_of_cores=1,
         session=None,
         info={"hi": "there"},
@@ -556,7 +556,7 @@ def fit():
         dataset = dataset.apply_over_sampling(over_sample_size_lp=over_sample_size)
 
         settings_search_secondary = af.SettingsSearch(
-            path_prefix=path.join("database", "scrape", "slam_multi_one_by_one"),
+            path_prefix=path.join("database", "scrape", "slam_multi_one_by_one_jax"),
             unique_tag=f"{dataset_name}_data_{dataset_waveband}",
             number_of_cores=1,
             session=None,
@@ -676,7 +676,7 @@ def fit():
 
     agg = Aggregator.from_database(database_file)
     agg.add_directory(
-        directory=path.join("output", "database", "scrape", "slam_multi_one_by_one")
+        directory=path.join("output", "database", "scrape", "slam_multi_one_by_one_jax")
     )
 
     assert len(agg) > 0

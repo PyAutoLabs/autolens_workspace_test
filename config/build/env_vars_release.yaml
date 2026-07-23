@@ -17,70 +17,22 @@
 # real plots — makes the profile self-contained regardless of the caller's
 # environment.
 #
-# "overrides" then only ever `set:` a var to flip it away from this profile's
-# own default for specific scripts — never `unset:` a var that "defaults"
-# already pins, since unsetting just re-exposes the same inherited-env gap
-# `defaults` exists to close. In practice that leaves PYAUTO_DISABLE_JAX as
-# the only var any override here still needs to touch (PYAUTO_TEST_MODE="0"
-# and the full-res/real-plot defaults already satisfy every other unset the
-# smoke profile's env_vars.yaml needs).
-#
-# Pattern convention (same as no_run.yaml):
-#   - Patterns containing '/' do a substring match against the file path
-#     including extension (so patterns may end in `.py` to anchor against
-#     the script form, e.g. `imaging/visualization.py` matches only the
-#     `.py` script, not `imaging/visualization_jax.py`).
-#   - Patterns without '/' match the file stem exactly.
+# The JAX set is DERIVED, not enumerated (PyAutoHands
+# docs/env_profile_redesign.md §3): `derive_jax_markers: true` makes the
+# resolver run any script whose path segment/stem matches `jax_*` / `*_jax` /
+# `*_jit` with PYAUTO_DISABLE_JAX="0". Adding a JAX script to a `jax_*` folder
+# (or naming it `*_jax` / `*_jit`) self-registers — there is no override list
+# to keep in sync, and the validator errors on any PYAUTO_DISABLE_JAX override
+# creeping back in (the hand-enumerated list was the silent-rot failure mode).
 
 defaults:
   PYAUTO_TEST_MODE: "0"                     # real searches (each script caps its own n_like_max)
   PYAUTO_SMALL_DATASETS: "0"                # full-res grids/masks (release fidelity, not smoke)
-  PYAUTO_DISABLE_JAX: "1"                   # force use_jax=False by default; JAX-specific folders re-enable below
+  PYAUTO_DISABLE_JAX: "1"                   # force use_jax=False by default; the marker derivation re-enables JAX
   PYAUTO_FAST_PLOTS: "0"                    # real plots (release fidelity, not smoke)
   PYAUTO_SKIP_WORKSPACE_VERSION_CHECK: "1"  # TestPyPI dev version won't match the workspace pin
   JAX_ENABLE_X64: "True"                    # enable 64-bit precision in JAX
   NUMBA_CACHE_DIR: "/tmp/numba_cache"       # writable cache dir for numba
   MPLCONFIGDIR: "/tmp/matplotlib"           # writable config dir for matplotlib
 
-overrides:
-  # JAX likelihood functions test JIT compilation — need JAX enabled (already
-  # full-res/real-plots by default above).
-  - pattern: "jax_likelihood_functions/"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  # JAX substructure scripts test the full simulate_substructure /
-  # batched_simulate_substructure path with an explicit image_shape=(51,51) —
-  # needs JAX enabled; full-res is already the default.
-  - pattern: "jax_substructure/"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  # jax_grad scripts compute autodiff gradients (jax.value_and_grad) and assert
-  # finite, non-zero gradients — JAX MUST be enabled, or use_jax=False makes the
-  # likelihood numpy and the gradient of a non-traced function is all-zeros
-  # (AssertionError: Gradient is all zeros). autogalaxy_workspace_test already
-  # has this override; it was missing here (release-validation PyAutoHeart#72).
-  - pattern: "jax_grad/"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  # Database scrape scripts need real search output on disk with JAX enabled;
-  # PYAUTO_TEST_MODE/SMALL_DATASETS/FAST_PLOTS already match this profile's
-  # defaults, only PYAUTO_DISABLE_JAX needs flipping.
-  - pattern: "database/scrape/"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  # visualization_jax scripts (imaging/interferometer/point_source) exercise
-  # the jit-cached fit_for_visualization path (registered model + autoarray
-  # pytrees) and must run with JAX enabled — PYAUTO_DISABLE_JAX="1" would
-  # silently flip use_jax flags off and the script would no-op.
-  - pattern: "imaging/visualization_jax"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  - pattern: "interferometer/visualization_jax"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  - pattern: "point_source/visualization_jax"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  # modeling_visualization_jit (imaging/interferometer/point_source) test the
-  # JIT-cached visualization path: Part 1 asserts log_likelihood is a
-  # jax.Array, so JAX must be enabled. PYAUTO_TEST_MODE="0" (real Nautilus
-  # run) and full-res/real-plots are already this profile's defaults.
-  - pattern: "imaging/modeling_visualization_jit"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  - pattern: "interferometer/modeling_visualization_jit"
-    set: { PYAUTO_DISABLE_JAX: "0" }
-  - pattern: "point_source/modeling_visualization_jit"
-    set: { PYAUTO_DISABLE_JAX: "0" }
+derive_jax_markers: true
