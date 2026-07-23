@@ -25,10 +25,15 @@ legitimately zero gradients — both autodiff and finite differences agree on
 zero, and the script asserts the positional parameters are live.
 
 Setup mirrors ``scripts/jax_likelihood_functions/point_source/source_plane.py``.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Drive jax.value_and_grad + finite-difference gradient checks; need JAX
+enabled and full-resolution float64 data.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# Drive jax.value_and_grad + finite-difference gradient checks;
-# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax

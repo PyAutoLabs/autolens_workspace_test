@@ -29,10 +29,15 @@ transform, so mass/shear gradients are live and strictly FD-matched.
 
 See the audit README
 (`autolens_workspace_developer/jax_profiling/gradient/README.md`).
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Drive jax.value_and_grad + finite-difference gradient checks; need JAX
+enabled and full-resolution float64 data.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# Drive jax.value_and_grad + finite-difference gradient checks;
-# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax

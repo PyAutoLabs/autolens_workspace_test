@@ -12,10 +12,15 @@ The MGE lens bulge, lens mass, shear, and mesh parameters remain shared.
 Path A asserts ``vmap == JIT round-trip``; see ``rectangular.py`` for
 the rationale (pixelized ``log_likelihood_function`` differs between
 ``use_jax=True`` and ``use_jax=False``).
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
 
 import numpy as np
 import jax

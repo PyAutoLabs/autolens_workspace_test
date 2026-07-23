@@ -18,10 +18,15 @@ __Model__
 
  - Lens: `Isothermal` mass + `ExternalShear`.
  - Source: `SersicCore` light profile (cored, avoiding over-sampling issues).
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
 
 from os import path
 from pathlib import Path

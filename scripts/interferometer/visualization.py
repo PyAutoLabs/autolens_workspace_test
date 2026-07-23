@@ -31,10 +31,15 @@ Expected outputs are derived directly from the source code of:
   - autogalaxy/interferometer/plot/fit_interferometer_plots.py (fits_galaxy_images, fits_dirty_images)
   - autolens/analysis/plotter.py                        (Plotter: tracer, galaxies, inversion)
   - autogalaxy/analysis/plotter.py                      (Plotter: galaxies, inversion)
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Asserts subplot PNG / FITS land on disk (needs real plots) and reads full-
+resolution data.
+
+ENV: full_datasets real_plots
 """
-# ENV: full_datasets real_plots
-# Asserts subplot PNG / FITS land on disk (needs real plots) and
-# reads full-resolution data.
 
 import shutil
 from os import path

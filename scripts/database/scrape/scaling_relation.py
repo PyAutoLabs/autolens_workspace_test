@@ -34,9 +34,14 @@ __Structure__
 
 This test mirrors `general.py` exactly, adding only the scaling relation model
 for the extra galaxy.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Loads pre-committed FITS data at full resolution.
+
+ENV: full_datasets
 """
-# ENV: full_datasets
-# Loads pre-committed FITS data at full resolution.
 
 from astropy.io import fits
 import numpy as np

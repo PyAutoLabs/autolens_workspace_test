@@ -18,10 +18,15 @@ parity. For pixelized sources, ``analysis.log_likelihood_function`` under
 ``use_jax=True`` takes a different numerical path than under
 ``use_jax=False`` (the JAX path matches ``fit.log_likelihood`` only when
 routed through ``fit_from``, which ``FactorGraphModel`` does not expose).
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
 
 import numpy as np
 import jax

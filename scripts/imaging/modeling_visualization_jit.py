@@ -27,10 +27,15 @@ This script deliberately opts in with
 ``AnalysisImaging(use_jax=True)``. Default model-fit scripts elsewhere in the
 workspace leave the flag at ``False`` and are therefore untouched by this
 change.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JIT-cached visualization path: real search (Nautilus), JAX, full-resolution
+mask and real savefig.
+
+ENV: real_output
 """
-# ENV: real_output
-# JIT-cached visualization path: real search (Nautilus), JAX,
-# full-resolution mask and real savefig.
 
 import shutil
 import time

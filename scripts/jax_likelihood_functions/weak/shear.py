@@ -10,10 +10,15 @@ Covers the ``FitWeak`` xp-threaded statistics and the ``AnalysisWeak._register_f
 registration added by PyAutoLens feature/weak-sigma-crit-jax (issue #590). The redshift
 scale factors are concrete per-dataset constants, so a dataset carrying per-galaxy redshifts
 exercises the eager-scaling + traced-statistics combination too.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
 
 # %matplotlib inline
 # from pyprojroot import here

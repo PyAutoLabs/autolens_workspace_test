@@ -42,10 +42,15 @@ attempt, FoM parity vs the linear reference at 2.7e-5–6.3e-4 relative) lives
 in the audit README
 (`autolens_workspace_developer/jax_profiling/gradient/README.md`); the
 parity assertions were retired with the linear mesh itself.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Drive jax.value_and_grad + finite-difference gradient checks; need JAX
+enabled and full-resolution float64 data.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# Drive jax.value_and_grad + finite-difference gradient checks;
-# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax

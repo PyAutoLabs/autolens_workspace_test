@@ -25,10 +25,15 @@ This script deliberately opts in with
 ``AnalysisPoint(use_jax=True)``.
 Default model-fit scripts elsewhere in the workspace leave the flag at
 ``False`` and are therefore untouched.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Live Nautilus + JIT point-source path: real search, JAX, full-resolution
+data and real savefig.
+
+ENV: real_output
 """
-# ENV: real_output
-# Live Nautilus + JIT point-source path: real search, JAX,
-# full-resolution data and real savefig.
 
 import shutil
 import time

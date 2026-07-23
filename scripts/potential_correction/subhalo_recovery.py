@@ -12,10 +12,15 @@ This is the workspace-level parity anchor of the port of Cao et al. 2025's `pote
 https://github.com/caoxiaoyue/potential_correction_paper), mirroring its demo reconstruction. On the reference
 200x200 demo dataset the merged implementation recovers corr(dkappa_rec, dkappa_true) = 0.77 with the peak 0.21"
 from the true subhalo (one-shot); the reduced problem here asserts conservative thresholds.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Simulates a 120x120 dataset inline with resolution-calibrated dkappa
+thresholds; the 15x15 cap breaks the mesh geometry.
+
+ENV: full_datasets
 """
-# ENV: full_datasets
-# Simulates a 120x120 dataset inline with resolution-calibrated
-# dkappa thresholds; the 15x15 cap breaks the mesh geometry.
 
 import numpy as np
 

@@ -19,10 +19,15 @@ Scope
 - Calls ``VisualizerPoint.visualize`` only (not ``visualize_before_fit``).
 - Re-uses the ``simple/point_dataset_positions_only.json`` dataset.
 - No ``try/except`` wrapper — failure surfaces immediately.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JIT-cached fit_for_visualization path (point source); needs JAX enabled,
+real plots and full-resolution data.
+
+ENV: jax full_datasets real_plots
 """
-# ENV: jax full_datasets real_plots
-# JIT-cached fit_for_visualization path (point source); needs JAX
-# enabled, real plots and full-resolution data.
 
 import shutil
 from pathlib import Path

@@ -13,10 +13,15 @@ this reconstruction to be smooth. This uses `Pixelization`  objects and in this 
 use their simplest forms, a `RectangularAdaptDensity` `Pixelization` and `Constant` `Regularization`.scheme.
 
 Inversions are covered in detail in chapter 4 of the **HowToLens** lectures.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Reads pre-committed full-resolution data; the SMALL_DATASETS 15x15 cap would
+break the mask/shape assertion.
+
+ENV: full_datasets
 """
-# ENV: full_datasets
-# Reads pre-committed full-resolution data; the SMALL_DATASETS 15x15
-# cap would break the mask/shape assertion.
 
 # %matplotlib inline
 # from pyprojroot import here

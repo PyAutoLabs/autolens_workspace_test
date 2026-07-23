@@ -6,10 +6,15 @@ Validates that batched_simulate_substructure (vmap over realizations)
 produces identical results to calling simulate_substructure in a loop.
 
 Ref: PyAutoLens#542, prompt 4.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Tests the full simulate_substructure path at image_shape=(51,51); need JAX
+enabled and full-size datasets (the 15x15 cap raises).
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# Tests the full simulate_substructure path at image_shape=(51,51);
-# need JAX enabled and full-size datasets (the 15x15 cap raises).
 
 import numpy as np
 import jax

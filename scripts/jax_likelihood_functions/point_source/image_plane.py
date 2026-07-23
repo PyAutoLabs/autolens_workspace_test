@@ -13,10 +13,15 @@ image-plane coordinates.
 This variant is known to JIT end-to-end (see
 ``autolens_workspace_developer/jax_profiling/point_source/image_plane.py``),
 so ``jax.jit(analysis.fit_from)`` succeeds without falling back to a prefix.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
 
 # %matplotlib inline
 # from pyprojroot import here

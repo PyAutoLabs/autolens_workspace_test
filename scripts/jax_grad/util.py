@@ -25,10 +25,15 @@ Under a single JIT trace, ``jax.pure_callback`` results can be constant-folded
 into the compiled program, which fakes both values and (zero) gradients. If a
 jitted ``f`` is passed for speed, call ``assert_eager_jit_consistent`` first
 with the un-jitted function so the two agree at the base point.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Drive jax.value_and_grad + finite-difference gradient checks; need JAX
+enabled and full-resolution float64 data.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# Drive jax.value_and_grad + finite-difference gradient checks;
-# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax

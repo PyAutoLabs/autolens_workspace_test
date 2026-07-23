@@ -11,10 +11,15 @@ via `Interferometer.from_fits` and uses `AnalysisInterferometer`. No
 apply_over_sampling — interferometer does not oversample.
 
 The `should_simulate` bootstrap invokes `simulator_dspl.py` to generate the dataset.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
 
 import numpy as np
 import jax
