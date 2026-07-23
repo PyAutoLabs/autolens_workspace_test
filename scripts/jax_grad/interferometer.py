@@ -37,6 +37,9 @@ gradients are live and strictly FD-matched.
 See the audit README
 (`autolens_workspace_developer/jax_profiling/gradient/README.md`).
 """
+# ENV: jax full_datasets
+# Drive jax.value_and_grad + finite-difference gradient checks;
+# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax

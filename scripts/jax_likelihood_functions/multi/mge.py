@@ -9,6 +9,9 @@ Uses **option B** — per-band source MGE ``ell_comps`` priors via ``model.copy(
 ``af.GaussianPrior`` on each ``AnalysisFactor``. All other parameters (lens MGE bulge,
 lens mass, shear, source centres and intensities) remain shared across the g and r bands.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

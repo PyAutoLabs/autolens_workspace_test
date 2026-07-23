@@ -28,6 +28,9 @@ Run from the workspace root:
 
     python scripts/jax_likelihood_functions/datacube/shared_preloads.py
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax.numpy as jnp

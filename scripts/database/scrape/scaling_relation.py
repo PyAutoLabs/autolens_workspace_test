@@ -35,6 +35,8 @@ __Structure__
 This test mirrors `general.py` exactly, adding only the scaling relation model
 for the extra galaxy.
 """
+# ENV: full_datasets
+# Loads pre-committed FITS data at full resolution.
 
 from astropy.io import fits
 import numpy as np

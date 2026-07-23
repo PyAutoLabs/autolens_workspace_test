@@ -9,6 +9,9 @@ Mirrors `imaging/lp.py` but uses interferometer dataset loading (real_space_mask
 Interferometer.from_fits, TransformerDFT) from `interferometer/rectangular.py`.
 No apply_over_sampling — interferometer does not oversample.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

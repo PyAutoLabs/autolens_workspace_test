@@ -60,6 +60,9 @@ mass/shear at pixelization over-sampling 1, where variant B is exactly flat.
 An eager figure-of-merit parity check against the matching linear mesh guards
 reconstruction quality.
 """
+# ENV: jax full_datasets
+# Drive jax.value_and_grad + finite-difference gradient checks;
+# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax

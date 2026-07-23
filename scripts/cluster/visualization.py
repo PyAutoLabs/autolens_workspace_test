@@ -42,6 +42,9 @@ Run from the ``autolens_workspace_test`` repo root with the standard cache overr
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/cluster/visualization.py
 """
+# ENV: full_datasets real_plots
+# Asserts 5 subplot PNGs land on disk (needs real plots) and
+# recovers critical curves on a full-extent 250x250 grid.
 
 import shutil
 import subprocess

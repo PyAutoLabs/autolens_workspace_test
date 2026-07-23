@@ -13,6 +13,9 @@ This is a copy of `interferometer/rectangular.py` with one additional line after
 The sparse NUFFT operator is aux state and must NOT be constructed inside the JIT
 trace. It is built once before analysis construction and carried as static state.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

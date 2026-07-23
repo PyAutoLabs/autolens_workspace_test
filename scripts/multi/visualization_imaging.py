@@ -31,6 +31,9 @@ Run from the ``autolens_workspace_test`` repo root:
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/multi/visualization_imaging.py
 """
+# ENV: full_datasets
+# Loads a 150x150 dataset and builds its mask via Mask2D.circular
+# which caps to 15x15; only useful at full resolution.
 
 import shutil
 from os import path

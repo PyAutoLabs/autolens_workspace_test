@@ -20,6 +20,9 @@ Scope
 - Re-uses the ``simple/point_dataset_positions_only.json`` dataset.
 - No ``try/except`` wrapper — failure surfaces immediately.
 """
+# ENV: jax full_datasets real_plots
+# JIT-cached fit_for_visualization path (point source); needs JAX
+# enabled, real plots and full-resolution data.
 
 import shutil
 from pathlib import Path

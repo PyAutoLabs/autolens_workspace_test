@@ -22,6 +22,9 @@ BLOCKER line and continues, so the eager NumPy regression assertion is still
 exercised.  Once the upstream xp-propagation fix lands, the JIT path will
 succeed without modifying this script.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 # %matplotlib inline
 # from pyprojroot import here

@@ -16,6 +16,9 @@ Mirrors ``imaging/lp.py`` but swaps the lens bulge for
 priors on the four multipole-component parameters (the library does not yet
 ship default priors for them — this keeps the script self-contained).
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax.numpy as jnp

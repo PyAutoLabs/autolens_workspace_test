@@ -28,6 +28,9 @@ This script deliberately opts in with
 workspace leave the flag at ``False`` and are therefore untouched by this
 change.
 """
+# ENV: real_output
+# JIT-cached visualization path: real search (Nautilus), JAX,
+# full-resolution mask and real savefig.
 
 import shutil
 import time

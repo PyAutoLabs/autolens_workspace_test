@@ -13,6 +13,9 @@ https://github.com/caoxiaoyue/potential_correction_paper), mirroring its demo re
 200x200 demo dataset the merged implementation recovers corr(dkappa_rec, dkappa_true) = 0.77 with the peak 0.21"
 from the true subhalo (one-shot); the reduced problem here asserts conservative thresholds.
 """
+# ENV: full_datasets
+# Simulates a 120x120 dataset inline with resolution-calibrated
+# dkappa thresholds; the 15x15 cap breaks the mesh geometry.
 
 import numpy as np
 

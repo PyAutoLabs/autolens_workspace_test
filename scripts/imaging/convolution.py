@@ -14,6 +14,9 @@ use their simplest forms, a `RectangularAdaptDensity` `Pixelization` and `Consta
 
 Inversions are covered in detail in chapter 4 of the **HowToLens** lectures.
 """
+# ENV: full_datasets
+# Reads pre-committed full-resolution data; the SMALL_DATASETS 15x15
+# cap would break the mask/shape assertion.
 
 # %matplotlib inline
 # from pyprojroot import here

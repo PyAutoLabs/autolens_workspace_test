@@ -6,6 +6,9 @@ This script simulates `Imaging` of a strong lens where:
 
  - The resolution, PSF and S/N are representative of Hubble Space Telescope imaging.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 # %matplotlib inline
 # from pyprojroot import here

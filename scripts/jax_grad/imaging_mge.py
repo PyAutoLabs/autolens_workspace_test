@@ -17,6 +17,9 @@ evaluations use a jitted likelihood for speed, guarded by an eager-vs-jit
 consistency check at the base point so ``pure_callback`` constant-folding
 cannot fake the comparison.
 """
+# ENV: jax full_datasets
+# Drive jax.value_and_grad + finite-difference gradient checks;
+# need JAX enabled and full-resolution float64 data.
 
 import numpy as np
 import jax
