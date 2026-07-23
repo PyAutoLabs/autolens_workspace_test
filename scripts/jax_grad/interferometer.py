@@ -1,7 +1,7 @@
 """
 Tests JAX gradients of the interferometer log-likelihood, in two stages
 (finiteness, then autodiff-vs-central-finite-difference correctness — see
-``util.py``), for the two configurations used in practice:
+``util.py``), for the configurations used in practice:
 
 **Variant A — parametric light profiles** (``lp.Sersic`` standard +
 ``lp_linear.Sersic``): the visibility-space analogue of
@@ -15,24 +15,17 @@ path**: mirrors ``jax_likelihood_functions/interferometer/rectangular_sparse.py`
 exactly — ``TransformerDFT`` + ``apply_sparse_operator(use_jax=True)`` (the
 sparse NUFFT response-matrix formalism; the operator is aux state built once
 outside the JIT trace), ``RectangularAdaptDensity`` mesh + ``reg.Adapt()`` +
-``al.AdaptImages``. **Measured verdict (2026-07-09): the imaging os_pix=1
-staircase applies** — interferometer pixelization has no over-sampling, so the
-mesh's rank-transform queries coincide with its knots and the likelihood is
-invariant to smooth mass perturbations: every mass/shear autodiff gradient is
-exactly zero (correct — FD shows only ~1e-7-scale micro-jumps from rank
-re-orderings, no smooth slope). With the model having no lens light, that means
-**no usable gradients at all** in this configuration. The assertions document
-this staircase so a change in mesh differentiability fails loudly.
+``al.AdaptImages``. Since the rectangular-mesh consolidation
+(PyAutoArray#403) this mesh IS the kernel-density-CDF mesh (formerly
+``RectangularKernelAdaptDensity``, PyAutoArray#374): no ranks or sorts, so
+the likelihood carries live, strictly FD-matched gradients on every
+(mass/shear) parameter — on the exact path where the deleted empirical-rank
+CDF was piecewise-constant with no usable gradients at all (the
+interferometer pixelization has no over-sampling to fall back on; the old
+staircase measurements live in the audit README).
 
-**Variant D — ``RectangularKernelAdaptDensity`` via the same sparse path**
-(PyAutoArray#374): the kernel-density CDF transform has no ranks or sorts, so
-the staircase is structurally absent — strict FD assertions run on every
-parameter in the exact configuration where variant B has no usable gradients,
-plus an eager figure-of-merit parity check against the linear mesh.
-
-**Variant C — ``RectangularUniform`` via the same sparse path**: the working
-alternative for gradient-based inference — no adaptive transform, so mass/shear
-gradients are live and strictly FD-matched.
+**Variant C — ``RectangularUniform`` via the same sparse path**: no adaptive
+transform, so mass/shear gradients are live and strictly FD-matched.
 
 See the audit README
 (`autolens_workspace_developer/jax_profiling/gradient/README.md`).
@@ -226,62 +219,19 @@ def sparse_fitness(mesh, regularization):
 
 
 """
-__Variant B: RectangularAdaptDensity — the documented staircase__
+__Variant B: RectangularAdaptDensity — differentiable on the sparse path__
+
+The kernel-density CDF transform replaces the deleted empirical point-rank
+CDF with ``F(x) = Σᵢ wᵢ·Φ((x−xᵢ)/h)`` — no ranks, no sorts, so the staircase
+the audit documented on this path is structurally absent. The sparse path has
+no over-sampling to fall back on, which made the old linear adaptive mesh's
+gradients unusable here; the mesh must carry live, strictly FD-matched
+gradients on every (mass/shear) parameter in this exact configuration.
 """
 print("\n=== interferometer RectangularAdaptDensity + reg.Adapt, sparse operator ===")
 
 fitness, param_vector, param_names = sparse_fitness(
     mesh=al.mesh.RectangularAdaptDensity(shape=mesh_shape),
-    regularization=al.reg.Adapt(),
-)
-
-value, grad = jax.value_and_grad(fitness.call)(param_vector)
-print(f"Log likelihood = {float(value):.6f}")
-assert np.isfinite(float(value)), "Log likelihood is not finite"
-assert np.all(
-    np.isfinite(np.array(grad))
-), f"Gradient contains non-finite values: {np.array(grad)}"
-
-f_jit = jax.jit(fitness.call)
-
-util.assert_eager_jit_consistent(fitness.call, f_jit, param_vector)
-
-# The staircase: with no over-sampling the adaptive mesh's rank transform makes
-# the likelihood invariant to smooth mass/shear perturbations, and *every* model
-# parameter here is mass/shear (interferometer data has no lens light). The
-# correct autodiff gradient is therefore ~zero across the board. If this
-# assertion ever fails the mesh has become differentiable — rerun the full FD
-# audit and update this script + the audit README.
-assert np.all(np.abs(np.array(grad)) < 1e-6), (
-    "Autodiff mass/shear gradients are no longer ~zero on the sparse "
-    f"RectangularAdaptDensity path: {np.array(grad)}"
-)
-
-print(
-    "interferometer sparse RectangularAdaptDensity: staircase confirmed — "
-    "all autodiff gradients ~zero (correct; no smooth mass information)."
-)
-
-# Kept for the kernel variant's FoM parity check below (same model
-# parametrization → same parameter vector).
-value_linear_adapt_density = float(value)
-
-"""
-__Variant D: RectangularKernelAdaptDensity — differentiable on the sparse path__
-
-The kernel-density CDF transform (PyAutoArray#374) replaces the empirical
-point-rank CDF with ``F(x) = Σᵢ wᵢ·Φ((x−xᵢ)/h)`` — no ranks, no sorts, so the
-staircase mechanism variant B documents is structurally absent. The sparse path
-has no over-sampling to fall back on, which made the linear adaptive mesh's
-gradients unusable here; the kernel mesh must carry live, strictly FD-matched
-gradients on every (mass/shear) parameter in this exact configuration.
-"""
-print(
-    "\n=== interferometer RectangularKernelAdaptDensity + reg.Adapt, sparse operator ==="
-)
-
-fitness, param_vector, param_names = sparse_fitness(
-    mesh=al.mesh.RectangularKernelAdaptDensity(shape=mesh_shape),
     regularization=al.reg.Adapt(),
 )
 
@@ -308,35 +258,21 @@ comparison = util.compare_gradients(
 
 util.assert_gradients_match(comparison)
 
-# Every parameter here is mass/shear — all must be genuinely live (a staircase
-# would pass the FD match trivially as 0 == 0).
+# Every parameter here is mass/shear — all must be genuinely live (a flat
+# likelihood would pass the FD match trivially as 0 == 0).
 assert np.all(np.abs(comparison["ad"]) > 1e-2), (
-    "A mass/shear gradient is ~zero on the sparse RectangularKernelAdaptDensity "
-    "path — the kernel mesh is not carrying smooth mass information: "
+    "A mass/shear gradient is ~zero on the sparse RectangularAdaptDensity "
+    "path — the kernel-CDF mesh is not carrying smooth mass information: "
     f"{[(n, a) for n, a in zip(param_names, comparison['ad']) if abs(a) <= 1e-2]}"
 )
 
-# FoM parity vs the linear AdaptDensity mesh (variant B, same base point): the
-# mesh geometry changes slightly but reconstruction quality must not degrade.
-fom_kernel = float(fitness.call(param_vector))
-fom_rel = abs(fom_kernel - value_linear_adapt_density) / abs(value_linear_adapt_density)
 print(
-    f"FoM parity: kernel = {fom_kernel:.6f}, "
-    f"linear = {value_linear_adapt_density:.6f}, rel diff = {fom_rel:.3e}"
-)
-assert fom_rel < 5e-4, (
-    f"Kernel-mesh figure_of_merit deviates from the linear mesh by {fom_rel:.3e} "
-    "relative (limit 5e-4) on the sparse path — reconstruction quality has "
-    "degraded; tune the mesh bandwidth."
-)
-
-print(
-    "interferometer sparse RectangularKernelAdaptDensity: all gradients live, "
-    "strictly FD-matched, FoM parity held."
+    "interferometer sparse RectangularAdaptDensity: all gradients live and "
+    "strictly FD-matched."
 )
 
 """
-__Variant C: RectangularUniform — the gradient-capable alternative__
+__Variant C: RectangularUniform — the non-adaptive alternative__
 """
 print("\n=== interferometer RectangularUniform + reg.Constant, sparse operator ===")
 
