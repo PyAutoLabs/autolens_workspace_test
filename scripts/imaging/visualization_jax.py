@@ -23,9 +23,16 @@ Scope
 - Reuses ``config_source/visualize/plots.yaml`` from ``visualization.py`` so
   only ``fit.png`` and ``tracer.png`` are attempted.
 """
-# ENV: jax full_datasets real_plots
-# JIT-cached fit_for_visualization path; needs JAX enabled, real
-# plots and full-resolution data.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JIT-cached fit_for_visualization path; needs JAX enabled, real plots and
+full-resolution data.
+
+ENV: jax full_datasets real_plots
+"""
 
 import shutil
 from os import path

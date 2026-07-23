@@ -23,9 +23,16 @@ Path layout follows ``multi/lp.py``: vmap evaluation through
 ``fitness._vmap`` and then a separate ``jax.jit`` wrap around
 ``instance_from_vector → log_likelihood_function``.
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
+"""
 
 import numpy as np
 import jax

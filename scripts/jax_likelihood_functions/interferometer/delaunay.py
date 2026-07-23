@@ -8,9 +8,16 @@ of an `Interferometer` dataset with a model which uses a Delaunay pixelization s
 Mirrors `imaging/delaunay.py` but uses interferometer dataset loading and
 `AnalysisInterferometer`. No apply_over_sampling — interferometer does not oversample.
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
+"""
 
 import numpy as np
 import jax

@@ -14,9 +14,16 @@ use their simplest forms, a `RectangularAdaptDensity` `Pixelization` and `Consta
 
 Inversions are covered in detail in chapter 4 of the **HowToLens** lectures.
 """
-# ENV: full_datasets
-# Reads pre-committed FITS data at full resolution; SMALL_DATASETS
-# cap would mismatch the committed-shape mask.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Reads pre-committed FITS data at full resolution; SMALL_DATASETS cap would
+mismatch the committed-shape mask.
+
+ENV: full_datasets
+"""
 
 # %matplotlib inline
 # from pyprojroot import here

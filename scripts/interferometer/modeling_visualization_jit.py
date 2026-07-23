@@ -28,9 +28,16 @@ This script deliberately opts in with
 in the workspace leave the flag at ``False`` and are therefore untouched by
 this change.
 """
-# ENV: real_output
-# Interferometer JIT visualization path: real search, JAX,
-# full-resolution mask and real savefig.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Interferometer JIT visualization path: real search, JAX, full-resolution
+mask and real savefig.
+
+ENV: real_output
+"""
 
 import shutil
 import time

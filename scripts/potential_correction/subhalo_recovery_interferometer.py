@@ -21,9 +21,16 @@ Cites Cao et al. 2025 (https://github.com/caoxiaoyue/lensing_potential_correctio
 https://github.com/caoxiaoyue/potential_correction_paper); methodology per the JVAS B1938+666 detections
 (Powell et al. 2025; Vegetti et al. 2026).
 """
-# ENV: full_datasets
-# Simulates a 120x120 dataset inline with resolution-calibrated
-# dkappa thresholds; the 15x15 cap breaks the mesh geometry.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Simulates a 120x120 dataset inline with resolution-calibrated dkappa
+thresholds; the 15x15 cap breaks the mesh geometry.
+
+ENV: full_datasets
+"""
 
 import numpy as np
 

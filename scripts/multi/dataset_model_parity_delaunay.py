@@ -39,9 +39,16 @@ Qiuhan saw on ``dev_Q``. Without rotating the cached mesh-grid in lockstep
 with the data grid, B1 would diverge from A1 by ~1 or more in log-likelihood
 even for the small (12 degree) rotation used here.
 """
-# ENV: full_datasets
-# Two-frame Delaunay parity is only meaningful at full size; the
-# 16x16 cap makes the log_likelihood floor meaningless.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Two-frame Delaunay parity is only meaningful at full size; the 16x16 cap
+makes the log_likelihood floor meaningless.
+
+ENV: full_datasets
+"""
 
 import numpy as np
 import autoarray as aa

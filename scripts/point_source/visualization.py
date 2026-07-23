@@ -13,9 +13,16 @@ same model that is proven to JIT end-to-end in
 
 No ``try/except`` — any failure in the visualizer surfaces immediately.
 """
-# ENV: real_plots
-# Asserts fit.png lands on disk (needs real plots); uses a JSON
-# point dataset unaffected by SMALL_DATASETS.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Asserts fit.png lands on disk (needs real plots); uses a JSON point dataset
+unaffected by SMALL_DATASETS.
+
+ENV: real_plots
+"""
 
 import shutil
 from pathlib import Path

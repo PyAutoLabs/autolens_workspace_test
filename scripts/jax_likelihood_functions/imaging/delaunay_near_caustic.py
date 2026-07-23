@@ -21,9 +21,16 @@ than the 1e-4 of the sibling scripts, because the point of PR #368 is that
 the mappings are EXACT (visibility walk), so the only residual is fp
 reduction ordering (~1e-13 relative, measured).
 """
-# ENV: jax full_datasets
-# JAX likelihood functions test JIT compilation; need JAX enabled
-# and full-size datasets.
+
+"""
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JAX likelihood functions test JIT compilation; need JAX enabled and full-
+size datasets.
+
+ENV: jax full_datasets
+"""
 
 # %matplotlib inline
 # from pyprojroot import here
