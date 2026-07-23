@@ -20,9 +20,7 @@ Asserts eager (xp=np) == jit == every vmap lane at rtol=1e-8 — far tighter
 than the 1e-4 of the sibling scripts, because the point of PR #368 is that
 the mappings are EXACT (visibility walk), so the only residual is fp
 reduction ordering (~1e-13 relative, measured).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

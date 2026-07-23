@@ -26,9 +26,7 @@ numerical path than under ``use_jax=False`` (the JAX path matches
 Path B re-runs the same vmap likelihood with ``TransformerNUFFT`` and asserts
 the same expected value — proves the cube path works with both DFT and NUFFT
 transformers.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

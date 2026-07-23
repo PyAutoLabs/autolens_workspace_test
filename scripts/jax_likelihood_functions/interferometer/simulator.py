@@ -18,9 +18,7 @@ __Model__
 
  - Lens: `Isothermal` mass + `ExternalShear`.
  - Source: `SersicCore` light profile (cored, avoiding over-sampling issues).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

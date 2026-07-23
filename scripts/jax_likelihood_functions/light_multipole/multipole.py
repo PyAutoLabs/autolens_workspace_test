@@ -15,9 +15,7 @@ Mirrors ``imaging/lp.py`` but swaps the lens bulge for
 ``al.lp_linear.SersicMultipole`` and sets explicit ``TuplePrior`` Gaussian
 priors on the four multipole-component parameters (the library does not yet
 ship default priors for them — this keeps the script self-contained).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

@@ -24,9 +24,7 @@ parity. For pixelized sources, ``analysis.log_likelihood_function`` under
 routed through ``fit_from``, which ``FactorGraphModel`` does not expose).
 Parametric-only scripts in this folder (``lp.py``, ``mge_group.py``)
 assert full NumPy/JAX parity.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

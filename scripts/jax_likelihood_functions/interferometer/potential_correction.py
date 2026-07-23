@@ -11,9 +11,7 @@ the iterative engine are checked for numpy/JAX agreement on the visibility-scale
 The technique is ported from the `potential_correction` package of Cao et al. 2025
 (https://github.com/caoxiaoyue/lensing_potential_correction; cite via
 https://github.com/caoxiaoyue/potential_correction_paper).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

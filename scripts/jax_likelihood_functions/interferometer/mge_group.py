@@ -3,9 +3,7 @@ Func Grad: Interferometer MGE + Extra Galaxies
 ===============================================
 Tests that JAX can compute batched log-likelihood evaluations for an interferometer
 model with extra galaxies, using the same dataset as interferometer/mge.py.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

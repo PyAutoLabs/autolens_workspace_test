@@ -5,9 +5,7 @@ Test: scan-based multi-plane ray-tracing
 Validates that traced_grids_via_scan (jax.lax.scan path) reproduces the
 existing Python-loop Tracer path for a 4-plane system with LOS halos,
 a macro lens, and negative kappa sheets. Ref: PyAutoLens#542, prompt 2.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

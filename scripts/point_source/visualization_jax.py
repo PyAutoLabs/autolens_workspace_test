@@ -19,9 +19,7 @@ Scope
 - Calls ``VisualizerPoint.visualize`` only (not ``visualize_before_fit``).
 - Re-uses the ``simple/point_dataset_positions_only.json`` dataset.
 - No ``try/except`` wrapper — failure surfaces immediately.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

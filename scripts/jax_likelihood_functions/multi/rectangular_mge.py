@@ -11,9 +11,7 @@ The MGE lens bulge, lens mass, shear, and mesh parameters remain shared.
 
 Path A asserts ``vmap == JIT round-trip``; see ``rectangular.py`` for
 the rationale.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

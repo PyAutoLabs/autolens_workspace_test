@@ -12,9 +12,7 @@ __Model__
 
  - Lens: `Isothermal` mass (centre near origin, einstein_radius=1.6).
  - Source: Point source at (0.07, 0.07).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

@@ -16,9 +16,7 @@ gradient flow.
 
 Setup mirrors ``scripts/jax_likelihood_functions/weak/shear.py`` (the value
 parity script for PyAutoLens feature/weak-sigma-crit-jax, issue #590).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

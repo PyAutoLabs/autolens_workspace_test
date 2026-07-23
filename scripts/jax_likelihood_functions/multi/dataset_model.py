@@ -22,9 +22,7 @@ behaviour — this script is the regression marker for that path.
 Path layout follows ``multi/lp.py``: vmap evaluation through
 ``fitness._vmap`` and then a separate ``jax.jit`` wrap around
 ``instance_from_vector → log_likelihood_function``.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

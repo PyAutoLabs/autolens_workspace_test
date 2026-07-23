@@ -6,9 +6,7 @@ Validates that batched_simulate_substructure (vmap over realizations)
 produces identical results to calling simulate_substructure in a loop.
 
 Ref: PyAutoLens#542, prompt 4.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

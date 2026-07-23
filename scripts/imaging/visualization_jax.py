@@ -22,9 +22,7 @@ Scope
 - Re-uses the ``jax_test`` dataset from ``jax_likelihood_functions/imaging``.
 - Reuses ``config_source/visualize/plots.yaml`` from ``visualization.py`` so
   only ``fit.png`` and ``tracer.png`` are attempted.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

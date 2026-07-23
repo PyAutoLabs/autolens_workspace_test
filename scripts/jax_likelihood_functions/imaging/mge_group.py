@@ -22,9 +22,7 @@ compact model emission lands in.
 Operated light profiles offer an alternative approach, whereby the light profile is assumed to have already been
 convolved with the PSF. This operated light profile is then fitted directly to the point-source emission, which as
 discussed above shows the PSF features.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

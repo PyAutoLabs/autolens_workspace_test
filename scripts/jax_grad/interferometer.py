@@ -36,9 +36,7 @@ gradients are live and strictly FD-matched.
 
 See the audit README
 (`autolens_workspace_developer/jax_profiling/gradient/README.md`).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

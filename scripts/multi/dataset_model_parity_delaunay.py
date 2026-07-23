@@ -38,9 +38,7 @@ This is the test that catches the "weird source reconstruction" failure mode
 Qiuhan saw on ``dev_Q``. Without rotating the cached mesh-grid in lockstep
 with the data grid, B1 would diverge from A1 by ~1 or more in log-likelihood
 even for the small (12 degree) rotation used here.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

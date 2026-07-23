@@ -59,9 +59,7 @@ absent, so the strict FD comparison runs on ALL parameters — including
 mass/shear at pixelization over-sampling 1, where variant B is exactly flat.
 An eager figure-of-merit parity check against the matching linear mesh guards
 reconstruction quality.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
