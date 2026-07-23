@@ -1,11 +1,11 @@
 """
-Database: SLaM General
-======================
+Database: SLaM Pixelization
+============================
 
-Runs a SLaM pipeline (linear light profiles) and scrapes the results to a database,
+Runs a SLaM pipeline (pixelization with AdaptSplit regularization) and scrapes the results to a database,
 verifying that queries and aggregator modules work correctly.
 
-Based on autolens_workspace/scripts/imaging/features/linear_light_profiles/slam.py
+Based on autolens_workspace/scripts/imaging/features/pixelization/slam.py
 """
 
 from astropy.io import fits
@@ -36,7 +36,12 @@ def fit():
     ):
         analysis = al.AnalysisImaging(dataset=dataset, use_jax=True)
 
-        lens_bulge = af.Model(al.lp_linear.Sersic)
+        lens_bulge = al.model_util.mge_model_from(
+            mask_radius=mask_radius,
+            total_gaussians=20,
+            gaussian_per_basis=2,
+            centre_prior_is_uniform=True,
+        )
 
         source_bulge = al.model_util.mge_model_from(
             mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
@@ -189,6 +194,7 @@ def fit():
     def light_lp(
         settings_search,
         dataset,
+        mask_radius,
         source_result_for_lens,
         source_result_for_source,
         n_batch=20,
@@ -202,9 +208,15 @@ def fit():
         analysis = al.AnalysisImaging(
             dataset=dataset,
             adapt_images=adapt_images,
+            use_jax=True,
         )
 
-        lens_bulge = af.Model(al.lp_linear.Sersic)
+        lens_bulge = al.model_util.mge_model_from(
+            mask_radius=mask_radius,
+            total_gaussians=20,
+            gaussian_per_basis=2,
+            centre_prior_is_uniform=True,
+        )
 
         source = al.util.chaining.source_custom_model_from(
             result=source_result_for_source, source_is_model=False
@@ -258,6 +270,7 @@ def fit():
                     factor=3.0, minimum_threshold=0.2
                 )
             ],
+            use_jax=True,
         )
 
         mass = al.util.chaining.mass_from(
@@ -329,7 +342,7 @@ def fit():
     dataset = dataset.apply_mask(mask=mask)
 
     settings_search = af.SettingsSearch(
-        path_prefix=path.join("database", "scrape", "slam_general"),
+        path_prefix=path.join("database", "scrape", "slam_pix_jax"),
         number_of_cores=1,
         session=None,
         info={"hi": "there"},
@@ -372,6 +385,7 @@ def fit():
     light_result = light_lp(
         settings_search=settings_search,
         dataset=dataset,
+        mask_radius=mask_radius,
         source_result_for_lens=source_pix_result_1,
         source_result_for_source=source_pix_result_2,
     )
@@ -391,7 +405,7 @@ def fit():
     """
     from autofit.database.aggregator import Aggregator
 
-    database_file = "database_directory_slam_general.sqlite"
+    database_file = "database_directory_slam_pix.sqlite"
 
     try:
         os.remove(path.join("output", database_file))
@@ -399,9 +413,7 @@ def fit():
         pass
 
     agg = Aggregator.from_database(database_file)
-    agg.add_directory(
-        directory=path.join("output", "database", "scrape", "slam_general")
-    )
+    agg.add_directory(directory=path.join("output", "database", "scrape", "slam_pix_jax"))
 
     assert len(agg) > 0
 

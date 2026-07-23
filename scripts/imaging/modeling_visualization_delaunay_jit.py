@@ -4,7 +4,7 @@ with a DELAUNAY-pixelization source.
 ==========================================================================
 
 Sibling to ``modeling_visualization_jit.py`` (MGE) and
-``modeling_visualization_jit_rectangular.py`` (rectangular mesh). Exercises
+``modeling_visualization_rectangular_jit.py`` (rectangular mesh). Exercises
 the same Path A pipeline — ``Analysis.fit_for_visualization`` lazily-cached
 as ``jax.jit(self.fit_from)`` — but with a Delaunay-triangulated source
 whose centres are placed by a Hilbert image mesh.
@@ -331,7 +331,7 @@ analysis_live = al.AnalysisImaging(
 )
 
 output_root = (
-    Path("scripts") / "imaging" / "images" / "modeling_visualization_jit_delaunay"
+    Path("scripts") / "imaging" / "images" / "modeling_visualization_delaunay_jit"
 )
 if output_root.exists():
     shutil.rmtree(output_root)

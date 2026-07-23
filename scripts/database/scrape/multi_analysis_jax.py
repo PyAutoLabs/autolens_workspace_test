@@ -364,7 +364,7 @@ def fit():
         dataset_list.append(dataset)
 
     settings_search = af.SettingsSearch(
-        path_prefix=path.join("database", "scrape", "multi_analysis"),
+        path_prefix=path.join("database", "scrape", "multi_analysis_jax"),
         number_of_cores=1,
         session=None,
         info={"hi": "there"},
@@ -527,7 +527,7 @@ def fit():
 
     agg = Aggregator.from_database(database_file)
     agg.add_directory(
-        directory=path.join("output", "database", "scrape", "multi_analysis")
+        directory=path.join("output", "database", "scrape", "multi_analysis_jax")
     )
 
     assert len(agg) > 0
