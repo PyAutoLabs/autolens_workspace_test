@@ -26,9 +26,7 @@ __Model__
  - Source at z=2.0: `SersicCore` light profile.
 
 The redshifts match `imaging/simulator_dspl.py`.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

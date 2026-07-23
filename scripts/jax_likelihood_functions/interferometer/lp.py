@@ -8,9 +8,7 @@ of an `Interferometer` dataset with a model which uses a parametric Sersic sourc
 Mirrors `imaging/lp.py` but uses interferometer dataset loading (real_space_mask,
 Interferometer.from_fits, TransformerDFT) from `interferometer/rectangular.py`.
 No apply_over_sampling — interferometer does not oversample.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

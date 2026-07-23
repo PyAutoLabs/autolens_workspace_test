@@ -13,9 +13,7 @@ parameters (lens bulge, lens mass, shear, source bulge aside from
 Path A uses ``jax.jit(factor_graph.log_likelihood_function)`` (not ``fit_from``
 — ``FactorGraphModel`` does not expose a ``fit_from`` method; it sums each
 child factor's log-likelihood).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

@@ -13,9 +13,7 @@ this reconstruction to be smooth. This uses `Pixelization`  objects and in this 
 use their simplest forms, a `RectangularAdaptDensity` `Pixelization` and `Constant` `Regularization`.scheme.
 
 Inversions are covered in detail in chapter 4 of the **HowToLens** lectures.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

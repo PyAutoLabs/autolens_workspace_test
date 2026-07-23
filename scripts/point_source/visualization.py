@@ -12,9 +12,7 @@ same model that is proven to JIT end-to-end in
 ``scripts/jax_likelihood_functions/point_source/image_plane.py``.
 
 No ``try/except`` — any failure in the visualizer surfaces immediately.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

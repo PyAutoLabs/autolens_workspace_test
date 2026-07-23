@@ -23,9 +23,7 @@ Scope
 - Calls ``VisualizerInterferometer.visualize`` only (not ``visualize_before_fit``).
 - Re-uses the ``simple`` dataset from ``jax_likelihood_functions/interferometer``.
 - Uses the default plot config (no bespoke config_source override).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

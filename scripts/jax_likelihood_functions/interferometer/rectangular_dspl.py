@@ -11,9 +11,7 @@ via `Interferometer.from_fits` and uses `AnalysisInterferometer`. No
 apply_over_sampling — interferometer does not oversample.
 
 The `should_simulate` bootstrap invokes `simulator_dspl.py` to generate the dataset.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

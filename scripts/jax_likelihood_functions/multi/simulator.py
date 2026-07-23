@@ -6,9 +6,7 @@ the multi-wavelength JAX likelihood function tests in this folder.
 
 Each band shares the same lens mass but has its own source intensity,
 written to `dataset/multi/lens_sersic/`.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

@@ -7,9 +7,7 @@ of an `Interferometer` dataset with a model which uses a Delaunay pixelization s
 
 Mirrors `imaging/delaunay.py` but uses interferometer dataset loading and
 `AnalysisInterferometer`. No apply_over_sampling — interferometer does not oversample.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

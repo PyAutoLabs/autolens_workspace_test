@@ -41,9 +41,7 @@ Run from the ``autolens_workspace_test`` repo root with the standard cache overr
 
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/cluster/visualization.py
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

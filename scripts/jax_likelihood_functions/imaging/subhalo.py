@@ -48,9 +48,7 @@ exits non-zero.
 A regression of issue #498 will trip Scenario B's vmap assert. A
 regression of the Ludlow pure_callback path will trip Scenario C or D's
 vmap assert (or raise inside the callback under vmap).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

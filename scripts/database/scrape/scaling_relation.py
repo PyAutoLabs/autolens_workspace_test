@@ -34,9 +34,7 @@ __Structure__
 
 This test mirrors `general.py` exactly, adding only the scaling relation model
 for the extra galaxy.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

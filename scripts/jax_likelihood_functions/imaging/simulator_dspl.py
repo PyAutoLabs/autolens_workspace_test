@@ -5,9 +5,7 @@ Simulator: HST
 This script simulates `Imaging` of a strong lens where:
 
  - The resolution, PSF and S/N are representative of Hubble Space Telescope imaging.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

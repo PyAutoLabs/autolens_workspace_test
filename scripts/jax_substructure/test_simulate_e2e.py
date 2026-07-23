@@ -7,9 +7,7 @@ image consistent with the existing SimulatorImaging.via_tracer_from path.
 Compares the deterministic (no-noise) lensed+convolved image.
 
 Ref: PyAutoLens#542, prompt 3.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

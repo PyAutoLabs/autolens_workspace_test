@@ -27,9 +27,7 @@ __Contents__
 - **Identifier Stability:** Hardcoded regression anchor for the full model.
 - **Serialization Round-Trip:** dict/from_dict preserves prior count and path structure.
 - **Model Info:** Human-readable info string contains expected component names.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

@@ -21,9 +21,7 @@ A JIT fails with ``TracerArrayConversionError`` the script prints a clear
 BLOCKER line and continues, so the eager NumPy regression assertion is still
 exercised.  Once the upstream xp-propagation fix lands, the JIT path will
 succeed without modifying this script.
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).

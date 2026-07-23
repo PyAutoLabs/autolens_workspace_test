@@ -17,9 +17,7 @@ Covers, at `convolve_over_sample_size=2` with s=1 parity checks:
 
 Library support shipped in PyAutoArray#355 (Convolver + dataset API), PyAutoArray#357 (inversion mapping
 formalism) and PyAutoGalaxy#481 (operate/image consumer + linear light profiles).
-"""
 
-"""
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
