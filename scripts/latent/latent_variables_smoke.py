@@ -2,7 +2,7 @@
 Smoke test: library latent variables produce finite values end-to-end.
 
 Builds a minimal SIE + Sersic lens model, runs a bypass-mode search via
-``PYAUTO_TEST_MODE=2`` (env vars come from ``config/build/env_vars.yaml``),
+``PYAUTO_TEST_MODE=2`` (env vars come from ``config/build/profile_smoke.yaml``),
 materialises the latent samples via ``analysis.compute_latent_samples``,
 and asserts every default-enabled key in ``autolens.analysis.latent.LATENT_FUNCTIONS``
 is present with a finite value in a loose order-of-magnitude bracket.

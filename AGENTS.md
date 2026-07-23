@@ -42,7 +42,7 @@ python .github/scripts/run_smoke.py
 ```
 
 It executes the curated entries in `smoke_tests.txt`, applying per-entry environment from
-`config/build/env_vars.yaml`. That file sets **fast-mode defaults for every entry** —
+`config/build/profile_smoke.yaml`. That file sets **fast-mode defaults for every entry** —
 `PYAUTO_TEST_MODE=2` (skip the sampler, structural/end-to-end check only), `PYAUTO_SMALL_DATASETS=1`
 (cap grids/masks), `PYAUTO_FAST_PLOTS=1` — with **per-script `unset`/override** blocks where a test
 genuinely needs a real sampler run or full-resolution data. So CI is *not* "searches run for real"
