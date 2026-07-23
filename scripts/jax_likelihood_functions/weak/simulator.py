@@ -4,6 +4,9 @@ Simulator for the weak-lensing JAX parity scripts.
 Writes a seeded, noise-controlled `WeakDataset` to `dataset/weak/simple/dataset.json` so the
 `shear.py` vmap-parity regression constant is stable across runs.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 from pathlib import Path
 

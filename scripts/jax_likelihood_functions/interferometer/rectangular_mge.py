@@ -9,6 +9,9 @@ rectangular pixelization source.
 Mirrors `imaging/rectangular_mge.py` but uses interferometer dataset loading and
 `AnalysisInterferometer`. No apply_over_sampling — interferometer does not oversample.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

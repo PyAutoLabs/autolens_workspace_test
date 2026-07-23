@@ -26,6 +26,9 @@ This script deliberately opts in with
 Default model-fit scripts elsewhere in the workspace leave the flag at
 ``False`` and are therefore untouched.
 """
+# ENV: real_output
+# Live Nautilus + JIT point-source path: real search, JAX,
+# full-resolution data and real savefig.
 
 import shutil
 import time

@@ -13,6 +13,9 @@ __Model__
  - Lens: `Isothermal` mass (centre near origin, einstein_radius=1.6).
  - Source: Point source at (0.07, 0.07).
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 from os import path
 import numpy as np

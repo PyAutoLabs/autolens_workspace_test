@@ -27,6 +27,9 @@ __Model__
 
 The redshifts match `imaging/simulator_dspl.py`.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 from os import path
 from pathlib import Path

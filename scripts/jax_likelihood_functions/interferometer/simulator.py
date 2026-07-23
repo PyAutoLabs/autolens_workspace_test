@@ -19,6 +19,9 @@ __Model__
  - Lens: `Isothermal` mass + `ExternalShear`.
  - Source: `SersicCore` light profile (cored, avoiding over-sampling issues).
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 from os import path
 from pathlib import Path

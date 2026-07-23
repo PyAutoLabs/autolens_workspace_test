@@ -6,6 +6,9 @@ Validates that traced_grids_via_scan (jax.lax.scan path) reproduces the
 existing Python-loop Tracer path for a 4-plane system with LOS halos,
 a macro lens, and negative kappa sheets. Ref: PyAutoLens#542, prompt 2.
 """
+# ENV: jax full_datasets
+# Tests the full simulate_substructure path at image_shape=(51,51);
+# need JAX enabled and full-size datasets (the 15x15 cap raises).
 
 import numpy as np
 import jax

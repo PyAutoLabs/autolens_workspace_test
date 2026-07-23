@@ -24,6 +24,9 @@ Scope
 - Re-uses the ``simple`` dataset from ``jax_likelihood_functions/interferometer``.
 - Uses the default plot config (no bespoke config_source override).
 """
+# ENV: jax full_datasets real_plots
+# JIT-cached fit_for_visualization path (interferometer); needs
+# JAX enabled, real plots and full-resolution data.
 
 import shutil
 from os import path

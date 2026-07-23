@@ -32,6 +32,9 @@ Expected outputs are derived directly from the source code of:
   - autogalaxy/analysis/plotter.py          (Plotter: galaxies, inversion)
   - autogalaxy/imaging/plot/fit_imaging_plots.py
 """
+# ENV: full_datasets real_plots
+# Asserts subplot PNG / FITS land on disk (needs real plots) and
+# reads full-resolution data.
 
 import shutil
 import time

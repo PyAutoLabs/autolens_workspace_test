@@ -8,6 +8,9 @@ Compares the deterministic (no-noise) lensed+convolved image.
 
 Ref: PyAutoLens#542, prompt 3.
 """
+# ENV: jax full_datasets
+# Tests the full simulate_substructure path at image_shape=(51,51);
+# need JAX enabled and full-size datasets (the 15x15 cap raises).
 
 import numpy as np
 import jax

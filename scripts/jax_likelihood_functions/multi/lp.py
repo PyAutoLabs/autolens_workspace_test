@@ -14,6 +14,9 @@ Path A uses ``jax.jit(factor_graph.log_likelihood_function)`` (not ``fit_from``
 — ``FactorGraphModel`` does not expose a ``fit_from`` method; it sums each
 child factor's log-likelihood).
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

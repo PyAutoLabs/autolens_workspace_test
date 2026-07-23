@@ -25,6 +25,9 @@ routed through ``fit_from``, which ``FactorGraphModel`` does not expose).
 Parametric-only scripts in this folder (``lp.py``, ``mge_group.py``)
 assert full NumPy/JAX parity.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

@@ -12,6 +12,9 @@ The technique is ported from the `potential_correction` package of Cao et al. 20
 (https://github.com/caoxiaoyue/lensing_potential_correction; cite via
 https://github.com/caoxiaoyue/potential_correction_paper).
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

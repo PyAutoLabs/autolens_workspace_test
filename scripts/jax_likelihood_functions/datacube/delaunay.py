@@ -27,6 +27,9 @@ Path B re-runs the same vmap likelihood with ``TransformerNUFFT`` and asserts
 the same expected value — proves the cube path works with both DFT and NUFFT
 transformers.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax

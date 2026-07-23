@@ -12,6 +12,9 @@ apply_over_sampling — interferometer does not oversample.
 
 The `should_simulate` bootstrap invokes `simulator_dspl.py` to generate the dataset.
 """
+# ENV: jax full_datasets
+# JAX likelihood functions test JIT compilation; need JAX enabled
+# and full-size datasets.
 
 import numpy as np
 import jax
