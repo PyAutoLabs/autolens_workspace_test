@@ -33,14 +33,14 @@
 #   - Patterns without '/' match the file stem exactly.
 
 defaults:
-  PYAUTO_TEST_MODE: "0"                # real searches (each script caps its own n_like_max)
-  PYAUTO_SMALL_DATASETS: "0"           # full-res grids/masks (release fidelity, not smoke)
-  PYAUTO_FAST_PLOTS: "0"               # real plots (release fidelity, not smoke)
-  PYAUTO_DISABLE_JAX: "1"              # force use_jax=False by default; JAX-specific folders re-enable below
+  PYAUTO_TEST_MODE: "0"                     # real searches (each script caps its own n_like_max)
+  PYAUTO_SMALL_DATASETS: "0"                # full-res grids/masks (release fidelity, not smoke)
+  PYAUTO_DISABLE_JAX: "1"                   # force use_jax=False by default; JAX-specific folders re-enable below
+  PYAUTO_FAST_PLOTS: "0"                    # real plots (release fidelity, not smoke)
   PYAUTO_SKIP_WORKSPACE_VERSION_CHECK: "1"  # TestPyPI dev version won't match the workspace pin
-  JAX_ENABLE_X64: "True"               # enable 64-bit precision in JAX
-  NUMBA_CACHE_DIR: "/tmp/numba_cache"   # writable cache dir for numba
-  MPLCONFIGDIR: "/tmp/matplotlib"       # writable config dir for matplotlib
+  JAX_ENABLE_X64: "True"                    # enable 64-bit precision in JAX
+  NUMBA_CACHE_DIR: "/tmp/numba_cache"       # writable cache dir for numba
+  MPLCONFIGDIR: "/tmp/matplotlib"           # writable config dir for matplotlib
 
 overrides:
   # JAX likelihood functions test JIT compilation — need JAX enabled (already
