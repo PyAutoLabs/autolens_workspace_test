@@ -66,3 +66,12 @@
 - multi/simulator.py # BOOTSTRAP-TARGET - produces dataset/multi/lens_sersic (multi consumers, multi_analysis_jax, slam_multi_one_by_one_jax, visualization_imaging)
 - point_source/simulator.py # BOOTSTRAP-TARGET (protective) - the committed dataset/point_source/simple is NOT simulator-reproducible (regeneration yields a different likelihood: point.py/image_plane.py assert the exact literal -83.38049778 tuned to the committed bytes). It stays committed (allowlisted); skip the standalone run so a mega-run cannot overwrite the reference data. The consumers' dormant should_simulate bootstrap only fires if the committed data is ever absent.
 - point_source/simulators/point_source.py # BOOTSTRAP-TARGET - produces dataset/build/point_source (orphan; no current consumer, but a simulator not a standalone test)
+
+# CULL demotes (issue #211, human decision 2026-07-24 — "keep only model_fit").
+# Correct-as-is scripts whose recurring-run coverage is redundant with library
+# unit tests or the validated user workspace; kept on disk for development.
+- tracer_multiplane # CULL-DEMOTE 2026-07-24 - multiplane ray-tracing covered by PyAutoLens unit tests; dev-reference only (#211)
+- misc/interop/coolest_round_trip.py # CULL-DEMOTE 2026-07-24 - COOLEST round-trip duplicated by validated autolens_workspace guides/coolest_interop.py; herculens parity sibling KEPT (#211)
+- profiling/ # CULL-DEMOTE 2026-07-24 - aggregator profiling is perf tooling, not pass/fail; move to autolens_workspace_developer pending blackjax claim release (#211)
+- cluster/csv_api.py # CULL-DEMOTE 2026-07-24 - regenerates the committed hand-authored dataset/cluster/test CSVs consumed directly by likelihood_sanity; identically-named validated user script covers the API (#211)
+- cluster/simulator.py # CULL-DEMOTE 2026-07-24 (protective) - stage 2 of the csv_api chain over hand-authored inputs; committed dataset/cluster/test carries calibrated parity consumers, skip so a mega-run cannot overwrite it (#211)
