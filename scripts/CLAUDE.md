@@ -3,6 +3,19 @@
 This document describes what each integration test script covers, what it asserts,
 and where its JAX-specific responsibilities lie.
 
+## Layout
+
+`scripts/` mirrors the `autolens_workspace` dataset taxonomy: dataset-typed
+folders `imaging/`, `interferometer/`, `point_source/`, `cluster/`, `multi/`,
+plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
+`mass_via_integral/`, `jax_assertions/`, `latent/`, `weak/`, `interop/`, the
+`util.py` gradient helper, and loose tracer/profile/hessian tests). `gallery/`
+and `profiling/` sit outside the taxonomy (external couplings). The former
+`jax_likelihood_functions/`, `jax_grad/`, `jax_substructure/`,
+`potential_correction/`, `model_composition/` and `light_multipole/` trees were
+consolidated into the dataset folders above — every JAX likelihood/gradient
+script now lives beside the modeling scripts for the dataset it exercises.
+
 ## Codex / sandboxed runs
 
 When running Python from Codex or any restricted environment, set writable cache directories so `numba` and `matplotlib` do not fail on unwritable home or source-tree paths:
@@ -17,8 +30,9 @@ This workspace is often imported from `/mnt/c/...` and Codex may not be able to 
 
 - Scripts run **without** `PYAUTO_TEST_MODE=1` — non-linear searches execute for
   real (using sampler limits like `n_like_max=300` to keep runtime short).
-- `jax_likelihood_functions/` scripts assert their `fitness._vmap` output against a
-  hardcoded expected log-likelihood literal (`assert_allclose(np.array(result), <value>, rtol=1e-4)`).
+- The JAX likelihood-function scripts (now distributed across `imaging/`,
+  `interferometer/`, `point_source/` and `multi/`) assert their `fitness._vmap`
+  output against a hardcoded expected log-likelihood literal (`assert_allclose(np.array(result), <value>, rtol=1e-4)`).
   These literals are regression markers for the simulator + likelihood pipeline as a
   whole; if a deliberate simulator change shifts the value, regenerate the literal
   by running the script and pasting in the new `result` value. Don't replace these
@@ -105,11 +119,15 @@ Simulate a lensed point-source (multiply-imaged quasar) dataset.
 
 ---
 
-## jax_likelihood_functions/
+## JAX likelihood functions (in `imaging/` `interferometer/` `point_source/` `multi/`)
 
 Scripts that test JAX can compute log-likelihood gradients and batch evaluations via
 `jax.vmap` for various model types.  Each script builds a `Fitness` object and calls
-`fitness._vmap(parameters)`.
+`fitness._vmap(parameters)`.  These were consolidated out of the former
+`jax_likelihood_functions/` tree into the dataset folder each one exercises; the
+paths below are workspace-relative under `scripts/`.  The `datacube/` variants moved
+into `interferometer/` with a `_datacube` suffix to avoid colliding with the
+interferometer likelihoods of the same base name.
 
 | Script | Model type |
 |---|---|
@@ -138,12 +156,12 @@ Scripts that test JAX can compute log-likelihood gradients and batch evaluations
 | `multi/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
-| `datacube/rectangular.py` | 4-channel datacube via `FactorGraphModel`; `RectangularAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
-| `datacube/delaunay.py` | 4-channel datacube via `FactorGraphModel`; Delaunay source (Hilbert image-mesh, edge zeroing, `reg.AdaptSplit()`). Identical channels — assertion at `4 × interferometer/delaunay` literal. Path A + Path B (TransformerNUFFT cross-check) |
+| `interferometer/rectangular_datacube.py` | 4-channel datacube via `FactorGraphModel`; `RectangularAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
+| `interferometer/delaunay_datacube.py` | 4-channel datacube via `FactorGraphModel`; Delaunay source (Hilbert image-mesh, edge zeroing, `reg.AdaptSplit()`). Identical channels — assertion at `4 × interferometer/delaunay` literal. Path A + Path B (TransformerNUFFT cross-check) |
 
 ---
 
-## hessian_jax.py
+## misc/hessian_jax.py
 
 Tests `LensCalc` hessian-derived lensing quantities (`hessian_from`,
 `convergence_2d_via_hessian_from`, `shear_yx_2d_via_hessian_from`,
@@ -156,7 +174,7 @@ follow the same style.
 
 ---
 
-## profiles_jit.py
+## misc/profiles_jit.py
 
 Tests JAX JIT compilation of individual light and mass profile methods from
 `autogalaxy.profiles`.  This is the lower-level complement to `hessian_jax.py` — it
@@ -174,7 +192,7 @@ to its analytic JAX implementation.
 
 ---
 
-## tracer_multiplane.py
+## misc/tracer_multiplane.py
 
 Tests multi-plane ray-tracing logic in the `Tracer` class using the NumPy path only.
 All assertions are relational.
@@ -191,7 +209,7 @@ All assertions are relational.
 
 ---
 
-## tracer_jax.py
+## misc/tracer_jax.py
 
 Tests that `Tracer` ray-tracing calculations produce identical results on the NumPy
 and JAX paths, and compile correctly under `jax.jit`.  Uses the same two-plane and
@@ -211,6 +229,6 @@ the output is a raw `jax.Array` list — a valid JAX pytree.
 
 ---
 
-## database/
+## misc/database/
 
-See `database/scrape/CLAUDE.md` for detail on the database scrape tests.
+See `misc/database/scrape/CLAUDE.md` for detail on the database scrape tests.

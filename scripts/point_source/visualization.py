@@ -9,7 +9,7 @@ lands on disk.
 Uses the ``simple/point_dataset_positions_only.json`` dataset (auto-simulated
 if missing) with an ``Isothermal`` lens mass and ``PointFlux`` source — the
 same model that is proven to JIT end-to-end in
-``scripts/jax_likelihood_functions/point_source/image_plane.py``.
+``scripts/point_source/image_plane.py``.
 
 No ``try/except`` — any failure in the visualizer surfaces immediately.
 
@@ -41,7 +41,7 @@ if al.util.dataset.should_simulate(str(dataset_path)):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/point_source/simulator.py"],
+        [sys.executable, "scripts/point_source/simulator.py"],
         check=True,
     )
 

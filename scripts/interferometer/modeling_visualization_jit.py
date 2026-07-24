@@ -74,7 +74,7 @@ if al.util.dataset.should_simulate(dataset_path):
     subprocess.run(
         [
             sys.executable,
-            "scripts/jax_likelihood_functions/interferometer/simulator.py",
+            "scripts/interferometer/simulator.py",
         ],
         check=True,
     )
