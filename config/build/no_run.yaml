@@ -17,6 +17,15 @@
 #   permanent skips — every mega-run surfaces them with a loud warning
 #   banner. Investigate the failure, fix the underlying bug, and remove
 #   the NEEDS_FIX marker.
+#
+# OPTIONAL-DEP convention:
+#   Entries tagged `# OPTIONAL-DEP <YYYY-MM-DD> - <reason>` mark scripts that
+#   are correct as-is but import a third-party package that is deliberately
+#   NOT in the PyAuto install set (so it is absent from smoke / release
+#   validation environments). Not a to-do marker and not surfaced as a
+#   warning banner: the script stays on disk and is run by hand in an
+#   environment that has the dependency. Remove the entry if the dependency
+#   ever joins the validated install set.
 
 - misc/database/scrape/multi_analysis_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - misc/database/scrape/slam_general_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
@@ -70,3 +79,7 @@
 - misc/interop/coolest_round_trip.py # CULL-DEMOTE 2026-07-24 - COOLEST round-trip duplicated by validated autolens_workspace guides/coolest_interop.py; herculens parity sibling KEPT (#211)
 - cluster/csv_api.py # CULL-DEMOTE 2026-07-24 - regenerates the committed hand-authored dataset/cluster/test CSVs consumed directly by likelihood_sanity; identically-named validated user script covers the API (#211)
 - cluster/simulator.py # CULL-DEMOTE 2026-07-24 (protective) - stage 2 of the csv_api chain over hand-authored inputs; committed dataset/cluster/test carries calibrated parity consumers, skip so a mega-run cannot overwrite it (#211)
+
+# OPTIONAL-DEP skips — correct-as-is scripts whose third-party imports are not
+# in the validated install set.
+- misc/interop/coolest_herculens_parity.py # OPTIONAL-DEP 2026-07-24 - imports `herculens` (and `coolest`), neither of which is a PyAutoLens dependency nor in the release-validation install set; mode=release fails at `ModuleNotFoundError: No module named 'herculens'`. Script is correct and stays on disk (KEPT by #211) — run it by hand in an environment with herculens installed.
