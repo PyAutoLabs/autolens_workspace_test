@@ -9,17 +9,22 @@ Dependencies: `autolens`, `autogalaxy`, `autofit`, `autoarray`, `numba`.
 ## Repository Structure
 
 `scripts/` mirrors the `autolens_workspace` dataset taxonomy — dataset-typed
-folders, plus `misc/` for everything dataset-agnostic. Every JAX
-likelihood/gradient test now lives beside the modeling scripts for the dataset
-it exercises (the former `jax_likelihood_functions/`, `jax_grad/`,
-`jax_substructure/`, `potential_correction/`, `model_composition/` and
-`light_multipole/` trees were consolidated in).
+folders, plus `misc/` for everything dataset-agnostic. Within each dataset
+folder, related tests are grouped into task subfolders — `jax_likelihood/`
+(batched `_vmap` likelihood tests), `jax_grad/` (finite-difference gradient
+tests), `visualization/`, `simulator/`, `substructure/` (imaging), `datacube/`
+(interferometer) — with the dataset root holding its modeling singletons. The
+former top-level `jax_likelihood_functions/`, `jax_grad/`, `jax_substructure/`,
+`potential_correction/`, `model_composition/` and `light_multipole/` trees were
+dissolved into these per-dataset subfolders.
 
 ```
 scripts/                     Integration-test scripts run on the build server
-  imaging/ interferometer/   CCD imaging / interferometer model-fit + JAX likelihood/gradient tests
+  imaging/ interferometer/   CCD imaging / interferometer model-fit tests, with
+                             jax_likelihood/ jax_grad/ visualization/ simulator/
+                             (imaging: substructure/; interferometer: datacube/) subfolders
   point_source/ cluster/     Point-source and cluster model-fit tests
-  multi/                     Multi-wavelength (FactorGraph) tests
+  multi/                     Multi-wavelength (FactorGraph) tests (jax_likelihood/ visualization/)
   misc/                      Dataset-agnostic tests:
     aggregator/ database/      Results database + aggregator tests
     jax_assertions/            JAX assertion tests

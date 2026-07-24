@@ -22,28 +22,28 @@
 - misc/database/scrape/slam_general_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - misc/database/scrape/slam_multi_one_by_one_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - misc/database/scrape/slam_pix_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- imaging/modeling_visualization_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap (autogalaxy variant ~90s); unblocked by PR #70 from prior `expected jax.Array, got numpy.float64` AssertionError, now hits perf wall
-- imaging/modeling_visualization_delaunay_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap; same root cause as modeling_visualization_jit
-- imaging/modeling_visualization_rectangular_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 301s cap; same root cause as modeling_visualization_jit
-- interferometer/modeling_visualization_jit # SLOW 2026-05-20 - JIT + full visualization pipeline exceeds 300s cap; same root cause as imaging/modeling_visualization_jit family
-- point_source/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
+- imaging/visualization/modeling_visualization_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap (autogalaxy variant ~90s); unblocked by PR #70 from prior `expected jax.Array, got numpy.float64` AssertionError, now hits perf wall
+- imaging/visualization/modeling_visualization_delaunay_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap; same root cause as modeling_visualization_jit
+- imaging/visualization/modeling_visualization_rectangular_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 301s cap; same root cause as modeling_visualization_jit
+- interferometer/visualization/modeling_visualization_jit # SLOW 2026-05-20 - JIT + full visualization pipeline exceeds 300s cap; same root cause as imaging/modeling_visualization_jit family
+- point_source/visualization/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
-- imaging/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- imaging/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
+- imaging/jax_likelihood/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- imaging/jax_likelihood/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- multi/jax_likelihood/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
 # Real-search JAX likelihood/gradient scripts that flake around the mode=release
 # per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to
 # keep mode=release deterministic; reviewed via hygiene over time. Speedups are the
 # Profiling Agent's job. Not bugs. (PyAutoHeart#74 — chose no_run over an advisory tier.)
-- multi/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
-- interferometer/delaunay_datacube.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/shared_preloads_datacube.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/mge_group.py # SLOW 2026-07-14 - real-search JAX interferometer MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/delaunay.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/interferometer.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
+- multi/jax_likelihood/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
+- interferometer/datacube/delaunay.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/datacube/shared_preloads.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/jax_likelihood/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/jax_likelihood/mge_group.py # SLOW 2026-07-14 - real-search JAX interferometer MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/jax_likelihood/delaunay.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/jax_likelihood/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/jax_likelihood/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/jax_grad/gradient.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
 
 # Permanent skips (NOT to-do markers — these scripts are correct as-is and simply
 # do not belong in the validated script set).
@@ -55,16 +55,16 @@
 # bootstrap (subprocess into these). They are invoked *through* their consumers,
 # never as standalone validated test entries — running them standalone in a
 # mega-run would only re-emit runtime-generated data. Skip the standalone run.
-- imaging/simulator.py # BOOTSTRAP-TARGET - produces dataset/imaging/jax_test (imaging consumers)
-- imaging/simulator_dspl.py # BOOTSTRAP-TARGET - produces dataset/imaging/jax_test_dspl (rectangular_dspl)
+- imaging/simulator/simple.py # BOOTSTRAP-TARGET - produces dataset/imaging/jax_test (imaging consumers)
+- imaging/simulator/dspl.py # BOOTSTRAP-TARGET - produces dataset/imaging/jax_test_dspl (rectangular_dspl)
 - imaging/simulator/no_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/imaging/no_lens_light (database/scrape general, scaling_relation)
 - imaging/simulator/with_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/imaging/with_lens_light (convolution, model_fit, visualization, slam_general_jax, slam_pix_jax)
-- interferometer/simulator.py # BOOTSTRAP-TARGET - produces dataset/interferometer/simple (interferometer consumers)
-- interferometer/simulator_dspl.py # BOOTSTRAP-TARGET - produces dataset/interferometer/dspl (rectangular_dspl)
+- interferometer/simulator/simple.py # BOOTSTRAP-TARGET - produces dataset/interferometer/simple (interferometer consumers)
+- interferometer/simulator/dspl.py # BOOTSTRAP-TARGET - produces dataset/interferometer/dspl (rectangular_dspl)
 - interferometer/simulator/no_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/no_lens_light (interferometer/visualization, multi/visualization_interferometer)
 - interferometer/simulator/with_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/with_lens_light (interferometer/model_fit)
 - multi/simulator.py # BOOTSTRAP-TARGET - produces dataset/multi/lens_sersic (multi consumers, multi_analysis_jax, slam_multi_one_by_one_jax, visualization_imaging)
-- point_source/simulator.py # BOOTSTRAP-TARGET (protective) - the committed dataset/point_source/simple is NOT simulator-reproducible (regeneration yields a different likelihood: point.py/image_plane.py assert the exact literal -83.38049778 tuned to the committed bytes). It stays committed (allowlisted); skip the standalone run so a mega-run cannot overwrite the reference data. The consumers' dormant should_simulate bootstrap only fires if the committed data is ever absent.
+- point_source/simulators/simple.py # BOOTSTRAP-TARGET (protective) - the committed dataset/point_source/simple is NOT simulator-reproducible (regeneration yields a different likelihood: point.py/image_plane.py assert the exact literal -83.38049778 tuned to the committed bytes). It stays committed (allowlisted); skip the standalone run so a mega-run cannot overwrite the reference data. The consumers' dormant should_simulate bootstrap only fires if the committed data is ever absent.
 - point_source/simulators/point_source.py # BOOTSTRAP-TARGET - produces dataset/build/point_source (orphan; no current consumer, but a simulator not a standalone test)
 
 # CULL demotes (issue #211, human decision 2026-07-24 — "keep only model_fit").

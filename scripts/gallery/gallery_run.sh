@@ -17,19 +17,19 @@ set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
 DEFAULT_SCRIPTS=(
-    scripts/imaging/visualization.py            # ~150s
-    scripts/interferometer/visualization.py     # ~130s
-    scripts/point_source/visualization.py       # ~25s
-    scripts/multi/visualization_imaging.py      # ~95s
-    scripts/multi/visualization_interferometer.py  # ~140s
+    scripts/imaging/visualization/visualization.py            # ~150s
+    scripts/interferometer/visualization/visualization.py     # ~130s
+    scripts/point_source/visualization/visualization.py       # ~25s
+    scripts/multi/visualization/imaging.py      # ~95s
+    scripts/multi/visualization/interferometer.py  # ~140s
 )
 SLOW_SCRIPTS=(
     scripts/cluster/visualization.py            # ~800s — excluded from default
 )
 JAX_SCRIPTS=(
-    scripts/imaging/visualization_jax.py
-    scripts/interferometer/visualization_jax.py
-    scripts/point_source/visualization_jax.py
+    scripts/imaging/visualization/visualization_jax.py
+    scripts/interferometer/visualization/visualization_jax.py
+    scripts/point_source/visualization/visualization_jax.py
 )
 
 run_list=()

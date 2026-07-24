@@ -1,18 +1,18 @@
 misc/database/scrape/general.py
-# imaging/visualization.py  # disabled: bypass mode mkdir race condition (rhayes777/PyAutoFit#1179)
-# interferometer/visualization.py  # disabled: bypass mode missing fit.png assertion (rhayes777/PyAutoFit#1179)
-# imaging/delaunay_mge.py  # disabled: jax 0.7 removed jax.interpreters.xla.pytype_aval_mappings — see PyAutoPrompt/autohands/smoke_workspace_fixes.md
-imaging/rectangular.py
-imaging/mge.py
-imaging/lp.py
-interferometer/rectangular.py
-interferometer/mge.py
-point_source/point.py
-interferometer/shared_preloads_datacube.py
-# multi/shared_preloads.py  # disabled 2026-07-22: exceeds the 300s smoke cap (measured 300s+ in CI, autolens_workspace_test#196). Already SLOW-marked in config/build/no_run.yaml for flaking at the release runner's 1800s cap (PyAutoHeart#74) — it is the heaviest entry here and does not belong in the fast PR gate. Its sibling interferometer/shared_preloads_datacube.py (27.8s) keeps the shared-preloads path covered. Re-enable if it is made fast enough.
-multi/mge.py
-imaging/potential_correction.py
-interferometer/potential_correction.py
+# imaging/visualization/visualization.py  # disabled: bypass mode mkdir race condition (rhayes777/PyAutoFit#1179)
+# interferometer/visualization/visualization.py  # disabled: bypass mode missing fit.png assertion (rhayes777/PyAutoFit#1179)
+# imaging/jax_likelihood/delaunay_mge.py  # disabled: jax 0.7 removed jax.interpreters.xla.pytype_aval_mappings — see PyAutoPrompt/autohands/smoke_workspace_fixes.md
+imaging/jax_likelihood/rectangular.py
+imaging/jax_likelihood/mge.py
+imaging/jax_likelihood/lp.py
+interferometer/jax_likelihood/rectangular.py
+interferometer/jax_likelihood/mge.py
+point_source/jax_likelihood/point.py
+interferometer/datacube/shared_preloads.py
+# multi/jax_likelihood/shared_preloads.py  # disabled 2026-07-22: exceeds the 300s smoke cap (measured 300s+ in CI, autolens_workspace_test#196). Already SLOW-marked in config/build/no_run.yaml for flaking at the release runner's 1800s cap (PyAutoHeart#74) — it is the heaviest entry here and does not belong in the fast PR gate. Its sibling interferometer/datacube/shared_preloads.py (27.8s) keeps the shared-preloads path covered. Re-enable if it is made fast enough.
+multi/jax_likelihood/mge.py
+imaging/jax_likelihood/potential_correction.py
+interferometer/jax_likelihood/potential_correction.py
 imaging/subhalo_recovery.py
 interferometer/subhalo_recovery_interferometer.py
 misc/aggregator/fit_imaging.py
