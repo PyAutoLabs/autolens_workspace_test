@@ -45,10 +45,6 @@
 - interferometer/jax_likelihood/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - interferometer/jax_grad/gradient.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
 
-# Permanent skips (NOT to-do markers — these scripts are correct as-is and simply
-# do not belong in the validated script set).
-- gallery/gallery_build # PERMANENT - build tool, not a test. Consumes the images produced by scripts/gallery/gallery_run.sh; validation runs it standalone, so scan_images() finds nothing and it takes its documented early exit ("No images found under scripts/*/images", gallery_build.py:159-163). Runs clean wherever the images exist.
-
 # BOOTSTRAP-TARGET simulators (NOT to-do markers — correct as-is). These scripts
 # write dataset/ fixtures that are no longer committed (git rm'd, gitignored); the
 # consuming scripts provision them on demand via the should_simulate()/`.exists()`
@@ -72,6 +68,5 @@
 # unit tests or the validated user workspace; kept on disk for development.
 - tracer_multiplane # CULL-DEMOTE 2026-07-24 - multiplane ray-tracing covered by PyAutoLens unit tests; dev-reference only (#211)
 - misc/interop/coolest_round_trip.py # CULL-DEMOTE 2026-07-24 - COOLEST round-trip duplicated by validated autolens_workspace guides/coolest_interop.py; herculens parity sibling KEPT (#211)
-- profiling/ # CULL-DEMOTE 2026-07-24 - aggregator profiling is perf tooling, not pass/fail; move to autolens_workspace_developer pending blackjax claim release (#211)
 - cluster/csv_api.py # CULL-DEMOTE 2026-07-24 - regenerates the committed hand-authored dataset/cluster/test CSVs consumed directly by likelihood_sanity; identically-named validated user script covers the API (#211)
 - cluster/simulator.py # CULL-DEMOTE 2026-07-24 (protective) - stage 2 of the csv_api chain over hand-authored inputs; committed dataset/cluster/test carries calibrated parity consumers, skip so a mega-run cannot overwrite it (#211)
