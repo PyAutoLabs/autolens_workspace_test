@@ -233,7 +233,7 @@ if al.util.dataset.should_simulate(dataset_path):
     subprocess.run(
         [
             sys.executable,
-            "scripts/interferometer/simulator.py",
+            "scripts/interferometer/simulator/simple.py",
         ],
         check=True,
     )

@@ -10,11 +10,30 @@ folders `imaging/`, `interferometer/`, `point_source/`, `cluster/`, `multi/`,
 plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
 `mass_via_integral/`, `jax_assertions/`, `latent/`, `weak/`, `interop/`, the
 `util.py` gradient helper, and loose tracer/profile/hessian tests). `gallery/`
-and `profiling/` sit outside the taxonomy (external couplings). The former
-`jax_likelihood_functions/`, `jax_grad/`, `jax_substructure/`,
-`potential_correction/`, `model_composition/` and `light_multipole/` trees were
-consolidated into the dataset folders above — every JAX likelihood/gradient
-script now lives beside the modeling scripts for the dataset it exercises.
+and `profiling/` sit outside the taxonomy (external couplings).
+
+Within each dataset folder, related scripts are grouped into **task
+subfolders** so the dataset root holds only its modeling singletons:
+
+- `jax_likelihood/` — the batched `fitness._vmap` likelihood-function tests
+  (former `jax_likelihood_functions/` tree; `multipole` from `light_multipole/`).
+- `jax_grad/` — the finite-difference gradient tests (former `jax_grad/` tree),
+  which sit two levels deep and reach `../../misc/util.py` via a `sys.path` shim.
+- `visualization/` — the `visualization*.py` and `modeling_visualization_*_jit.py`
+  visualization tests (`multi/` strips the prefix to `visualization/imaging.py`
+  and `visualization/interferometer.py`).
+- `simulator/` — the dataset simulators; the loose `simulator*.py` bootstrap
+  targets consolidate in beside `no_lens_light.py` / `with_lens_light.py` as
+  `simple.py` / `dspl.py` (point_source keeps its `simulators/` dir name).
+- `substructure/` — imaging's `test_*simulate*` / `test_scan_multiplane` trio
+  (former `jax_substructure/` tree).
+- `datacube/` — interferometer's former `*_datacube.py` scripts (suffix stripped).
+
+The former `jax_likelihood_functions/`, `jax_grad/`, `jax_substructure/`,
+`potential_correction/`, `model_composition/` and `light_multipole/` top-level
+trees were dissolved into these per-dataset task subfolders. Dataset roots keep
+their modeling singletons (`model_fit.py`, `convolution*.py`, `multi_galaxy_mge.py`,
+`subhalo_recovery*.py`, `nufft.py`, the `dataset_model_parity_*` tests, …).
 
 ## Codex / sandboxed runs
 
@@ -59,7 +78,7 @@ the full `AnalysisImaging → FitImaging → Tracer` pipeline with a Nautilus se
 ### `imaging/convolution.py`
 Tests PSF convolution of a simulated imaging dataset.
 
-### `imaging/visualization.py`
+### `imaging/visualization/visualization.py`
 Generates visualisation plots of imaging fits and tracers for all three source types
 (parametric Sersic, rectangular pixelization, Delaunay pixelization).
 
@@ -100,7 +119,7 @@ Saves a residuals plot to `scripts/interferometer/images/nufft_residuals.png`.
 
 Requires `nufftax` (`pip install nufftax`).
 
-### `interferometer/visualization.py`
+### `interferometer/visualization/visualization.py`
 Generates visualisation plots of interferometer fits and tracers for all three source
 types (parametric Sersic, rectangular pixelization, Delaunay pixelization).
 
@@ -124,40 +143,41 @@ Simulate a lensed point-source (multiply-imaged quasar) dataset.
 Scripts that test JAX can compute log-likelihood gradients and batch evaluations via
 `jax.vmap` for various model types.  Each script builds a `Fitness` object and calls
 `fitness._vmap(parameters)`.  These were consolidated out of the former
-`jax_likelihood_functions/` tree into the dataset folder each one exercises; the
-paths below are workspace-relative under `scripts/`.  The `datacube/` variants moved
-into `interferometer/` with a `_datacube` suffix to avoid colliding with the
-interferometer likelihoods of the same base name.
+`jax_likelihood_functions/` tree into a `jax_likelihood/` task subfolder inside
+the dataset folder each one exercises; the paths below are workspace-relative
+under `scripts/`.  The former `jax_likelihood_functions/datacube/` variants live
+in `interferometer/datacube/` (the `_datacube` suffix stripped now that the
+folder carries it), keeping them clear of the `interferometer/jax_likelihood/`
+likelihoods of the same base name.
 
 | Script | Model type |
 |---|---|
-| `imaging/lp.py` | Light parametric (Sersic, Exponential) |
-| `imaging/mge.py` | Multi-Gaussian expansion |
-| `imaging/simulator.py` | Operated (PSF-convolved) light profiles |
-| `imaging/delaunay.py` | Delaunay pixelization |
-| `imaging/rectangular.py` | Rectangular pixelization |
-| `imaging/mge_group.py` | MGE with extra galaxies |
-| `interferometer/mge.py` | MGE for interferometry |
-| `interferometer/rectangular.py` | Rectangular pixelization for interferometry |
-| `interferometer/lp.py` | Parametric Sersic source for interferometry |
-| `interferometer/delaunay.py` | Delaunay pixelization for interferometry |
-| `interferometer/delaunay_mge.py` | Delaunay source + MGE lens for interferometry |
-| `interferometer/rectangular_mge.py` | Rectangular source + MGE lens for interferometry |
-| `interferometer/rectangular_dspl.py` | Rectangular source on double source plane (interferometry) |
-| `interferometer/rectangular_sparse.py` | Rectangular pixelization via JAX sparse-operator NUFFT path |
-| `point_source/point.py` | Point-source likelihood |
-| `point_source/image_plane.py` | Point-source image-plane chi-squared (`FitPositionsImagePairAll`) |
-| `point_source/source_plane.py` | Point-source source-plane chi-squared (`FitPositionsSource`) — JIT currently blocked |
-| `multi/lp.py` | Parametric Sersic across g/r via `FactorGraphModel`; per-band source `ell_comps` (option B) |
-| `multi/mge.py` | MGE source across g/r; per-band source MGE `ell_comps` (option B) |
-| `multi/mge_group.py` | MGE + extra galaxies across g/r; per-band source MGE `ell_comps` (option B) |
-| `multi/rectangular.py` | Rectangular pixelization across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
-| `interferometer/rectangular_datacube.py` | 4-channel datacube via `FactorGraphModel`; `RectangularAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
-| `interferometer/delaunay_datacube.py` | 4-channel datacube via `FactorGraphModel`; Delaunay source (Hilbert image-mesh, edge zeroing, `reg.AdaptSplit()`). Identical channels — assertion at `4 × interferometer/delaunay` literal. Path A + Path B (TransformerNUFFT cross-check) |
+| `imaging/jax_likelihood/lp.py` | Light parametric (Sersic, Exponential) |
+| `imaging/jax_likelihood/mge.py` | Multi-Gaussian expansion |
+| `imaging/jax_likelihood/delaunay.py` | Delaunay pixelization |
+| `imaging/jax_likelihood/rectangular.py` | Rectangular pixelization |
+| `imaging/jax_likelihood/mge_group.py` | MGE with extra galaxies |
+| `interferometer/jax_likelihood/mge.py` | MGE for interferometry |
+| `interferometer/jax_likelihood/rectangular.py` | Rectangular pixelization for interferometry |
+| `interferometer/jax_likelihood/lp.py` | Parametric Sersic source for interferometry |
+| `interferometer/jax_likelihood/delaunay.py` | Delaunay pixelization for interferometry |
+| `interferometer/jax_likelihood/delaunay_mge.py` | Delaunay source + MGE lens for interferometry |
+| `interferometer/jax_likelihood/rectangular_mge.py` | Rectangular source + MGE lens for interferometry |
+| `interferometer/jax_likelihood/rectangular_dspl.py` | Rectangular source on double source plane (interferometry) |
+| `interferometer/jax_likelihood/rectangular_sparse.py` | Rectangular pixelization via JAX sparse-operator NUFFT path |
+| `point_source/jax_likelihood/point.py` | Point-source likelihood |
+| `point_source/jax_likelihood/image_plane.py` | Point-source image-plane chi-squared (`FitPositionsImagePairAll`) |
+| `point_source/jax_likelihood/source_plane.py` | Point-source source-plane chi-squared (`FitPositionsSource`) — JIT currently blocked |
+| `multi/jax_likelihood/lp.py` | Parametric Sersic across g/r via `FactorGraphModel`; per-band source `ell_comps` (option B) |
+| `multi/jax_likelihood/mge.py` | MGE source across g/r; per-band source MGE `ell_comps` (option B) |
+| `multi/jax_likelihood/mge_group.py` | MGE + extra galaxies across g/r; per-band source MGE `ell_comps` (option B) |
+| `multi/jax_likelihood/rectangular.py` | Rectangular pixelization across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/jax_likelihood/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/jax_likelihood/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/jax_likelihood/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi/jax_likelihood/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
+| `interferometer/datacube/rectangular.py` | 4-channel datacube via `FactorGraphModel`; `RectangularAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
+| `interferometer/datacube/delaunay.py` | 4-channel datacube via `FactorGraphModel`; Delaunay source (Hilbert image-mesh, edge zeroing, `reg.AdaptSplit()`). Identical channels — assertion at `4 × interferometer/delaunay` literal. Path A + Path B (TransformerNUFFT cross-check) |
 
 ---
 
