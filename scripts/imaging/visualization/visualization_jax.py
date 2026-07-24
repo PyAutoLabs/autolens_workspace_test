@@ -40,8 +40,8 @@ from types import SimpleNamespace
 from autolens import conf
 
 conf.instance.push(
-    new_path=path.join(path.dirname(path.realpath(__file__)), "config_source"),
-    output_path=path.join(path.dirname(path.realpath(__file__)), "images"),
+    new_path=path.join(path.dirname(path.realpath(__file__)), "..", "config_source"),
+    output_path=path.join(path.dirname(path.realpath(__file__)), "..", "images"),
 )
 
 import autofit as af

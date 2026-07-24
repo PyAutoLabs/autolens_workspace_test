@@ -29,7 +29,7 @@ appears in the parameters. The result: the static method is never called.
 Run from the ``autolens_workspace_test`` repo root:
 
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
-        python scripts/multi/visualization_imaging.py
+        python scripts/multi/visualization/imaging.py
 
 __Env__
 
@@ -50,10 +50,10 @@ from autolens import conf
 
 conf.instance.push(
     new_path=path.join(
-        path.dirname(path.realpath(__file__)), "..", "imaging", "config"
+        path.dirname(path.realpath(__file__)), "..", "..", "imaging", "config"
     ),
     output_path=path.join(
-        path.dirname(path.realpath(__file__)), "..", "imaging", "images"
+        path.dirname(path.realpath(__file__)), "..", "..", "imaging", "images"
     ),
 )
 
