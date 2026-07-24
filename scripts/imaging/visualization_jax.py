@@ -19,7 +19,7 @@ Scope
 -----
 - Parametric MGE source only.
 - Calls ``VisualizerImaging.visualize`` only (not ``visualize_before_fit``).
-- Re-uses the ``jax_test`` dataset from ``jax_likelihood_functions/imaging``.
+- Re-uses the ``jax_test`` dataset from ``imaging``.
 - Reuses ``config_source/visualize/plots.yaml`` from ``visualization.py`` so
   only ``fit.png`` and ``tracer.png`` are attempted.
 
@@ -52,7 +52,7 @@ from autolens.imaging.model.visualizer import VisualizerImaging
 """
 __Dataset__
 
-Re-use the jax_test dataset already used by ``jax_likelihood_functions/imaging``.
+Re-use the jax_test dataset already used by ``imaging``.
 """
 dataset_path = path.join("dataset", "imaging", "jax_test")
 
@@ -61,7 +61,7 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/imaging/simulator.py"],
+        [sys.executable, "scripts/imaging/simulator.py"],
         check=True,
     )
 
@@ -85,7 +85,7 @@ dataset = dataset.apply_mask(mask=mask)
 __Model__
 
 MGE parametric lens + MGE parametric source (matches the MGE pattern in
-``jax_likelihood_functions/imaging/mge.py``).
+``imaging/mge.py``).
 """
 lens_bulge = al.model_util.mge_model_from(
     mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=True

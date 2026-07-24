@@ -9,7 +9,7 @@ into a lazily-cached ``jax.jit(self.fit_from)``.
 This test runs in two parts:
 
 Part 1 — **MGE caching probe.** Uses the same MGE parametric lens + MGE source
-model as the offline PoC at ``scripts/jax_likelihood_functions/imaging/mge_pytree.py``.
+model as the offline PoC at ``scripts/imaging/mge_pytree.py``.
 Calls ``analysis.fit_for_visualization(instance)`` twice and asserts the
 second call is much faster than the first (confirming the compiled function
 is cached on the analysis instance, not recompiled per visualization).
@@ -55,7 +55,7 @@ import autolens as al
 """
 __Dataset__
 
-Re-use the jax_test MGE dataset that the jax_likelihood_functions scripts rely
+Re-use the jax_test MGE dataset that the JAX likelihood-function scripts rely
 on. Auto-simulate if missing.
 """
 dataset_path = path.join("dataset", "imaging", "jax_test")
@@ -65,7 +65,7 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/imaging/simulator.py"],
+        [sys.executable, "scripts/imaging/simulator.py"],
         check=True,
     )
 
@@ -92,7 +92,7 @@ Part 1 — MGE caching probe
 ============================================================================
 
 Model: MGE parametric lens (Basis of 20 Gaussians + NFWSph + ExternalShear)
-and MGE parametric source. Mirrors ``scripts/jax_likelihood_functions/imaging/mge.py``
+and MGE parametric source. Mirrors ``scripts/imaging/mge.py``
 and the shipped offline PoC at ``mge_pytree.py``.
 """
 print("\n" + "=" * 72)

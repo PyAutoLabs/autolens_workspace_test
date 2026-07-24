@@ -21,7 +21,7 @@ Scope
 -----
 - Parametric MGE source only.
 - Calls ``VisualizerInterferometer.visualize`` only (not ``visualize_before_fit``).
-- Re-uses the ``simple`` dataset from ``jax_likelihood_functions/interferometer``.
+- Re-uses the ``simple`` dataset from ``interferometer``.
 - Uses the default plot config (no bespoke config_source override).
 
 __Env__
@@ -47,7 +47,7 @@ from autolens.interferometer.model.visualizer import VisualizerInterferometer
 __Dataset__
 
 Re-use the ``simple`` interferometer dataset used by
-``jax_likelihood_functions/interferometer``. Auto-simulate if missing.
+``interferometer``. Auto-simulate if missing.
 """
 mask_radius = 3.0
 
@@ -66,7 +66,7 @@ if al.util.dataset.should_simulate(dataset_path):
     subprocess.run(
         [
             sys.executable,
-            "scripts/jax_likelihood_functions/interferometer/simulator.py",
+            "scripts/interferometer/simulator.py",
         ],
         check=True,
     )

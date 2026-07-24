@@ -48,7 +48,7 @@ if al.util.dataset.should_simulate(str(dataset_path)):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/point_source/simulator.py"],
+        [sys.executable, "scripts/point_source/simulator.py"],
         check=True,
     )
 

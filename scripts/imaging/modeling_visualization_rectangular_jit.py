@@ -43,7 +43,7 @@ import autolens as al
 """
 __Dataset__
 
-Re-use the jax_test dataset that the jax_likelihood_functions scripts rely on.
+Re-use the jax_test dataset that the JAX likelihood-function scripts rely on.
 Auto-simulate if missing.
 """
 sub_size = 4
@@ -55,7 +55,7 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/imaging/simulator.py"],
+        [sys.executable, "scripts/imaging/simulator.py"],
         check=True,
     )
 
@@ -94,7 +94,7 @@ __Mesh shape__
 
 Must be fixed before modeling — JAX uses ``mesh_shape`` to set static array
 shapes internally. Hardcoded per the constraint in the rectangular reference
-at ``jax_likelihood_functions/imaging/rectangular.py``.
+at ``imaging/rectangular.py``.
 """
 mesh_pixels_yx = 20
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)

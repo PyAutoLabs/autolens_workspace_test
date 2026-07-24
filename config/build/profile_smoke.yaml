@@ -32,7 +32,7 @@ overrides:
   # It therefore stays a smoke-only profile override (#187 Stage 2).
   # All other former overrides here were pure declarable-var unsets and have
   # migrated to in-file `# ENV:` declarations on their matched scripts.
-  - pattern: "database/scrape/"
+  - pattern: "misc/database/scrape/"
     unset:
       - PYAUTO_TEST_MODE
       - PYAUTO_SMALL_DATASETS

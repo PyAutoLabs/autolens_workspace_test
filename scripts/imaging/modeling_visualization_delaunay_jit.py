@@ -55,7 +55,7 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/jax_likelihood_functions/imaging/simulator.py"],
+        [sys.executable, "scripts/imaging/simulator.py"],
         check=True,
     )
 
@@ -95,7 +95,7 @@ __Mesh preloads__
 Delaunay needs a precomputed image-plane mesh grid (Hilbert sampling +
 circle-edge zeroing). ``pixels`` and ``edge_pixels_total`` are static JAX
 shapes — hardcode per the reference at
-``jax_likelihood_functions/imaging/delaunay.py``.
+``imaging/delaunay.py``.
 """
 pixels = 400
 edge_pixels_total = 20

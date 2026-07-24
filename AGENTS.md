@@ -8,20 +8,32 @@ Dependencies: `autolens`, `autogalaxy`, `autofit`, `autoarray`, `numba`.
 
 ## Repository Structure
 
+`scripts/` mirrors the `autolens_workspace` dataset taxonomy — dataset-typed
+folders, plus `misc/` for everything dataset-agnostic. Every JAX
+likelihood/gradient test now lives beside the modeling scripts for the dataset
+it exercises (the former `jax_likelihood_functions/`, `jax_grad/`,
+`jax_substructure/`, `potential_correction/`, `model_composition/` and
+`light_multipole/` trees were consolidated in).
+
 ```
 scripts/                     Integration-test scripts run on the build server
-  imaging/ interferometer/   CCD imaging / interferometer model-fit tests
+  imaging/ interferometer/   CCD imaging / interferometer model-fit + JAX likelihood/gradient tests
   point_source/ cluster/     Point-source and cluster model-fit tests
-  aggregator/ database/      Results database + aggregator tests
-  jax_likelihood_functions/  JAX batched-likelihood tests (imaging, interferometer, point_source)
-  jax_grad/ jax_assertions/  JAX gradient + assertion tests
-  mass/ multi/ latent/       Mass, multi-wavelength, latent-variable tests
+  multi/                     Multi-wavelength (FactorGraph) tests
+  misc/                      Dataset-agnostic tests:
+    aggregator/ database/      Results database + aggregator tests
+    jax_assertions/            JAX assertion tests
+    mass/ mass_via_integral/   Mass-profile tests
+    latent/ weak/ interop/     Latent-variable / weak-lensing / COOLEST-interop tests
+    util.py                    Shared jax-gradient finite-difference helper
+    hessian_jax.py profiles_jit.py tracer_jax.py tracer_multiplane.py ...  loose JAX/tracer tests
+  gallery/ profiling/        Outside the taxonomy (external couplings — untouched)
 failed/                      One .txt log per failing script (written by run_all_scripts.sh)
 dataset/ config/ output/     Input data, YAML config, runtime fit results
 ```
 
 Per-area detail lives in nested guides: `scripts/CLAUDE.md` and
-`scripts/database/scrape/CLAUDE.md` (left in place — sub-area references, not top-level docs).
+`scripts/misc/database/scrape/CLAUDE.md` (sub-area references, not top-level docs).
 
 ## Running Scripts
 
@@ -68,14 +80,14 @@ NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib python scripts/ima
 
 Four layers of JAX integration testing, each targeting a different level of the stack:
 
-1. **`jax_likelihood_functions/`** (highest) — batched log-likelihood gradients via
+1. **JAX likelihood functions** (highest) — batched log-likelihood gradients via
    `fitness._vmap(parameters)` for the full `AnalysisImaging` + `Tracer` pipeline; one script per
-   model type.
-2. **`hessian_jax.py`** (mid) — `LensCalc` hessian-derived quantities under the guard pattern; the
+   model type, distributed across `imaging/`, `interferometer/`, `point_source/` and `multi/`.
+2. **`misc/hessian_jax.py`** (mid) — `LensCalc` hessian-derived quantities under the guard pattern; the
    **reference** for JAX testing style.
-3. **`tracer_jax.py`** (mid) — `Tracer` ray-tracing methods under `jax.jit` for two- and three-plane
+3. **`misc/tracer_jax.py`** (mid) — `Tracer` ray-tracing methods under `jax.jit` for two- and three-plane
    systems.
-4. **`profiles_jit.py`** (lowest) — individual light/mass profile methods under `jax.jit`.
+4. **`misc/profiles_jit.py`** (lowest) — individual light/mass profile methods under `jax.jit`.
 
 Library unit tests stay NumPy-only; this repo is where the `xp=jnp` path is exercised. See the
 PyAutoArray deep dive `../PyAutoArray/docs/agents/jax_and_decorators.md` for the boundary patterns.

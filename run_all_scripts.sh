@@ -1,6 +1,8 @@
 #!/bin/bash
 
-WORKSPACE=/mnt/c/Users/Jammy/Code/PyAutoLabs/autolens_workspace_test
+# Resolve the workspace root portably as the directory containing this script,
+# so the mega-run works from any checkout location (worktree, CI, /mnt/c, ...).
+WORKSPACE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FAILED_DIR="$WORKSPACE/failed"
 mkdir -p "$FAILED_DIR"
 

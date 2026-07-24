@@ -18,32 +18,32 @@
 #   banner. Investigate the failure, fix the underlying bug, and remove
 #   the NEEDS_FIX marker.
 
-- database/scrape/multi_analysis_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- database/scrape/slam_general_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- database/scrape/slam_multi_one_by_one_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- database/scrape/slam_pix_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- misc/database/scrape/multi_analysis_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- misc/database/scrape/slam_general_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- misc/database/scrape/slam_multi_one_by_one_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
+- misc/database/scrape/slam_pix_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
 - imaging/modeling_visualization_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap (autogalaxy variant ~90s); unblocked by PR #70 from prior `expected jax.Array, got numpy.float64` AssertionError, now hits perf wall
 - imaging/modeling_visualization_delaunay_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap; same root cause as modeling_visualization_jit
 - imaging/modeling_visualization_rectangular_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 301s cap; same root cause as modeling_visualization_jit
 - interferometer/modeling_visualization_jit # SLOW 2026-05-20 - JIT + full visualization pipeline exceeds 300s cap; same root cause as imaging/modeling_visualization_jit family
 - point_source/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
-- jax_likelihood_functions/imaging/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/imaging/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
+- imaging/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- imaging/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- multi/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
 # Real-search JAX likelihood/gradient scripts that flake around the mode=release
 # per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to
 # keep mode=release deterministic; reviewed via hygiene over time. Speedups are the
 # Profiling Agent's job. Not bugs. (PyAutoHeart#74 — chose no_run over an advisory tier.)
-- jax_likelihood_functions/multi/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
-- jax_likelihood_functions/datacube/delaunay.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/datacube/shared_preloads.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/interferometer/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/interferometer/mge_group.py # SLOW 2026-07-14 - real-search JAX interferometer MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/interferometer/delaunay.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/interferometer/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_likelihood_functions/interferometer/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- jax_grad/interferometer.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
+- multi/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
+- interferometer/delaunay_datacube.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/shared_preloads_datacube.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/mge_group.py # SLOW 2026-07-14 - real-search JAX interferometer MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/delaunay.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
+- interferometer/interferometer.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
 
 # Permanent skips (NOT to-do markers — these scripts are correct as-is and simply
 # do not belong in the validated script set).
