@@ -71,6 +71,21 @@ The g-band uses pixel scale 0.08", the r-band uses 0.12".
 
 dataset_path = Path("dataset") / "multi" / "lens_sersic"
 
+"""
+__Dataset Auto-Simulation__
+
+If the dataset does not already exist on your system, it will be created by running the corresponding
+simulator script. This ensures that all example scripts can be run without manually simulating data first.
+"""
+if al.util.dataset.should_simulate(str(dataset_path)):
+    import subprocess
+    import sys
+
+    subprocess.run(
+        [sys.executable, "scripts/multi/simulator.py"],
+        check=True,
+    )
+
 waveband_list = ["g", "r"]
 pixel_scales_list = [0.08, 0.12]
 

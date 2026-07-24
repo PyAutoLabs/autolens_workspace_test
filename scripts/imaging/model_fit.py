@@ -14,13 +14,6 @@ use their simplest forms, a `RectangularAdaptDensity` `Pixelization` and `Consta
 
 Inversions are covered in detail in chapter 4 of the **HowToLens** lectures.
 
-__Env__
-
-Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
-Reads pre-committed FITS data at full resolution; SMALL_DATASETS cap would
-mismatch the committed-shape mask.
-
-ENV: full_datasets
 """
 
 # %matplotlib inline
@@ -53,7 +46,7 @@ __Dataset Auto-Simulation__
 If the dataset does not already exist on your system, it will be created by running the corresponding
 simulator script. This ensures that all example scripts can be run without manually simulating data first.
 """
-if not path.exists(dataset_path):
+if al.util.dataset.should_simulate(dataset_path):
     import subprocess
     import sys
 

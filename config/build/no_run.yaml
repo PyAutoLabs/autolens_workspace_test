@@ -48,3 +48,21 @@
 # Permanent skips (NOT to-do markers — these scripts are correct as-is and simply
 # do not belong in the validated script set).
 - gallery/gallery_build # PERMANENT - build tool, not a test. Consumes the images produced by scripts/gallery/gallery_run.sh; validation runs it standalone, so scan_images() finds nothing and it takes its documented early exit ("No images found under scripts/*/images", gallery_build.py:159-163). Runs clean wherever the images exist.
+
+# BOOTSTRAP-TARGET simulators (NOT to-do markers — correct as-is). These scripts
+# write dataset/ fixtures that are no longer committed (git rm'd, gitignored); the
+# consuming scripts provision them on demand via the should_simulate()/`.exists()`
+# bootstrap (subprocess into these). They are invoked *through* their consumers,
+# never as standalone validated test entries — running them standalone in a
+# mega-run would only re-emit runtime-generated data. Skip the standalone run.
+- imaging/simulator.py # BOOTSTRAP-TARGET - produces dataset/imaging/jax_test (imaging consumers)
+- imaging/simulator_dspl.py # BOOTSTRAP-TARGET - produces dataset/imaging/jax_test_dspl (rectangular_dspl)
+- imaging/simulator/no_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/imaging/no_lens_light (database/scrape general, scaling_relation)
+- imaging/simulator/with_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/imaging/with_lens_light (convolution, model_fit, visualization, slam_general_jax, slam_pix_jax)
+- interferometer/simulator.py # BOOTSTRAP-TARGET - produces dataset/interferometer/simple (interferometer consumers)
+- interferometer/simulator_dspl.py # BOOTSTRAP-TARGET - produces dataset/interferometer/dspl (rectangular_dspl)
+- interferometer/simulator/no_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/no_lens_light (interferometer/visualization, multi/visualization_interferometer)
+- interferometer/simulator/with_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/with_lens_light (interferometer/model_fit)
+- multi/simulator.py # BOOTSTRAP-TARGET - produces dataset/multi/lens_sersic (multi consumers, multi_analysis_jax, slam_multi_one_by_one_jax, visualization_imaging)
+- point_source/simulator.py # BOOTSTRAP-TARGET (protective) - the committed dataset/point_source/simple is NOT simulator-reproducible (regeneration yields a different likelihood: point.py/image_plane.py assert the exact literal -83.38049778 tuned to the committed bytes). It stays committed (allowlisted); skip the standalone run so a mega-run cannot overwrite the reference data. The consumers' dormant should_simulate bootstrap only fires if the committed data is ever absent.
+- point_source/simulators/point_source.py # BOOTSTRAP-TARGET - produces dataset/build/point_source (orphan; no current consumer, but a simulator not a standalone test)
