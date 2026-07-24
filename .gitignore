@@ -1,6 +1,16 @@
 __pycache__/
 output/
-dataset/
+# Simulator-regenerable datasets are provisioned on demand by the consuming
+# scripts' `should_simulate()` bootstrap (see any scripts/*/*.py) — they must
+# NOT be committed. Everything under dataset/ is ignored; only real/external
+# data (observational or hand-authored truth-model inputs the simulators read,
+# not produce) is re-included via the `!` allowlist below. The dataset-allowlist
+# guard (PyAutoHands check_dataset_allowlist.py) enforces this.
+dataset/**
+!dataset/.gitignore
+!dataset/cluster/**
+!dataset/interferometer/uv_wavelengths/**
+!dataset/point_source/simple/**
 test/
 test_report.md
 test_results/

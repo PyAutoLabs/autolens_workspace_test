@@ -17,8 +17,11 @@ Inversions are covered in detail in chapter 4 of the **HowToLens** lectures.
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
-Reads pre-committed full-resolution data; the SMALL_DATASETS 15x15 cap would
-break the mask/shape assertion.
+Beyond the bootstrapped dataset (which auto-simulates at any resolution), this
+script runs inline padding/convolution sub-tests on fixed (51,51)/(21,21) grids
+whose Mask2D construction the SMALL_DATASETS cap shrinks to 16x16, breaking the
+array/mask shape assertion. Needs full resolution (mesh geometry, not committed
+data).
 
 ENV: full_datasets
 """
@@ -54,7 +57,7 @@ __Dataset Auto-Simulation__
 If the dataset does not already exist on your system, it will be created by running the corresponding
 simulator script. This ensures that all example scripts can be run without manually simulating data first.
 """
-if not path.exists(dataset_path):
+if al.util.dataset.should_simulate(dataset_path):
     import subprocess
     import sys
 
