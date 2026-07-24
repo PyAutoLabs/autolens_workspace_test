@@ -17,11 +17,11 @@ path, so the gallery is viewable directly from the workspace tree.
 
 Usage (from the workspace root):
 
-    python scripts/gallery/gallery_build.py           # build
-    python scripts/gallery/gallery_build.py --check   # build + verify every
-                                                      # <img> resolves and the
-                                                      # manifest matches disk
-    python scripts/gallery/gallery_build.py --embed   # also write a single
+    python gallery/gallery_build.py           # build
+    python gallery/gallery_build.py --check   # build + verify every
+                                              # <img> resolves and the
+                                              # manifest matches disk
+    python gallery/gallery_build.py --embed   # also write a single
                                                       # self-contained
                                                       # gallery_embedded.html
                                                       # (base64 images) that is
@@ -36,7 +36,7 @@ from pathlib import Path
 
 import yaml
 
-WORKSPACE_PATH = Path(__file__).resolve().parents[2]
+WORKSPACE_PATH = Path(__file__).resolve().parents[1]
 GALLERY_PATH = WORKSPACE_PATH / "output" / "gallery"
 
 CSS = """
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     manifest = scan_images()
     if not manifest:
         print(
-            "No images found under scripts/*/images — run scripts/gallery/gallery_run.sh first."
+            "No images found under scripts/*/images — run gallery/gallery_run.sh first."
         )
         sys.exit(1)
 

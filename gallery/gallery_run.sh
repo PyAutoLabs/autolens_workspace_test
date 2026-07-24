@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Gallery runner: regenerate the visualization images then build the contact
-# sheet + manifest (scripts/gallery/gallery_build.py).
+# sheet + manifest (gallery/gallery_build.py).
 #
 # Runs the per-domain visualization scripts from the workspace root (they
 # resolve datasets/simulators relative to it and self-bootstrap missing
@@ -8,13 +8,13 @@
 # slow tier (cluster, ~13 min); --all adds the slow tier + JAX-path variants.
 #
 # Usage (from anywhere):
-#   bash scripts/gallery/gallery_run.sh                 # default set + build
-#   bash scripts/gallery/gallery_run.sh --all           # + *_jax variants
-#   bash scripts/gallery/gallery_run.sh imaging         # one domain + build
-#   bash scripts/gallery/gallery_run.sh --build-only    # skip runs, just build
+#   bash gallery/gallery_run.sh                 # default set + build
+#   bash gallery/gallery_run.sh --all           # + *_jax variants
+#   bash gallery/gallery_run.sh imaging         # one domain + build
+#   bash gallery/gallery_run.sh --build-only    # skip runs, just build
 
 set -uo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 DEFAULT_SCRIPTS=(
     scripts/imaging/visualization/visualization.py            # ~150s
@@ -60,7 +60,7 @@ for script in "${run_list[@]}"; do
     fi
 done
 
-python scripts/gallery/gallery_build.py --check
+python gallery/gallery_build.py --check
 status=$?
 
 if [[ ${#failures[@]} -gt 0 ]]; then
