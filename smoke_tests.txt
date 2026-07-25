@@ -18,6 +18,7 @@ interferometer/subhalo_recovery_interferometer.py
 misc/aggregator/fit_imaging.py
 misc/aggregator/fit_interferometer.py
 misc/aggregator/tracer.py
-imaging/multi_galaxy_mge.py
+multi_galaxy/composition_mge.py
 misc/latent/latent_variables_smoke.py
 misc/latent/latent_nan_robustness.py
+multi_galaxy/model_fit.py
