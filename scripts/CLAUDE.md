@@ -6,8 +6,8 @@ and where its JAX-specific responsibilities lie.
 ## Layout
 
 `scripts/` mirrors the `autolens_workspace` dataset taxonomy: dataset-typed
-folders `imaging/`, `interferometer/`, `point_source/`, `cluster/`, `multi/`,
-plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
+folders `imaging/`, `interferometer/`, `point_source/`, `multi_galaxy/`,
+`cluster/`, `multi/`, plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
 `mass_via_integral/`, `jax_assertions/`, `latent/`, `weak/`, `interop/`, the
 `util.py` gradient helper, and loose tracer/profile/hessian tests). `gallery/`
 and `profiling/` sit outside the taxonomy (external couplings).
@@ -32,7 +32,7 @@ subfolders** so the dataset root holds only its modeling singletons:
 The former `jax_likelihood_functions/`, `jax_grad/`, `jax_substructure/`,
 `potential_correction/`, `model_composition/` and `light_multipole/` top-level
 trees were dissolved into these per-dataset task subfolders. Dataset roots keep
-their modeling singletons (`model_fit.py`, `convolution*.py`, `multi_galaxy_mge.py`,
+their modeling singletons (`model_fit.py`, `convolution*.py`,
 `subhalo_recovery*.py`, `nufft.py`, the `dataset_model_parity_*` tests, …).
 
 ## Codex / sandboxed runs

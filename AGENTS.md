@@ -24,6 +24,7 @@ scripts/                     Integration-test scripts run on the build server
                              jax_likelihood/ jax_grad/ visualization/ simulator/
                              (imaging: substructure/; interferometer: datacube/) subfolders
   point_source/ cluster/     Point-source and cluster model-fit tests
+  multi_galaxy/              Multi-galaxy regime tests (co-dominant deflector model_fit + composition)
   multi/                     Multi-wavelength (FactorGraph) tests (jax_likelihood/ visualization/)
   misc/                      Dataset-agnostic tests:
     aggregator/ database/      Results database + aggregator tests
