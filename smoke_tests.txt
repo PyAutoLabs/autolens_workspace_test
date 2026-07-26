@@ -20,5 +20,6 @@ misc/aggregator/fit_interferometer.py
 misc/aggregator/tracer.py
 multi_galaxy/composition_mge.py
 multi_galaxy/model_fit.py
+multi_galaxy/jax_likelihood/lp.py
 misc/latent/latent_variables_smoke.py
 misc/latent/latent_nan_robustness.py
