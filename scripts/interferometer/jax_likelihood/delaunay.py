@@ -243,6 +243,19 @@ np.testing.assert_allclose(
     err_msg="interferometer/delaunay: JAX vmap likelihood mismatch",
 )
 
+# The sparse inversion path must obey the same lane-isolation contract as
+# imaging. Fitness sees the raw NaN after the forward pass and converts only
+# that lane to its configured resample value.
+poisoned_parameters = parameters.at[1, :].set(jnp.nan)
+poisoned_result = np.asarray(fitness._vmap(poisoned_parameters))
+finite_lanes = np.array([0, 2])
+
+np.testing.assert_array_equal(
+    poisoned_result[finite_lanes], np.asarray(result)[finite_lanes]
+)
+assert poisoned_result[1] == -1.0e99
+print("PASS: poisoned sparse Delaunay vmap lane is isolated and resampled.")
+
 
 """
 __Path A: jit-wrap ``analysis.fit_from``__
@@ -277,6 +290,13 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
+
+nan_instance = model.instance_from_vector(
+    vector=np.full(model.total_free_parameters, np.nan)
+)
+nan_fit = fit_jit_fn(nan_instance)
+assert np.isnan(float(nan_fit.log_likelihood))
+print("PASS: invalid Delaunay mesh reaches the raw interferometer likelihood as NaN.")
 
 
 """

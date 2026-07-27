@@ -302,6 +302,19 @@ np.testing.assert_allclose(
     err_msg="delaunay: JAX vmap likelihood mismatch",
 )
 
+# A non-finite trajectory must not abort the sequential Delaunay callback or
+# contaminate its sibling lanes. Fitness deliberately converts the raw NaN
+# figure of merit to its configured resample value after the forward pass.
+poisoned_parameters = parameters.at[1, :].set(jnp.nan)
+poisoned_result = np.asarray(fitness._vmap(poisoned_parameters))
+finite_lanes = np.array([0, 2])
+
+np.testing.assert_array_equal(
+    poisoned_result[finite_lanes], np.asarray(result)[finite_lanes]
+)
+assert poisoned_result[1] == -1.0e99
+print("PASS: poisoned Delaunay vmap lane is isolated and resampled.")
+
 
 """
 __Path A: jit-wrap ``analysis.fit_from``__
@@ -339,3 +352,72 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-8
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
+
+nan_instance = model.instance_from_vector(
+    vector=np.full(model.total_free_parameters, np.nan)
+)
+nan_fit = fit_jit_fn(nan_instance)
+assert np.isnan(float(nan_fit.log_likelihood))
+print("PASS: invalid Delaunay mesh reaches the raw imaging likelihood as NaN.")
+
+
+"""
+__Callback lane isolation + gradient parity__
+
+Exercise partial poisoning directly at the mesh boundary. The last-vertex and
+non-last-vertex cases pin the negative-index/IEEE ordering asymmetry that can
+otherwise turn identical sentinel tables into finite weights.
+"""
+from autoarray.inversion.mesh.interpolator.delaunay import (
+    jax_delaunay,
+    pixel_weights_delaunay_from,
+)
+
+rng = np.random.default_rng(7)
+mesh_points_np = rng.uniform(-1.0, 1.0, size=(40, 2))
+query_points = jnp.asarray(rng.uniform(-0.8, 0.8, size=(24, 2)))
+pixel_values = jnp.linspace(0.0, 1.0, mesh_points_np.shape[0])
+
+
+def interpolated_sum(mesh_points):
+    _, _, mappings, split_points, split_mappings = jax_delaunay(
+        mesh_points, query_points
+    )
+    weights = pixel_weights_delaunay_from(query_points, mesh_points, mappings, xp=jnp)
+    split_weights = pixel_weights_delaunay_from(
+        split_points, mesh_points, split_mappings, xp=jnp
+    )
+    mapped_values = pixel_values[mappings.clip(min=0)]
+    split_mapped_values = pixel_values[split_mappings.clip(min=0)]
+    return jnp.sum(weights * mapped_values) + jnp.sum(
+        split_weights * split_mapped_values
+    )
+
+
+mesh_value_and_grad = jax.jit(jax.vmap(jax.value_and_grad(interpolated_sum)))
+solo_mesh_value, solo_mesh_grad = jax.jit(jax.value_and_grad(interpolated_sum))(
+    jnp.asarray(mesh_points_np)
+)
+assert np.any(np.asarray(solo_mesh_grad) != 0.0)
+
+for label, poison_index in (("non-last", 7), ("last", 39), ("all", None)):
+    mesh_batch = np.repeat(mesh_points_np[None, :, :], 4, axis=0)
+    if poison_index is None:
+        mesh_batch[1, :, :] = np.nan
+    else:
+        mesh_batch[1, poison_index, 0] = np.nan
+
+    mesh_values, mesh_grads = mesh_value_and_grad(jnp.asarray(mesh_batch))
+    mesh_values = np.asarray(mesh_values)
+    mesh_grads = np.asarray(mesh_grads)
+
+    assert np.isnan(mesh_values[1]), label
+    np.testing.assert_array_equal(
+        mesh_values[[0, 2, 3]], np.repeat(np.asarray(solo_mesh_value)[None], 3)
+    )
+    np.testing.assert_array_equal(
+        mesh_grads[[0, 2, 3]],
+        np.repeat(np.asarray(solo_mesh_grad)[None, :, :], 3, axis=0),
+    )
+
+print("PASS: partial/all mesh poisoning preserves finite-lane values and gradients.")
