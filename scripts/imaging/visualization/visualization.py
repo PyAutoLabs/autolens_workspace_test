@@ -217,7 +217,6 @@ analysis = al.AnalysisImaging(
     dataset=dataset,
     positions_likelihood_list=[positions_likelihood],
     adapt_images=adapt_images,
-    use_jax=True,
     title_prefix="TEST",
 )
 
