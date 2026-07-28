@@ -24,6 +24,21 @@ the narrow fallback at
 
 Delaunay is the slowest of the three per-likelihood because of the 750
 source pixels + Hilbert image_mesh; sampler budget is lower accordingly.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+JIT-cached visualization path: real search (Nautilus), JAX, full-resolution
+mask and real savefig. Matches the ``modeling_visualization_jit.py`` sibling.
+
+Without this, the script inherits the profile default ``PYAUTO_SMALL_DATASETS=1``
+and regenerates the shared ``dataset/imaging/jax_test`` at 16x16 (``should_simulate``
+rmtree's first when the cap is on). Every ``jax_likelihood`` script then loads that
+capped data and fails its hardcoded likelihood literal, because ``should_simulate``
+only tests directory existence and cannot tell the dataset was built at the wrong
+size.
+
+ENV: real_output
 """
 
 import shutil
