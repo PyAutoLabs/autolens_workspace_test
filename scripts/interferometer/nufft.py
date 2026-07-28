@@ -188,17 +188,23 @@ mask_a = al.Mask2D.all_false(shape_native=(5, 5), pixel_scales=0.005)
 image_a = al.Array2D.ones(shape_native=(5, 5), pixel_scales=0.005)
 
 dft_a = al.TransformerDFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
-nuf_a = al.TransformerNUFFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
+# `al.TransformerNUFFT` is the nufftax-backed default; the pynufft leg of this
+# parity test must name the legacy class explicitly, or the comparison below
+# degenerates into nufftax-vs-itself and asserts nothing.
+nuf_a = al.TransformerNUFFTPyNUFFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
+lib_a = al.TransformerNUFFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
 
 vis_a_dft = np.asarray(dft_a.visibilities_from(image=image_a))
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     vis_a_pyn = np.asarray(nuf_a.visibilities_from(image=image_a.native))
 vis_a_nfx = visibilities_via_nufftax(image_a.native.array, uv_a, mask_a.pixel_scales)
+vis_a_lib = np.asarray(lib_a.visibilities_from(image=image_a.native))
 
 print(f"vis (DFT)     : {vis_a_dft}")
 print(f"vis (pynufft) : {vis_a_pyn}")
 print(f"vis (nufftax) : {vis_a_nfx}")
+print(f"vis (library) : {vis_a_lib}")
 print(f"max |Δ| nufftax - DFT     : {np.max(np.abs(vis_a_nfx - vis_a_dft)):.4e}")
 print(f"max |Δ| pynufft - DFT     : {np.max(np.abs(vis_a_pyn - vis_a_dft)):.4e}")
 print(f"max |Δ| nufftax - pynufft : {np.max(np.abs(vis_a_nfx - vis_a_pyn)):.4e}")
@@ -212,6 +218,10 @@ assert (
 assert (
     np.max(np.abs(vis_a_pyn - vis_a_dft)) < 1e-1
 ), "pynufft should match DFT to gridding precision on all-ones 5x5"
+# The shipped `al.TransformerNUFFT` must reproduce the local nufftax recipe.
+assert (
+    np.max(np.abs(vis_a_lib - vis_a_nfx)) < 1e-10
+), "al.TransformerNUFFT should match the local nufftax recipe on all-ones 5x5"
 
 
 # =============================================================================
@@ -283,7 +293,10 @@ image_b_native = image_b.native.array
 dft_b = al.TransformerDFT(
     uv_wavelengths=dataset.uv_wavelengths, real_space_mask=real_space_mask
 )
-nuf_b = al.TransformerNUFFT(
+nuf_b = al.TransformerNUFFTPyNUFFT(
+    uv_wavelengths=dataset.uv_wavelengths, real_space_mask=real_space_mask
+)
+lib_b = al.TransformerNUFFT(
     uv_wavelengths=dataset.uv_wavelengths, real_space_mask=real_space_mask
 )
 
@@ -296,6 +309,7 @@ with warnings.catch_warnings():
 vis_b_nfx = visibilities_via_nufftax(
     image_b_native, dataset.uv_wavelengths, real_space_mask.pixel_scales
 )
+vis_b_lib = np.asarray(lib_b.visibilities_from(image=image_b.native))
 
 dft_scale = float(np.max(np.abs(vis_b_dft)))
 print(f"|vis_DFT|_max = {dft_scale:.4e}")
@@ -332,6 +346,10 @@ assert (
 assert (
     np.max(np.abs(vis_b_nfx - vis_b_pyn)) / dft_scale < 1e-1
 ), "nufftax and pynufft must agree to pynufft's gridding precision"
+# The shipped `al.TransformerNUFFT` must reproduce the local nufftax recipe.
+assert (
+    np.max(np.abs(vis_b_lib - vis_b_nfx)) / dft_scale < 1e-9
+), "al.TransformerNUFFT should match the local nufftax recipe on 256x256"
 
 
 # Save residuals plot for visual sanity check (mirrors imaging/convolution.py)
@@ -394,6 +412,19 @@ print(
 assert np.max(np.abs(mm_nfx - mm_pyn)) / mm_scale < 1e-1, (
     "nufftax mapping matrix must agree with pynufft mapping matrix to "
     "pynufft's gridding precision"
+)
+
+# The shipped `al.TransformerNUFFT.transform_mapping_matrix` (batched, one
+# nufft2d2 call) must reproduce the per-column local nufftax recipe.
+mm_lib = np.asarray(lib_b.transform_mapping_matrix(mapping_matrix=mapping_matrix))
+print(
+    f"max |Δ| library - nufftax : "
+    f"{np.max(np.abs(mm_lib - mm_nfx)):.4e}  "
+    f"(rel: {np.max(np.abs(mm_lib - mm_nfx)) / mm_scale:.4e})"
+)
+assert np.max(np.abs(mm_lib - mm_nfx)) / mm_scale < 1e-9, (
+    "al.TransformerNUFFT.transform_mapping_matrix must match the per-column "
+    "nufftax recipe"
 )
 
 
