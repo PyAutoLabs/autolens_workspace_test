@@ -233,9 +233,7 @@ util.assert_gradients_match(comparison, rtol=1e-2)
 
 # Mass/shear must be genuinely live — a flat likelihood would pass the FD
 # match trivially (0 == 0).
-mass_indices = [
-    i for i, n in enumerate(param_names) if ".mass." in n or ".shear." in n
-]
+mass_indices = [i for i, n in enumerate(param_names) if ".mass." in n or ".shear." in n]
 assert np.all(np.abs(comparison["ad"][mass_indices]) > 1e-2), (
     "A mass/shear gradient is ~zero on the Delaunay mesh: "
     f"{[(param_names[i], comparison['ad'][i]) for i in mass_indices if abs(comparison['ad'][i]) <= 1e-2]}"

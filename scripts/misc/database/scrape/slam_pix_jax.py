@@ -413,7 +413,9 @@ def fit():
         pass
 
     agg = Aggregator.from_database(database_file)
-    agg.add_directory(directory=path.join("output", "database", "scrape", "slam_pix_jax"))
+    agg.add_directory(
+        directory=path.join("output", "database", "scrape", "slam_pix_jax")
+    )
 
     assert len(agg) > 0
 

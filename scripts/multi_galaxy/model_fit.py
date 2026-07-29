@@ -57,7 +57,10 @@ main_lens_centres = [(0.35, 0.25), (-0.35, -0.25)]
 lens_0 = al.Galaxy(
     redshift=0.5,
     bulge=al.lp.SersicSph(
-        centre=main_lens_centres[0], intensity=1.0, effective_radius=0.6, sersic_index=3.0
+        centre=main_lens_centres[0],
+        intensity=1.0,
+        effective_radius=0.6,
+        sersic_index=3.0,
     ),
     mass=al.mp.IsothermalSph(centre=main_lens_centres[0], einstein_radius=1.0),
 )
@@ -65,7 +68,10 @@ lens_0 = al.Galaxy(
 lens_1 = al.Galaxy(
     redshift=0.5,
     bulge=al.lp.SersicSph(
-        centre=main_lens_centres[1], intensity=0.8, effective_radius=0.5, sersic_index=3.0
+        centre=main_lens_centres[1],
+        intensity=0.8,
+        effective_radius=0.5,
+        sersic_index=3.0,
     ),
     mass=al.mp.IsothermalSph(centre=main_lens_centres[1], einstein_radius=0.8),
 )
