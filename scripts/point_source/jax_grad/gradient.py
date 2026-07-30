@@ -183,3 +183,86 @@ assert np.all(
 ), "A positional parameter has zero gradient — evaluation point is degenerate."
 
 print("point_source.py JAX gradient checks passed.")
+
+
+"""
+__Solved Source-Plane Gradient (Parameter-Free Centre)__
+
+Repeats the finiteness + finite-difference checks above for
+``al.FitPositionsSourceSolved`` against a parameter-free ``al.ps.PointSolved``
+source. With no source-centre parameters, the model's only positional degrees
+of freedom are the lens mass parameters; ``cosmology.H0`` still has no
+bearing on this position-only chi-squared and stays possibly-zero-grad.
+
+Note: gradients through the image-plane ``PointSolver`` variants
+(``FitPositionsImagePairAll`` / ``...Solved`` etc.) require a ``custom_jvp``
+around the triangle-refinement solve and are deliberately not attempted here
+— that is phase 5 of issue #657.
+"""
+
+point_0_solved = af.Model(al.ps.PointSolved)
+
+source_solved = af.Model(al.Galaxy, redshift=1.0, point_0=point_0_solved)
+
+model_solved = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved), cosmology=cosmology
+)
+
+print(model_solved.info)
+
+analysis_solved = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsSourceSolved,
+)
+
+fitness_solved = Fitness(
+    model=model_solved,
+    analysis=analysis_solved,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+param_vector_solved = jnp.array(model_solved.physical_values_from_prior_medians)
+
+key_solved = jax.random.PRNGKey(43)
+perturbation_solved = jax.random.uniform(
+    key_solved, shape=param_vector_solved.shape, minval=0.001, maxval=0.005
+)
+param_vector_solved = param_vector_solved + perturbation_solved
+
+value_solved, grad_solved = jax.value_and_grad(fitness_solved.call)(param_vector_solved)
+
+print(f"Log likelihood (solved) = {float(value_solved):.6f}")
+print(f"Gradient shape (solved) = {grad_solved.shape}")
+
+assert np.isfinite(float(value_solved)), "Log likelihood (solved) is not finite"
+assert grad_solved.shape == (
+    model_solved.total_free_parameters,
+), f"Gradient shape mismatch (solved): {grad_solved.shape}"
+assert np.all(
+    np.isfinite(np.array(grad_solved))
+), f"Gradient contains non-finite values (solved): {np.array(grad_solved)}"
+assert not np.all(np.array(grad_solved) == 0.0), "Gradient is all zeros (solved)"
+
+param_names_solved = util.parameter_names_from(model_solved)
+
+comparison_solved = util.compare_gradients(
+    fitness_solved.call,
+    param_vector_solved,
+    param_names=param_names_solved,
+)
+
+util.assert_gradients_match(comparison_solved)
+
+# With PointSolved there are no source-centre parameters — the only
+# positional degrees of freedom are the lens mass parameters. H0 must still
+# be excluded (this position-only chi-squared has no dependence on it).
+positional_indices_solved = [
+    i for i, name in enumerate(param_names_solved) if "H0" not in name
+]
+assert np.all(
+    np.abs(comparison_solved["ad"][positional_indices_solved]) > 0.0
+), "A positional parameter has zero gradient — evaluation point is degenerate (solved)."
+
+print("point_source gradient.py solved-source checks passed.")

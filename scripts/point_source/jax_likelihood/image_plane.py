@@ -185,3 +185,189 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
+
+
+"""
+__Model: Solved Source (Parameter-Free)__
+
+Swaps the source for parameter-free ``al.ps.PointSolved`` to exercise the
+centre-free image-plane variants below.
+"""
+
+point_0_solved = af.Model(al.ps.PointSolved)
+
+source_solved = af.Model(al.Galaxy, redshift=1.0, point_0=point_0_solved)
+
+model_solved = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved), cosmology=cosmology
+)
+
+print(model_solved.info)
+
+model_solved_jit = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved)
+)
+instance_solved = model_solved_jit.instance_from_prior_medians()
+
+"""
+__Analysis: FitPositionsImagePairAllSolved__
+"""
+analysis_all_solved = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+)
+
+from autofit.non_linear.fitness import Fitness
+import time
+
+batch_size = 1
+
+fitness_all_solved = Fitness(
+    model=model_solved,
+    analysis=analysis_all_solved,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+parameters_all_solved = np.zeros((batch_size, model_solved.total_free_parameters))
+for i in range(batch_size):
+    parameters_all_solved[i, :] = model_solved.physical_values_from_prior_medians
+parameters_all_solved = jnp.array(parameters_all_solved)
+
+start = time.time()
+print()
+print(fitness_all_solved._vmap(parameters_all_solved))
+print("JAX Time To VMAP + JIT Function", time.time() - start)
+
+start = time.time()
+print()
+result_all_solved = fitness_all_solved._vmap(parameters_all_solved)
+print(result_all_solved)
+print("JAX Time Taken using VMAP:", time.time() - start)
+print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
+
+EXPECTED_VMAP_LOG_LIKELIHOOD_IMAGE_PLANE_ALL_SOLVED = -82.33883111
+
+np.testing.assert_allclose(
+    np.array(result_all_solved),
+    EXPECTED_VMAP_LOG_LIKELIHOOD_IMAGE_PLANE_ALL_SOLVED,
+    rtol=1e-4,
+    err_msg="point_source/image_plane: JAX vmap likelihood mismatch (all solved)",
+)
+
+
+"""
+__Path A: jit-wrap ``analysis.fit_from`` (FitPositionsImagePairAllSolved)__
+
+Expected to JIT end-to-end exactly like the modelled-centre ``FitPositionsImagePairAll``
+block above — no try/except; a failure here is a real regression.
+"""
+analysis_all_solved_np = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+    use_jax=False,
+)
+fit_all_solved_np = analysis_all_solved_np.fit_from(instance=instance_solved)
+print("NumPy fit.log_likelihood (all solved):", float(fit_all_solved_np.log_likelihood))
+
+analysis_all_solved_jit = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+    use_jax=True,
+)
+fit_all_solved_jit_fn = jax.jit(analysis_all_solved_jit.fit_from)
+fit_all_solved = fit_all_solved_jit_fn(instance_solved)
+
+print("JIT fit.log_likelihood (all solved):", fit_all_solved.log_likelihood)
+assert isinstance(
+    fit_all_solved.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_all_solved.log_likelihood)}"
+np.testing.assert_allclose(
+    float(fit_all_solved.log_likelihood), float(fit_all_solved_np.log_likelihood), rtol=1e-4
+)
+print("PASS: jit(fit_from) round-trip matches NumPy scalar (all solved).")
+
+
+"""
+__Analysis: FitPositionsImagePairRepeatSolved__
+"""
+analysis_repeat_solved = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairRepeatSolved,
+)
+
+fitness_repeat_solved = Fitness(
+    model=model_solved,
+    analysis=analysis_repeat_solved,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+parameters_repeat_solved = np.zeros((batch_size, model_solved.total_free_parameters))
+for i in range(batch_size):
+    parameters_repeat_solved[i, :] = model_solved.physical_values_from_prior_medians
+parameters_repeat_solved = jnp.array(parameters_repeat_solved)
+
+start = time.time()
+print()
+print(fitness_repeat_solved._vmap(parameters_repeat_solved))
+print("JAX Time To VMAP + JIT Function", time.time() - start)
+
+start = time.time()
+print()
+result_repeat_solved = fitness_repeat_solved._vmap(parameters_repeat_solved)
+print(result_repeat_solved)
+print("JAX Time Taken using VMAP:", time.time() - start)
+print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
+
+EXPECTED_VMAP_LOG_LIKELIHOOD_IMAGE_PLANE_REPEAT_SOLVED = -89.71129442
+
+np.testing.assert_allclose(
+    np.array(result_repeat_solved),
+    EXPECTED_VMAP_LOG_LIKELIHOOD_IMAGE_PLANE_REPEAT_SOLVED,
+    rtol=1e-4,
+    err_msg="point_source/image_plane: JAX vmap likelihood mismatch (repeat solved)",
+)
+
+
+"""
+__Path A: jit-wrap ``analysis.fit_from`` (FitPositionsImagePairRepeatSolved)__
+
+Expected to JIT end-to-end exactly like the modelled-centre ``FitPositionsImagePairAll``
+block above — no try/except; a failure here is a real regression.
+"""
+analysis_repeat_solved_np = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairRepeatSolved,
+    use_jax=False,
+)
+fit_repeat_solved_np = analysis_repeat_solved_np.fit_from(instance=instance_solved)
+print(
+    "NumPy fit.log_likelihood (repeat solved):",
+    float(fit_repeat_solved_np.log_likelihood),
+)
+
+analysis_repeat_solved_jit = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairRepeatSolved,
+    use_jax=True,
+)
+fit_repeat_solved_jit_fn = jax.jit(analysis_repeat_solved_jit.fit_from)
+fit_repeat_solved = fit_repeat_solved_jit_fn(instance_solved)
+
+print("JIT fit.log_likelihood (repeat solved):", fit_repeat_solved.log_likelihood)
+assert isinstance(
+    fit_repeat_solved.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_repeat_solved.log_likelihood)}"
+np.testing.assert_allclose(
+    float(fit_repeat_solved.log_likelihood),
+    float(fit_repeat_solved_np.log_likelihood),
+    rtol=1e-4,
+)
+print("PASS: jit(fit_from) round-trip matches NumPy scalar (repeat solved).")
