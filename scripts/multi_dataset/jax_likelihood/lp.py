@@ -1,27 +1,18 @@
 """
-JAX Likelihood: Multi-Wavelength with DatasetModel Offsets
-===========================================================
+Func Grad: Multi-Wavelength Light Parametric
+=============================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap
-``factor_graph.log_likelihood_function`` for a multi-wavelength imaging model
-that includes an ``al.DatasetModel`` on every dataset after the first to
-shift its grid relative to the reference dataset.
+`factor_graph.log_likelihood_function` for a multi-wavelength imaging model
+using parametric Sersic light profiles for the lens and source.
 
-The first dataset (``i == 0``) keeps the ``DatasetModel`` defaults — fixed
-``grid_offset = (0.0, 0.0)``. Every subsequent dataset has its
-``grid_offset.grid_offset_0/1`` replaced by ``af.UniformPrior(-1.0, 1.0)``,
-making the offset a free parameter that JAX must trace through cleanly.
+Uses **option B** — per-band source ``bulge.ell_comps_0/1`` priors via
+``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``. All other
+parameters (lens bulge, lens mass, shear, source bulge aside from
+``ell_comps``) remain shared across the g and r bands.
 
-Why this test exists: ``DatasetModel`` is a plain autoarray class with no
-explicit pytree registration. ``register_model`` walks the factor graph and
-builds generic flatten/unflatten functions for every ``Model.cls`` it finds,
-so it should pick up ``DatasetModel`` automatically. The mixed registration
-(i=0 stores ``grid_offset`` as a constant Python tuple while i>0 stores it
-as a ``TuplePrior``) is a subtle stress on the classifier's ``setdefault``
-behaviour — this script is the regression marker for that path.
-
-Path layout follows ``multi/lp.py``: vmap evaluation through
-``fitness._vmap`` and then a separate ``jax.jit`` wrap around
-``instance_from_vector → log_likelihood_function``.
+Path A uses ``jax.jit(factor_graph.log_likelihood_function)`` (not ``fit_from``
+— ``FactorGraphModel`` does not expose a ``fit_from`` method; it sums each
+child factor's log-likelihood).
 
 __Env__
 
@@ -43,14 +34,17 @@ waveband_list = ["g", "r"]
 pixel_scales = 0.1
 mask_radius = 3.0
 
-dataset_path = path.join("dataset", "multi", "lens_sersic")
+dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
 
+"""
+__Dataset Auto-Simulation__
+"""
 if al.util.dataset.should_simulate(dataset_path):
     import subprocess
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/multi/simulator.py"],
+        [sys.executable, "scripts/multi_dataset/simulator.py"],
         check=True,
     )
 
@@ -92,25 +86,18 @@ lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
 source_bulge = af.Model(al.lp_linear.Sersic)
 source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
-dataset_model = af.Model(al.DatasetModel)
-
-model = af.Collection(
-    dataset_model=dataset_model,
-    galaxies=af.Collection(lens=lens, source=source),
-)
+model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
 print(model.info)
 
 """
-__Per-band models__
+__Per-band models (option B)__
 
-The first band keeps the ``DatasetModel`` defaults (fixed ``grid_offset =
-(0.0, 0.0)``). Every later band gets a free 2D offset prior. The source's
-``ell_comps`` are also per-band as in ``multi/lp.py`` to keep this script
-structurally parallel.
+Each band gets its own ``model.copy()`` with independent ``source.bulge.ell_comps``
+priors to capture chromatic shape differences. Everything else stays shared.
 """
 model_per_band_list = []
-for i in range(len(waveband_list)):
+for _ in waveband_list:
     model_analysis = model.copy()
     model_analysis.galaxies.source.bulge.ell_comps.ell_comps_0 = af.GaussianPrior(
         mean=0.0, sigma=0.5
@@ -118,13 +105,6 @@ for i in range(len(waveband_list)):
     model_analysis.galaxies.source.bulge.ell_comps.ell_comps_1 = af.GaussianPrior(
         mean=0.0, sigma=0.5
     )
-    if i > 0:
-        model_analysis.dataset_model.grid_offset.grid_offset_0 = af.UniformPrior(
-            lower_limit=-1.0, upper_limit=1.0
-        )
-        model_analysis.dataset_model.grid_offset.grid_offset_1 = af.UniformPrior(
-            lower_limit=-1.0, upper_limit=1.0
-        )
     model_per_band_list.append(model_analysis)
 
 """
@@ -174,24 +154,26 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-EXPECTED_VMAP_LOG_LIKELIHOOD = -2699469.80625228
+EXPECTED_VMAP_LOG_LIKELIHOOD = -2699617.89063169
 
 np.testing.assert_allclose(
     np.array(result),
     EXPECTED_VMAP_LOG_LIKELIHOOD,
     rtol=1e-4,
-    err_msg="multi/dataset_model: JAX vmap likelihood mismatch",
+    err_msg="multi_dataset/lp: JAX vmap likelihood mismatch",
 )
 
 
 """
 __Path A: jit-wrap ``factor_graph.log_likelihood_function``__
 
-Same shape as ``multi/lp.py``: build a parallel NumPy ``FactorGraphModel`` to
-get a reference scalar from the un-jitted ``log_likelihood_function``, then
-build a JAX-enabled twin and ``jax.jit`` a parameter-vector entry point.
-``register_model`` is what registers ``DatasetModel`` (along with every other
-class in the model tree) as a JAX pytree.
+``FactorGraphModel`` has no ``fit_from`` method, so Path A jit-wraps a
+parameter-vector entry point that mirrors what ``fitness._vmap`` does
+internally: ``instance_from_vector`` → ``log_likelihood_function``. Passing a
+pre-built instance directly is not viable because
+``GlobalPriorModel.__init__`` stores a reference back to the ``FactorGraphModel``
+on the instance, and JAX pytree-flattens the whole instance and chokes on
+that non-registered leaf.
 """
 
 

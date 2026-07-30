@@ -25,7 +25,7 @@ scripts/                     Integration-test scripts run on the build server
                              (imaging: substructure/; interferometer: datacube/) subfolders
   point_source/ cluster/     Point-source and cluster model-fit tests
   multi_galaxy/              Multi-galaxy regime tests (co-dominant deflector model_fit + composition)
-  multi/                     Multi-wavelength (FactorGraph) tests (jax_likelihood/ visualization/)
+  multi_dataset/                     Multi-wavelength (FactorGraph) tests (jax_likelihood/ visualization/)
   misc/                      Dataset-agnostic tests:
     aggregator/ database/      Results database + aggregator tests
     jax_assertions/            JAX assertion tests
@@ -88,7 +88,7 @@ Four layers of JAX integration testing, each targeting a different level of the 
 
 1. **JAX likelihood functions** (highest) — batched log-likelihood gradients via
    `fitness._vmap(parameters)` for the full `AnalysisImaging` + `Tracer` pipeline; one script per
-   model type, distributed across `imaging/`, `interferometer/`, `point_source/` and `multi/`.
+   model type, distributed across `imaging/`, `interferometer/`, `point_source/` and `multi_dataset/`.
 2. **`misc/hessian_jax.py`** (mid) — `LensCalc` hessian-derived quantities under the guard pattern; the
    **reference** for JAX testing style.
 3. **`misc/tracer_jax.py`** (mid) — `Tracer` ray-tracing methods under `jax.jit` for two- and three-plane

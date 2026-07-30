@@ -5,7 +5,7 @@ Simulates two-band (g and r) `Imaging` datasets of a strong lens for use by
 the multi-wavelength JAX likelihood function tests in this folder.
 
 Each band shares the same lens mass but has its own source intensity,
-written to `dataset/multi/lens_sersic/`.
+written to `dataset/multi_dataset/lens_sersic/`.
 
 __Env__
 
@@ -20,7 +20,7 @@ from os import path
 import autolens as al
 import autolens.plot as aplt
 
-dataset_path = path.join("dataset", "multi", "lens_sersic")
+dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
 
 grid = al.Grid2D.uniform(shape_native=(150, 150), pixel_scales=0.1)
 

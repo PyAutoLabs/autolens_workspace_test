@@ -25,12 +25,12 @@ JAX, asserting the vmap and `jit(log_likelihood_function)` round-trip agree — 
 threads `jax.jit` end-to-end.
 
 Parity is asserted **within each backend** (numpy-vs-numpy, jax-vs-jax); see
-`multi/delaunay.py` for why numpy and JAX are not compared to each other for
+`multi_dataset/delaunay.py` for why numpy and JAX are not compared to each other for
 pixelized sources.
 
 Run from the workspace root:
 
-    python scripts/multi/shared_preloads.py
+    python scripts/multi_dataset/jax_likelihood/shared_preloads.py
 
 __Env__
 
@@ -54,7 +54,7 @@ mask_radius = 3.0
 pixels = 500
 edge_pixels_total = 30
 
-dataset_path = path.join("dataset", "multi", "lens_sersic")
+dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
 
 """
 __Dataset Auto-Simulation__
@@ -64,7 +64,7 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/multi/simulator.py"],
+        [sys.executable, "scripts/multi_dataset/simulator.py"],
         check=True,
     )
 
@@ -184,7 +184,7 @@ def _assert_identical_exposure_parity(use_jax):
         ll_unshared,
         rtol=1e-7,
         err_msg=(
-            f"multi/shared_preloads ({backend}): shared_preloads=True changed the summed "
+            f"multi_dataset/shared_preloads ({backend}): shared_preloads=True changed the summed "
             f"log-likelihood on identical exposures. Sharing the exposure-invariant "
             f"source-plane mesh must be exact."
         ),
@@ -226,7 +226,7 @@ def _assert_two_band_shared_jit():
         log_l_jit,
         vmap_result[0],
         rtol=1e-6,
-        err_msg="multi/shared_preloads: shared-mesh jit round-trip disagrees with vmap",
+        err_msg="multi_dataset/shared_preloads: shared-mesh jit round-trip disagrees with vmap",
     )
 
 
