@@ -31,12 +31,12 @@
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
 - imaging/jax_likelihood/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - imaging/jax_likelihood/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- multi/jax_likelihood/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
+- multi_dataset/jax_likelihood/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
 # Real-search JAX likelihood/gradient scripts that flake around the mode=release
 # per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to
 # keep mode=release deterministic; reviewed via hygiene over time. Speedups are the
 # Profiling Agent's job. Not bugs. (PyAutoHeart#74 — chose no_run over an advisory tier.)
-- multi/jax_likelihood/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
+- multi_dataset/jax_likelihood/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
 - interferometer/datacube/delaunay.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - interferometer/datacube/shared_preloads.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
 - interferometer/jax_likelihood/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
@@ -58,9 +58,9 @@
 - imaging/simulator/with_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/imaging/with_lens_light (convolution, model_fit, visualization, slam_general_jax, slam_pix_jax)
 - interferometer/simulator/simple.py # BOOTSTRAP-TARGET - produces dataset/interferometer/simple (interferometer consumers)
 - interferometer/simulator/dspl.py # BOOTSTRAP-TARGET - produces dataset/interferometer/dspl (rectangular_dspl)
-- interferometer/simulator/no_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/no_lens_light (interferometer/visualization, multi/visualization_interferometer)
+- interferometer/simulator/no_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/no_lens_light (interferometer/visualization, multi_dataset/visualization_interferometer)
 - interferometer/simulator/with_lens_light.py # BOOTSTRAP-TARGET - produces dataset/build/interferometer/with_lens_light (interferometer/model_fit)
-- multi/simulator.py # BOOTSTRAP-TARGET - produces dataset/multi/lens_sersic (multi consumers, multi_analysis_jax, slam_multi_one_by_one_jax, visualization_imaging)
+- multi_dataset/simulator.py # BOOTSTRAP-TARGET - produces dataset/multi_dataset/lens_sersic (multi consumers, multi_analysis_jax, slam_multi_one_by_one_jax, visualization_imaging)
 - point_source/simulators/simple.py # BOOTSTRAP-TARGET (protective) - the committed dataset/point_source/simple is NOT simulator-reproducible (regeneration yields a different likelihood: point.py/image_plane.py assert the exact literal -83.38049778 tuned to the committed bytes). It stays committed (allowlisted); skip the standalone run so a mega-run cannot overwrite the reference data. The consumers' dormant should_simulate bootstrap only fires if the committed data is ever absent.
 - point_source/simulators/point_source.py # BOOTSTRAP-TARGET - produces dataset/build/point_source (orphan; no current consumer, but a simulator not a standalone test)
 

@@ -9,8 +9,8 @@ interferometer/jax_likelihood/rectangular.py
 interferometer/jax_likelihood/mge.py
 point_source/jax_likelihood/point.py
 interferometer/datacube/shared_preloads.py
-# multi/jax_likelihood/shared_preloads.py  # disabled 2026-07-22: exceeds the 300s smoke cap (measured 300s+ in CI, autolens_workspace_test#196). Already SLOW-marked in config/build/no_run.yaml for flaking at the release runner's 1800s cap (PyAutoHeart#74) — it is the heaviest entry here and does not belong in the fast PR gate. Its sibling interferometer/datacube/shared_preloads.py (27.8s) keeps the shared-preloads path covered. Re-enable if it is made fast enough.
-multi/jax_likelihood/mge.py
+# multi_dataset/jax_likelihood/shared_preloads.py  # disabled 2026-07-22: exceeds the 300s smoke cap (measured 300s+ in CI, autolens_workspace_test#196). Already SLOW-marked in config/build/no_run.yaml for flaking at the release runner's 1800s cap (PyAutoHeart#74) — it is the heaviest entry here and does not belong in the fast PR gate. Its sibling interferometer/datacube/shared_preloads.py (27.8s) keeps the shared-preloads path covered. Re-enable if it is made fast enough.
+multi_dataset/jax_likelihood/mge.py
 imaging/jax_likelihood/potential_correction.py
 interferometer/jax_likelihood/potential_correction.py
 imaging/subhalo_recovery.py

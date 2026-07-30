@@ -34,7 +34,7 @@ waveband_list = ["g", "r"]
 pixel_scales = 0.1
 mask_radius = 3.0
 
-dataset_path = path.join("dataset", "multi", "lens_sersic")
+dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
 
 """
 __Dataset Auto-Simulation__
@@ -44,7 +44,7 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/multi/simulator.py"],
+        [sys.executable, "scripts/multi_dataset/simulator.py"],
         check=True,
     )
 
@@ -240,7 +240,7 @@ np.testing.assert_allclose(
     np.array(result),
     EXPECTED_VMAP_LOG_LIKELIHOOD,
     rtol=1e-4,
-    err_msg="multi/mge_group: JAX vmap likelihood mismatch",
+    err_msg="multi_dataset/mge_group: JAX vmap likelihood mismatch",
 )
 
 

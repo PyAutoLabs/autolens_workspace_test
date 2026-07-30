@@ -20,8 +20,8 @@ DEFAULT_SCRIPTS=(
     scripts/imaging/visualization/visualization.py            # ~150s
     scripts/interferometer/visualization/visualization.py     # ~130s
     scripts/point_source/visualization/visualization.py       # ~25s
-    scripts/multi/visualization/imaging.py      # ~95s
-    scripts/multi/visualization/interferometer.py  # ~140s
+    scripts/multi_dataset/visualization/imaging.py      # ~95s
+    scripts/multi_dataset/visualization/interferometer.py  # ~140s
 )
 SLOW_SCRIPTS=(
     scripts/cluster/visualization.py            # ~800s — excluded from default

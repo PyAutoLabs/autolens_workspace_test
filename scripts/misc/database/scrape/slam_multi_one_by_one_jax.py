@@ -5,7 +5,7 @@ Database: SLaM Multi One-by-One
 Runs a SLaM pipeline on a primary dataset, then fits secondary multi-wavelength datasets
 with fixed mass, and scrapes results to a database for verification.
 
-Based on autolens_workspace/scripts/multi/features/slam/independent.py
+Based on autolens_workspace/scripts/multi_dataset/features/slam/independent.py
 """
 
 
@@ -361,14 +361,14 @@ def fit():
     __Dataset + Masking (Primary)__
     """
     dataset_name = "lens_sersic"
-    dataset_main_path = Path("dataset", "multi", dataset_name)
+    dataset_main_path = Path("dataset", "multi_dataset", dataset_name)
 
     if not dataset_main_path.exists():
         import subprocess
         import sys
 
         subprocess.run(
-            [sys.executable, "scripts/multi/simulator.py"],
+            [sys.executable, "scripts/multi_dataset/simulator.py"],
             check=True,
         )
 

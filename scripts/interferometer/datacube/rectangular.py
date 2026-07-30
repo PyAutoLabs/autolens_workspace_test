@@ -10,7 +10,7 @@ Mirrors ``interferometer/rectangular.py`` (same lens
 model, same mesh, same regularization, same adapt-images setup) but loads
 the SMA dataset N=4 times as an identical-channel cube and wires it through
 ``af.FactorGraphModel`` — the same pattern as
-``multi/delaunay.py``.
+``multi_dataset/delaunay.py``.
 
 Identical channels make the cube reference deterministic: the cube
 log-likelihood is exactly ``N × single_channel_log_likelihood``. The
@@ -18,7 +18,7 @@ expected literal is pinned empirically below.
 
 Path A asserts ``vmap == JIT round-trip`` (both through
 ``FactorGraphModel.log_likelihood_function``) rather than NumPy-vs-JAX
-parity, matching the ``multi/`` pattern: for pixelized sources,
+parity, matching the ``multi_dataset/`` pattern: for pixelized sources,
 ``analysis.log_likelihood_function`` under ``use_jax=True`` takes a different
 numerical path than under ``use_jax=False`` (the JAX path matches
 ``fit.log_likelihood`` only when routed through ``fit_from``, which
@@ -242,7 +242,7 @@ np.testing.assert_allclose(
 """
 __Path A: jit-wrap parameter-vector entry point__
 
-Matches ``multi/delaunay.py``: jit-wrap ``factor_graph.log_likelihood_function``
+Matches ``multi_dataset/delaunay.py``: jit-wrap ``factor_graph.log_likelihood_function``
 through ``instance_from_vector`` and assert the result matches the vmap value.
 """
 

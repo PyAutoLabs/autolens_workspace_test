@@ -5,7 +5,7 @@ Database: Multi-Wavelength Simultaneous SLaM
 Runs a simultaneous multi-wavelength SLaM pipeline using factor graphs and scrapes
 the results to a database, verifying that queries and aggregator modules work correctly.
 
-Based on autolens_workspace/scripts/multi/features/slam/simultaneous.py
+Based on autolens_workspace/scripts/multi_dataset/features/slam/simultaneous.py
 """
 
 import os
@@ -319,14 +319,14 @@ def fit():
     pixel_scale_list = [0.12, 0.08]
 
     dataset_name = "lens_sersic"
-    dataset_main_path = path.join("dataset", "multi", dataset_name)
+    dataset_main_path = path.join("dataset", "multi_dataset", dataset_name)
 
     if not path.exists(dataset_main_path):
         import subprocess
         import sys
 
         subprocess.run(
-            [sys.executable, "scripts/multi/simulator.py"],
+            [sys.executable, "scripts/multi_dataset/simulator.py"],
             check=True,
         )
 

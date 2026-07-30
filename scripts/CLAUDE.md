@@ -7,7 +7,7 @@ and where its JAX-specific responsibilities lie.
 
 `scripts/` mirrors the `autolens_workspace` dataset taxonomy: dataset-typed
 folders `imaging/`, `interferometer/`, `point_source/`, `multi_galaxy/`,
-`cluster/`, `multi/`, plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
+`cluster/`, `multi_dataset/`, plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
 `mass_via_integral/`, `jax_assertions/`, `latent/`, `weak/`, `interop/`, the
 `util.py` gradient helper, and loose tracer/profile/hessian tests). `gallery/`
 and `profiling/` sit outside the taxonomy (external couplings).
@@ -20,7 +20,7 @@ subfolders** so the dataset root holds only its modeling singletons:
 - `jax_grad/` — the finite-difference gradient tests (former `jax_grad/` tree),
   which sit two levels deep and reach `../../misc/util.py` via a `sys.path` shim.
 - `visualization/` — the `visualization*.py` and `modeling_visualization_*_jit.py`
-  visualization tests (`multi/` strips the prefix to `visualization/imaging.py`
+  visualization tests (`multi_dataset/` strips the prefix to `visualization/imaging.py`
   and `visualization/interferometer.py`).
 - `simulator/` — the dataset simulators; the loose `simulator*.py` bootstrap
   targets consolidate in beside `no_lens_light.py` / `with_lens_light.py` as
@@ -50,7 +50,7 @@ This workspace is often imported from `/mnt/c/...` and Codex may not be able to 
 - Scripts run **without** `PYAUTO_TEST_MODE=1` — non-linear searches execute for
   real (using sampler limits like `n_like_max=300` to keep runtime short).
 - The JAX likelihood-function scripts (now distributed across `imaging/`,
-  `interferometer/`, `point_source/` and `multi/`) assert their `fitness._vmap`
+  `interferometer/`, `point_source/` and `multi_dataset/`) assert their `fitness._vmap`
   output against a hardcoded expected log-likelihood literal (`assert_allclose(np.array(result), <value>, rtol=1e-4)`).
   These literals are regression markers for the simulator + likelihood pipeline as a
   whole; if a deliberate simulator change shifts the value, regenerate the literal
@@ -138,7 +138,7 @@ Simulate a lensed point-source (multiply-imaged quasar) dataset.
 
 ---
 
-## JAX likelihood functions (in `imaging/` `interferometer/` `point_source/` `multi/`)
+## JAX likelihood functions (in `imaging/` `interferometer/` `point_source/` `multi_dataset/`)
 
 Scripts that test JAX can compute log-likelihood gradients and batch evaluations via
 `jax.vmap` for various model types.  Each script builds a `Fitness` object and calls
@@ -169,14 +169,14 @@ likelihoods of the same base name.
 | `point_source/jax_likelihood/image_plane.py` | Point-source image-plane chi-squared (`FitPositionsImagePairAll`) + centre-free `FitPositionsImagePairAllSolved` / `FitPositionsImagePairRepeatSolved` variants |
 | `point_source/jax_likelihood/source_plane.py` | Point-source source-plane chi-squared (`FitPositionsSource`) + centre-free `FitPositionsSourceSolved` — Path A JIT blocked by the fit-return pytree gap (`PyAutoPrompt/autolens/fit_point_pytree.md`), not the (already-fixed) xp-propagation bug |
 | `point_source/jax_likelihood/fluxes_time_delays.py` | Point-source fluxes + time delays via the solved fit classes (`FitFluxesSolved`, `FitTimeDelaysSolved`) alongside `FitPositionsSourceSolved` |
-| `multi/jax_likelihood/lp.py` | Parametric Sersic across g/r via `FactorGraphModel`; per-band source `ell_comps` (option B) |
-| `multi/jax_likelihood/mge.py` | MGE source across g/r; per-band source MGE `ell_comps` (option B) |
-| `multi/jax_likelihood/mge_group.py` | MGE + extra galaxies across g/r; per-band source MGE `ell_comps` (option B) |
-| `multi/jax_likelihood/rectangular.py` | Rectangular pixelization across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/jax_likelihood/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/jax_likelihood/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/jax_likelihood/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
-| `multi/jax_likelihood/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
+| `multi_dataset/jax_likelihood/lp.py` | Parametric Sersic across g/r via `FactorGraphModel`; per-band source `ell_comps` (option B) |
+| `multi_dataset/jax_likelihood/mge.py` | MGE source across g/r; per-band source MGE `ell_comps` (option B) |
+| `multi_dataset/jax_likelihood/mge_group.py` | MGE + extra galaxies across g/r; per-band source MGE `ell_comps` (option B) |
+| `multi_dataset/jax_likelihood/rectangular.py` | Rectangular pixelization across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi_dataset/jax_likelihood/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi_dataset/jax_likelihood/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi_dataset/jax_likelihood/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `multi_dataset/jax_likelihood/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
 | `interferometer/datacube/rectangular.py` | 4-channel datacube via `FactorGraphModel`; `RectangularAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
 | `interferometer/datacube/delaunay.py` | 4-channel datacube via `FactorGraphModel`; Delaunay source (Hilbert image-mesh, edge zeroing, `reg.AdaptSplit()`). Identical channels — assertion at `4 × interferometer/delaunay` literal. Path A + Path B (TransformerNUFFT cross-check) |
 

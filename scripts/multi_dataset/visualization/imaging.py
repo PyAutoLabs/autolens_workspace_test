@@ -29,7 +29,7 @@ appears in the parameters. The result: the static method is never called.
 Run from the ``autolens_workspace_test`` repo root:
 
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
-        python scripts/multi/visualization/imaging.py
+        python scripts/multi_dataset/visualization/imaging.py
 
 __Env__
 
@@ -65,11 +65,11 @@ from autolens.imaging.model.visualizer import VisualizerImaging
 """
 __Datasets__
 
-Load the two-band ``g``/``r`` imaging cube shipped under ``dataset/multi/lens_sersic/``.
+Load the two-band ``g``/``r`` imaging cube shipped under ``dataset/multi_dataset/lens_sersic/``.
 The g-band uses pixel scale 0.08", the r-band uses 0.12".
 """
 
-dataset_path = Path("dataset") / "multi" / "lens_sersic"
+dataset_path = Path("dataset") / "multi_dataset" / "lens_sersic"
 
 """
 __Dataset Auto-Simulation__
@@ -82,7 +82,7 @@ if al.util.dataset.should_simulate(str(dataset_path)):
     import sys
 
     subprocess.run(
-        [sys.executable, "scripts/multi/simulator.py"],
+        [sys.executable, "scripts/multi_dataset/simulator.py"],
         check=True,
     )
 
@@ -113,7 +113,7 @@ for waveband, pixel_scale in zip(waveband_list, pixel_scales_list):
 __Per-Band Analyses__
 
 One ``AnalysisImaging`` per band — this is the canonical multi-band wiring from
-``autolens_workspace/scripts/multi/modeling.py``.
+``autolens_workspace/scripts/multi_dataset/modeling.py``.
 """
 analysis_list = [
     al.AnalysisImaging(dataset=dataset, use_jax=False, title_prefix="TEST")
@@ -193,7 +193,7 @@ Two output folders:
   * ``direct/``   — populated by the direct ``VisualizerImaging.visualize_combined`` call.
   * ``dispatch/`` — populated (or NOT) by the FactorGraph dispatch path.
 """
-image_path_root = Path("scripts") / "multi" / "images" / "visualization_imaging"
+image_path_root = Path("scripts") / "multi_dataset" / "images" / "visualization_imaging"
 
 if image_path_root.exists():
     shutil.rmtree(image_path_root)

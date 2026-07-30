@@ -2,7 +2,7 @@
 Visualization: Multi-Channel Interferometer Analysis (FactorGraph / Datacube)
 =============================================================================
 
-Sibling of ``scripts/multi/visualization/imaging.py`` for the interferometer / ALMA
+Sibling of ``scripts/multi_dataset/visualization/imaging.py`` for the interferometer / ALMA
 datacube case. Verifies that ``VisualizerInterferometer.visualize_combined`` is
 invoked when a multi-channel interferometer fit runs through ``af.FactorGraphModel``
 and writes ``fit_combined.png`` with one row per channel.
@@ -27,7 +27,7 @@ sufficient — the goal is to confirm the plot lands, not to compare physics.
 Run from the ``autolens_workspace_test`` repo root:
 
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
-        python scripts/multi/visualization/interferometer.py
+        python scripts/multi_dataset/visualization/interferometer.py
 """
 
 import shutil
@@ -165,7 +165,7 @@ global_instance = factor_graph.global_prior_model.instance_from_prior_medians()
 """
 __Output Paths__
 """
-image_path_root = Path("scripts") / "multi" / "images" / "visualization_interferometer"
+image_path_root = Path("scripts") / "multi_dataset" / "images" / "visualization_interferometer"
 
 if image_path_root.exists():
     shutil.rmtree(image_path_root)
