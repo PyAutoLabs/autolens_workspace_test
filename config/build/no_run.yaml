@@ -27,14 +27,6 @@
 #   environment that has the dependency. Remove the entry if the dependency
 #   ever joins the validated install set.
 
-- misc/database/scrape/multi_analysis_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- misc/database/scrape/slam_general_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- misc/database/scrape/slam_multi_one_by_one_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- misc/database/scrape/slam_pix_jax # SLOW 2026-04-10 - exceeds 60s timeout; _test workspaces run full searches without test mode
-- imaging/visualization/modeling_visualization_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap (autogalaxy variant ~90s); unblocked by PR #70 from prior `expected jax.Array, got numpy.float64` AssertionError, now hits perf wall
-- imaging/visualization/modeling_visualization_delaunay_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 300s cap; same root cause as modeling_visualization_jit
-- imaging/visualization/modeling_visualization_rectangular_jit # SLOW 2026-05-07 - JIT + full visualization pipeline exceeds 301s cap; same root cause as modeling_visualization_jit
-- interferometer/visualization/modeling_visualization_jit # SLOW 2026-05-20 - JIT + full visualization pipeline exceeds 300s cap; same root cause as imaging/modeling_visualization_jit family
 - point_source/visualization/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
 - imaging/jax_likelihood/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
@@ -83,3 +75,11 @@
 # OPTIONAL-DEP skips — correct-as-is scripts whose third-party imports are not
 # in the validated install set.
 - misc/interop/coolest_herculens_parity.py # OPTIONAL-DEP 2026-07-24 - imports `herculens` (and `coolest`), neither of which is a PyAutoLens dependency nor in the release-validation install set; mode=release fails at `ModuleNotFoundError: No module named 'herculens'`. Script is correct and stays on disk (KEPT by #211) — run it by hand in an environment with herculens installed.
+- misc/database/scrape/multi_analysis_jax # SLOW 2026-07-30 - re-measured: times out at the real 300s cap (full search, no test mode)
+- misc/database/scrape/slam_general_jax # SLOW 2026-07-30 - re-measured: times out at the real 300s cap (full search, no test mode)
+- misc/database/scrape/slam_multi_one_by_one_jax # SLOW 2026-07-30 - re-measured: times out at the real 300s cap (full search, no test mode)
+- misc/database/scrape/slam_pix_jax # SLOW 2026-07-30 - re-measured: times out at the real 300s cap (full search, no test mode)
+- imaging/visualization/modeling_visualization_jit # SLOW 2026-07-30 - re-measured: times out at the 300s cap; JIT + full visualization pipeline
+- imaging/visualization/modeling_visualization_delaunay_jit # NEEDS_FIX 2026-07-30 - now FAILS its own JIT-cache assertion at 52s (cached 2.45s not < 0.5x compile 2.72s) - possible closure cache-busting; see bug prompt jit_cache_not_hit_modeling_visualization
+- imaging/visualization/modeling_visualization_rectangular_jit # NEEDS_FIX 2026-07-30 - now FAILS its own JIT-cache assertion at 36s (cached 2.21s not < 0.5x compile 2.28s) - same as delaunay variant
+- interferometer/visualization/modeling_visualization_jit # SLOW 2026-07-30 - historically >300s cap; local re-measurement OOM-killed (SIGKILL) at 132s - memory-heavy interferometer JIT
