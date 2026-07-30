@@ -166,7 +166,3 @@ al.output_to_json(
     obj=tracer,
     file_path=path.join(dataset_path, "tracer.json"),
 )
-
-"""
-Finished.
-"""
