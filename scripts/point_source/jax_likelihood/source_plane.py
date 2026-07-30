@@ -13,14 +13,16 @@ is required.
 Full-pipeline JIT status
 ------------------------
 
-The full pipeline (``jax.jit(analysis.fit_from)``) is currently **BLOCKED**
-by a ``Grid2DIrregular.grid_2d_via_deflection_grid_from`` xp-propagation bug
-documented in ``autolens_workspace_developer/jax_profiling/point_source/source_plane.py``
-and tracked in ``PyAutoPrompt/autolens/fit_point_pytree.md``.  When Path
-A JIT fails with ``TracerArrayConversionError`` the script prints a clear
-BLOCKER line and continues, so the eager NumPy regression assertion is still
-exercised.  Once the upstream xp-propagation fix lands, the JIT path will
-succeed without modifying this script.
+The ``Grid2DIrregular.grid_2d_via_deflection_grid_from`` xp-propagation bug
+that previously blocked Path A here was fixed in phase 2 (PyAutoArray#414).
+The remaining blocker is a fit-return pytree gap: ``fit_from`` returns a
+``PointSolver`` instance at output component ``[1][1]``, which is not a
+valid JAX type under ``jax.jit`` — tracked in
+``PyAutoPrompt/autolens/fit_point_pytree.md``.  When Path A JIT fails with
+this ``TypeError`` the script prints a clear BLOCKER line and continues, so
+the eager NumPy regression assertion is still exercised.  Once the pytree
+registration lands, the JIT path will succeed without modifying this
+script.
 
 __Env__
 
@@ -164,10 +166,11 @@ np.testing.assert_allclose(
 """
 __Path A: jit-wrap ``analysis.fit_from``__
 
-Wrapped in ``try/except jax.errors.TracerArrayConversionError`` — source-plane
-fitting currently fails Path A with the ``Grid2DIrregular.grid_2d_via_deflection_grid_from``
-xp-propagation bug.  The eager NumPy log-likelihood is still asserted for
-regression coverage.
+Wrapped in ``try/except TypeError`` — source-plane fitting's ``fit_from``
+returns a bare ``PointSolver`` at output component ``[1][1]``, which is not
+pytree-registered (the fit-return pytree gap tracked in
+``PyAutoPrompt/autolens/fit_point_pytree.md``).  The eager NumPy
+log-likelihood is still asserted for regression coverage.
 """
 
 
@@ -219,17 +222,163 @@ try:
     np.testing.assert_allclose(float(fit.log_likelihood), log_likelihood_np, rtol=1e-4)
     full_pipeline_jits = True
     print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
-except (jax.errors.TracerArrayConversionError, TypeError) as e:
-    # Two stacked blockers gate the full-pipeline JIT:
-    #   1. FitPositionsSource is not pytree-registered, so fit_from returns a
-    #      non-JAX type (TypeError).  Tracked in PyAutoPrompt/autolens/fit_point_pytree.md.
-    #   2. Even if that is fixed, the source-plane chi-squared itself fails with
-    #      TracerArrayConversionError owing to the Grid2DIrregular.grid_2d_via_deflection_grid_from
-    #      xp-propagation bug (see autolens_workspace_developer/jax_profiling/point_source/source_plane.py).
+except TypeError as e:
+    # fit_from returns a bare PointSolver instance at output component
+    # [1][1], which is not pytree-registered — jax.jit cannot flatten the
+    # return value. Tracked in PyAutoPrompt/autolens/fit_point_pytree.md.
+    # (The previously-blocking Grid2DIrregular.grid_2d_via_deflection_grid_from
+    # xp-propagation bug was fixed in phase 2, PyAutoArray#414.)
     print(
         "\nBLOCKER: source-plane jit(fit_from) is gated by:\n"
         f"  {type(e).__name__}: {e}\n"
-        "  Fixes tracked in PyAutoPrompt/autolens/fit_point_pytree.md and\n"
-        "  autolens_workspace_developer/jax_profiling/point_source/source_plane.py.\n"
+        "  fit_from returns a bare PointSolver at output component [1][1],\n"
+        "  which is not pytree-registered under jax.jit. Tracked in\n"
+        "  PyAutoPrompt/autolens/fit_point_pytree.md.\n"
+        "  Eager NumPy regression assertion still PASSED above."
+    )
+
+
+"""
+__Model: Solved Source (Parameter-Free)__
+
+``al.ps.PointSolved`` has zero free parameters — the source-plane position β* is
+solved analytically (Lombardi 2024, arXiv:2406.15280) rather than fitted, so no
+centre priors are set. ``al.FitPositionsSourceSolved`` performs the same
+source-plane chi-squared as ``al.FitPositionsSource`` above but against the
+analytic β* instead of a modelled centre.
+"""
+
+point_0_solved = af.Model(al.ps.PointSolved)
+
+source_solved = af.Model(al.Galaxy, redshift=1.0, point_0=point_0_solved)
+
+model_solved = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved), cosmology=cosmology
+)
+
+print(model_solved.info)
+
+analysis_solved = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsSourceSolved,
+)
+
+from autofit.non_linear.fitness import Fitness
+import time
+
+batch_size = 1
+
+fitness_solved = Fitness(
+    model=model_solved,
+    analysis=analysis_solved,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+parameters_solved = np.zeros((batch_size, model_solved.total_free_parameters))
+for i in range(batch_size):
+    parameters_solved[i, :] = model_solved.physical_values_from_prior_medians
+parameters_solved = jnp.array(parameters_solved)
+
+start = time.time()
+print()
+print(fitness_solved._vmap(parameters_solved))
+print("JAX Time To VMAP + JIT Function", time.time() - start)
+
+start = time.time()
+print()
+result_solved = fitness_solved._vmap(parameters_solved)
+print(result_solved)
+print("JAX Time Taken using VMAP:", time.time() - start)
+print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
+
+EXPECTED_VMAP_LOG_LIKELIHOOD_SOURCE_PLANE_SOLVED = -94.70750993
+
+np.testing.assert_allclose(
+    np.array(result_solved),
+    EXPECTED_VMAP_LOG_LIKELIHOOD_SOURCE_PLANE_SOLVED,
+    rtol=1e-4,
+    err_msg="point_source/source_plane: JAX vmap likelihood mismatch (solved)",
+)
+
+
+"""
+__Path A: jit-wrap ``analysis.fit_from`` (Solved)__
+
+Same narrowed ``except TypeError`` gate as the modelled-centre block above —
+``fit_from`` returns a bare ``PointSolver`` at output component ``[1][1]``.
+"""
+
+model_solved_jit = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved)
+)
+
+instance_solved = model_solved_jit.instance_from_prior_medians()
+
+analysis_solved_np = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsSourceSolved,
+    use_jax=False,
+)
+fit_solved_np = analysis_solved_np.fit_from(instance=instance_solved)
+log_likelihood_solved_np = float(fit_solved_np.log_likelihood)
+print("NumPy fit.log_likelihood (solved):", log_likelihood_solved_np)
+
+EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE_SOLVED = -94.70750992850252
+
+np.testing.assert_allclose(
+    log_likelihood_solved_np,
+    EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE_SOLVED,
+    rtol=1e-4,
+    err_msg=(
+        f"point_source/source_plane: regression — eager log_likelihood (solved) "
+        f"drifted (got {log_likelihood_solved_np}, expected "
+        f"{EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE_SOLVED})"
+    ),
+)
+print(
+    f"Eager regression assertion PASSED (solved): log_likelihood matches "
+    f"{EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE_SOLVED}"
+)
+
+# NumPy-vs-JAX vmap parity: the analytic solved fit removes the free-cosmology
+# vs no-cosmology split as a large source of eager/vmap mismatch — check the
+# two paths agree directly, not just against independent literals.
+np.testing.assert_allclose(
+    log_likelihood_solved_np,
+    float(result_solved[0]),
+    rtol=1e-4,
+    err_msg="point_source/source_plane: solved eager vs vmap parity mismatch",
+)
+
+analysis_solved_jit = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsSourceSolved,
+    use_jax=True,
+)
+fit_solved_jit_fn = jax.jit(analysis_solved_jit.fit_from)
+
+full_pipeline_jits_solved = False
+try:
+    fit_solved = fit_solved_jit_fn(instance_solved)
+    print("JIT fit.log_likelihood (solved):", fit_solved.log_likelihood)
+    assert isinstance(
+        fit_solved.log_likelihood, jnp.ndarray
+    ), f"expected jax.Array, got {type(fit_solved.log_likelihood)}"
+    np.testing.assert_allclose(
+        float(fit_solved.log_likelihood), log_likelihood_solved_np, rtol=1e-4
+    )
+    full_pipeline_jits_solved = True
+    print("PASS: jit(fit_from) round-trip matches NumPy scalar (solved).")
+except TypeError as e:
+    print(
+        "\nBLOCKER: source-plane jit(fit_from) (solved) is gated by:\n"
+        f"  {type(e).__name__}: {e}\n"
+        "  fit_from returns a bare PointSolver at output component [1][1],\n"
+        "  which is not pytree-registered under jax.jit. Tracked in\n"
+        "  PyAutoPrompt/autolens/fit_point_pytree.md.\n"
         "  Eager NumPy regression assertion still PASSED above."
     )

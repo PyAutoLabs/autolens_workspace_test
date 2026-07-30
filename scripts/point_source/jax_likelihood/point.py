@@ -1,27 +1,16 @@
 """
-Func Grad: Light Parametric Operated
-====================================
+Func Grad: Point Source Likelihood
+===================================
 
-This script test if JAX can successfully compute the gradient of the log likelihood of an `Imaging` dataset with a
-model which uses operated light profiles.
+Test that JAX can compute the log-likelihood of a ``PointDataset`` using the
+**image-plane** chi-squared (``al.FitPositionsImagePairAll``) via
+``AnalysisPoint``, exercising both the batched ``fitness._vmap`` likelihood
+and the full ``jax.jit(analysis.fit_from)`` pipeline.
 
- __Operated Fitting__
-
-It is common for galaxies to have point-source emission, for example bright emission right at their centre due to
-an active galactic nuclei or very compact knot of star formation.
-
-This point-source emission is subject to blurring during data accquisiton due to the telescope optics, and therefore
-is not seen as a single pixel of light but spread over multiple pixels as a convolution with the telescope
-Point Spread Function (PSF).
-
-It is difficult to model this compact point source emission using a point-source light profile (or an extremely
-compact Gaussian / Sersic profile). This is because when the model-image of a compact point source of light is
-convolved with the PSF, the solution to this convolution is extremely sensitive to which pixel (and sub-pixel) the
-compact model emission lands in.
-
-Operated light profiles offer an alternative approach, whereby the light profile is assumed to have already been
-convolved with the PSF. This operated light profile is then fitted directly to the point-source emission, which as
-discussed above shows the PSF features.
+This script doubles as a documented walkthrough of the point-source modeling
+API — see the ``__Point Solver__``, ``__Model__`` and ``__Name Pairing__``
+sections below — built around the same ``FitPositionsImagePairAll`` variant
+tested more tersely in ``point_source/jax_likelihood/image_plane.py``.
 
 __Env__
 
@@ -288,3 +277,101 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
+
+
+"""
+__Model: Solved Source (Parameter-Free)__
+
+Swaps the source for parameter-free ``al.ps.PointSolved`` to exercise the
+centre-free ``FitPositionsImagePairAllSolved`` variant. This script is in
+``smoke_tests.txt``, so only this one solved variant is added here — the
+Repeat variant and the source-plane / fluxes+time-delays solved coverage live
+in ``image_plane.py``, ``source_plane.py`` and ``fluxes_time_delays.py``.
+"""
+
+point_0_solved = af.Model(al.ps.PointSolved)
+
+source_solved = af.Model(al.Galaxy, redshift=1.0, point_0=point_0_solved)
+
+model_solved = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved), cosmology=cosmology
+)
+
+print(model_solved.info)
+
+analysis_all_solved = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+)
+
+fitness_all_solved = Fitness(
+    model=model_solved,
+    analysis=analysis_all_solved,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+parameters_all_solved = np.zeros((batch_size, model_solved.total_free_parameters))
+for i in range(batch_size):
+    parameters_all_solved[i, :] = model_solved.physical_values_from_prior_medians
+parameters_all_solved = jnp.array(parameters_all_solved)
+
+start = time.time()
+print()
+print(fitness_all_solved._vmap(parameters_all_solved))
+print("JAX Time To VMAP + JIT Function", time.time() - start)
+
+start = time.time()
+print()
+result_all_solved = fitness_all_solved._vmap(parameters_all_solved)
+print(result_all_solved)
+print("JAX Time Taken using VMAP:", time.time() - start)
+print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
+
+EXPECTED_VMAP_LOG_LIKELIHOOD_POINT_ALL_SOLVED = -82.33883111
+
+np.testing.assert_allclose(
+    np.array(result_all_solved),
+    EXPECTED_VMAP_LOG_LIKELIHOOD_POINT_ALL_SOLVED,
+    rtol=1e-4,
+    err_msg="point: JAX vmap likelihood mismatch (all solved)",
+)
+
+
+"""
+__Path A: jit-wrap ``analysis.fit_from`` (FitPositionsImagePairAllSolved)__
+"""
+
+model_solved_jit = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved)
+)
+
+instance_solved = model_solved_jit.instance_from_prior_medians()
+
+analysis_all_solved_np = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+    use_jax=False,
+)
+fit_all_solved_np = analysis_all_solved_np.fit_from(instance=instance_solved)
+print("NumPy fit.log_likelihood (all solved):", float(fit_all_solved_np.log_likelihood))
+
+analysis_all_solved_jit = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+    use_jax=True,
+)
+fit_all_solved_jit_fn = jax.jit(analysis_all_solved_jit.fit_from)
+fit_all_solved = fit_all_solved_jit_fn(instance_solved)
+
+print("JIT fit.log_likelihood (all solved):", fit_all_solved.log_likelihood)
+assert isinstance(
+    fit_all_solved.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_all_solved.log_likelihood)}"
+np.testing.assert_allclose(
+    float(fit_all_solved.log_likelihood), float(fit_all_solved_np.log_likelihood), rtol=1e-4
+)
+print("PASS: jit(fit_from) round-trip matches NumPy scalar (all solved).")
