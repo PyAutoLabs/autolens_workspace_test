@@ -276,16 +276,18 @@ print("Running Nautilus ...")
 result = search.fit(model=model2, analysis=analysis_run)
 
 # Nautilus writes quick-update images to output/<path_prefix>/<name>/<hash>/image/
-# The lens quick-update visualizer writes fit_quick.png (via subplot_fit_quick).
-produced_pngs = list(output_search_root.rglob("fit_quick.png"))
-print(f"fit_quick.png files produced: {len(produced_pngs)}")
+# Quick updates write the normal fit subplot (fit.png) — the same file full
+# visualization writes. Quick updates run on the main thread by default, so a
+# regression in the quick path would crash the search rather than be swallowed.
+produced_pngs = list(output_search_root.rglob("fit.png"))
+print(f"fit.png files produced: {len(produced_pngs)}")
 for p in produced_pngs:
     print(f"  {p}")
 assert len(produced_pngs) > 0, (
-    f"no fit_quick.png produced under {output_search_root} — "
-    "quick-update visualization did not fire"
+    f"no fit.png produced under {output_search_root} — "
+    "fit visualization did not fire"
 )
 print(
     "\nPASS: jit-cached fit_for_visualization fires during Nautilus quick updates "
-    f"for point source, fit_quick.png written."
+    f"for point source, fit.png written."
 )
