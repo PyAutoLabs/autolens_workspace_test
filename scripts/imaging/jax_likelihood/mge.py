@@ -102,7 +102,7 @@ dataset = dataset.apply_over_sampling(over_sample_size_lp=4)
 
 over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
     grid=dataset.grid,
-    sub_size_list=[4, 2, 1],
+    sub_size_list=[4, 2, 2],
     radial_list=[0.3, 0.6],
     centre_list=[(0.0, 0.0)],
 )
@@ -247,7 +247,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -86629.349379,
+    -86283.10392994,
     rtol=1e-4,
     err_msg="mge: JAX vmap likelihood mismatch",
 )
