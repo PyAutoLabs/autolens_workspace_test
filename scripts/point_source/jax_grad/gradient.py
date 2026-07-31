@@ -1,6 +1,9 @@
 """
-Tests JAX gradients of the point-source **source-plane** chi-squared
-(``al.FitPositionsSource``), in two stages:
+Tests JAX gradients of the point-source chi-squared variants — the solver-free
+**source-plane** fits (``al.FitPositionsSource`` / ``...Solved``) and the
+solver-chained **image-plane** fits (``al.FitPositionsImagePairAll`` /
+``...Solved``, via the ``PointSolver`` implicit-diff ``custom_jvp``) — in two
+stages:
 
  1. Finiteness — ``jax.value_and_grad`` returns a finite log-likelihood and a
     finite, non-zero gradient vector.
@@ -194,10 +197,9 @@ source. With no source-centre parameters, the model's only positional degrees
 of freedom are the lens mass parameters; ``cosmology.H0`` still has no
 bearing on this position-only chi-squared and stays possibly-zero-grad.
 
-Note: gradients through the image-plane ``PointSolver`` variants
-(``FitPositionsImagePairAll`` / ``...Solved`` etc.) require a ``custom_jvp``
-around the triangle-refinement solve and are deliberately not attempted here
-— that is phase 5 of issue #657.
+Gradients through the image-plane ``PointSolver`` variants are certified in the
+blocks below via the solver's implicit-diff ``custom_jvp``
+(``autolens.point.solver.implicit_diff``, phase 5 of issue #657).
 """
 
 point_0_solved = af.Model(al.ps.PointSolved)
@@ -266,3 +268,276 @@ assert np.all(
 ), "A positional parameter has zero gradient — evaluation point is degenerate (solved)."
 
 print("point_source gradient.py solved-source checks passed.")
+
+
+"""
+__Image-Plane Solver Gradients (implicit-diff custom_jvp)__
+
+The blocks below certify gradients THROUGH the ``PointSolver`` forward solve —
+possible because the solver applies the implicit fixed-point rule
+``A dtheta = dalpha + dbeta`` at its solved positions
+(``autolens.point.solver.implicit_diff``; the gravity.jl / Lombardi 2024 Eq. 30
+mechanism — differentiate at the solution, never through the triangle
+refinement).
+
+**FD methodology — the solver staircase.** The forward solve quantizes
+positions at ``pixel_scale_precision``, so the computed likelihood is a
+staircase and central differences BELOW the stair width read exactly zero.
+The implicit gradient is the derivative of the exact-solve envelope — the
+quantity a gradient search follows. Certification therefore uses:
+
+ 1. a fine-precision solver (``pixel_scale_precision=1e-5``) so the stairs are
+    ~100x smaller than production, and
+ 2. a per-parameter FD step sweep (``rel_steps``, the interferometer/delaunay
+    convention) whose steps span many stairs, with ``FD_SOLVER_RTOL`` (2%) —
+    residual stair noise sits at the ~1-2% level at a generic base point, while
+    a WRONG implicit rule would miss at every parameter and every step, not sit
+    at the stair-noise floor.
+
+**Known limitation — free cosmology.** ``Tracer`` registers ``cosmology`` as
+aux (``no_flatten``), so a FREE cosmology parameter rides the ``custom_jvp``
+boundary as a stale tracer and raises ``UnexpectedTracerError``. The
+solver-chained models below therefore carry no cosmology component — physically
+lossless here (H0 does not move 2-plane image positions). Multi-plane gradient
+fits with free cosmology need the cosmology flattened into the Tracer pytree
+(requires registered cosmology classes) — recorded as a phase-5 follow-up on
+issue #657.
+"""
+solver_fine = al.PointSolver.for_grid(
+    grid=grid, pixel_scale_precision=1e-5, magnification_threshold=0.1
+)
+
+FD_REL_STEPS = (1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3)
+
+# rtol for the solver-chained FD comparisons: residual stair noise on the FD side sits
+# at the ~1-2% level at a generic base point (the AD value is step-free; the FD sweep
+# straddles solver quanta). A WRONG implicit rule — e.g. a dropped dbeta term or an
+# untransposed Jacobian — misses by factors, at every parameter, at every step.
+FD_SOLVER_RTOL = 2e-2
+
+"""
+__Block C — FitPositionsImagePairAllSolved + PointSolved (solved centre through the solver)__
+
+The all-pairs mixture is smooth in the pairings (LogSumExp), so with solver
+gradients the whole chain params -> beta* -> solver -> mixture is
+differentiable. The model has no source parameters at all.
+"""
+model_ip_solved = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source_solved)
+)
+
+analysis_ip_solved = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver_fine,
+    fit_positions_cls=al.FitPositionsImagePairAllSolved,
+)
+
+fitness_ip_solved = Fitness(
+    model=model_ip_solved,
+    analysis=analysis_ip_solved,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+param_vector_ip = jnp.array(model_ip_solved.physical_values_from_prior_medians)
+key_ip = jax.random.PRNGKey(44)
+param_vector_ip = param_vector_ip + jax.random.uniform(
+    key_ip, shape=param_vector_ip.shape, minval=0.0002, maxval=0.0006
+)
+
+value_ip, grad_ip = jax.value_and_grad(fitness_ip_solved.call)(param_vector_ip)
+
+print(f"Log likelihood (image-plane solved) = {float(value_ip):.6f}")
+
+assert np.isfinite(float(value_ip)), "Log likelihood (image-plane solved) is not finite"
+assert np.all(
+    np.isfinite(np.array(grad_ip))
+), f"Gradient contains non-finite values (image-plane solved): {np.array(grad_ip)}"
+assert not np.all(
+    np.array(grad_ip) == 0.0
+), "Gradient is all zeros (image-plane solved) — the solver custom_jvp did not engage"
+
+param_names_ip = util.parameter_names_from(model_ip_solved)
+
+comparison_ip = util.compare_gradients(
+    fitness_ip_solved.call,
+    param_vector_ip,
+    param_names=param_names_ip,
+    rel_steps=FD_REL_STEPS,
+)
+
+util.assert_gradients_match(comparison_ip, rtol=FD_SOLVER_RTOL)
+
+# Every parameter is a lens mass parameter — all must be live through the solver.
+assert np.all(
+    np.abs(comparison_ip["ad"]) > 0.0
+), "A mass parameter has zero gradient through the solver (image-plane solved)."
+
+print("point_source gradient.py image-plane SOLVED-centre checks passed.")
+
+"""
+__Block D — FitPositionsImagePairAll + Point (sampled centre through the solver)__
+
+The centre-sampled twin: the source centre enters the solver as beta, so this
+exercises the ``dbeta`` term of the implicit rule (block C's beta* covers the
+solved route). Uses the free-centre model from the first block (``PointFlux``;
+its ``flux`` has legitimately zero gradient in a positions-only fit).
+"""
+model_ip_free = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+
+analysis_ip_free = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver_fine,
+    fit_positions_cls=al.FitPositionsImagePairAll,
+)
+
+fitness_ip_free = Fitness(
+    model=model_ip_free,
+    analysis=analysis_ip_free,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+param_vector_ipf = jnp.array(model_ip_free.physical_values_from_prior_medians)
+key_ipf = jax.random.PRNGKey(45)
+param_vector_ipf = param_vector_ipf + jax.random.uniform(
+    key_ipf, shape=param_vector_ipf.shape, minval=0.0002, maxval=0.0006
+)
+
+value_ipf, grad_ipf = jax.value_and_grad(fitness_ip_free.call)(param_vector_ipf)
+
+print(f"Log likelihood (image-plane free centre) = {float(value_ipf):.6f}")
+
+assert np.isfinite(float(value_ipf)), "Log likelihood (image-plane free) is not finite"
+assert np.all(
+    np.isfinite(np.array(grad_ipf))
+), f"Gradient contains non-finite values (image-plane free): {np.array(grad_ipf)}"
+
+param_names_ipf = util.parameter_names_from(model_ip_free)
+
+comparison_ipf = util.compare_gradients(
+    fitness_ip_free.call,
+    param_vector_ipf,
+    param_names=param_names_ipf,
+    rel_steps=FD_REL_STEPS,
+)
+
+util.assert_gradients_match(comparison_ipf, rtol=FD_SOLVER_RTOL)
+
+# flux carries no positional information; centre + mass must be live.
+positional_indices_ipf = [
+    i for i, name in enumerate(param_names_ipf) if "flux" not in name
+]
+assert np.all(
+    np.abs(comparison_ipf["ad"][positional_indices_ipf]) > 0.0
+), "A positional parameter has zero gradient through the solver (image-plane free)."
+
+print("point_source gradient.py image-plane FREE-centre checks passed.")
+
+"""
+__Block E — FitPositionsImagePairRepeatSolved (subgradient: finiteness + liveness only)__
+
+Nearest-with-repeats pairing is a piecewise-constant selection: autodiff
+returns the subgradient of the currently-selected pairing (documented on the
+class), so FD steps that span the staircase can straddle a pairing flip and
+disagree legitimately. The implicit rule itself is FD-certified in blocks C/D;
+here we assert the solver gradients ENGAGE (finite, non-zero, live mass
+parameters) without an FD sweep — every exclusion explicit, per the util.py
+convention.
+"""
+analysis_repeat = al.AnalysisPoint(
+    dataset=dataset,
+    solver=solver_fine,
+    fit_positions_cls=al.FitPositionsImagePairRepeatSolved,
+)
+
+fitness_repeat = Fitness(
+    model=model_ip_solved,
+    analysis=analysis_repeat,
+    fom_is_log_likelihood=True,
+    resample_figure_of_merit=-1.0e99,
+)
+
+value_rp, grad_rp = jax.value_and_grad(fitness_repeat.call)(param_vector_ip)
+
+print(f"Log likelihood (pair-repeat solved) = {float(value_rp):.6f}")
+
+assert np.isfinite(float(value_rp)), "Log likelihood (pair-repeat solved) is not finite"
+assert np.all(
+    np.isfinite(np.array(grad_rp))
+), f"Gradient contains non-finite values (pair-repeat solved): {np.array(grad_rp)}"
+
+grad_rp_arr = np.array(grad_rp)
+assert np.all(
+    np.abs(grad_rp_arr) > 0.0
+), "A mass parameter has zero subgradient (pair-repeat solved)."
+
+print("point_source gradient.py pair-repeat SOLVED subgradient checks passed.")
+
+"""
+__Block F — Solved fluxes + time delays (nested autodiff through the Hessian)__
+
+``FitFluxesSolved`` needs gradients of the magnifications, i.e. third
+derivatives of the deflection potential — the case the gravity.jl paper
+declares out of reach analytically; nested JAX autodiff supplies them
+mechanically. No solver in this chain (fluxes/delays are evaluated at the
+observed positions), so the standard FD conventions apply. H0 is LIVE here:
+time delays are directly H0-sensitive.
+"""
+dataset_ftd_path = dataset_path / "point_dataset_with_fluxes_and_time_delays.json"
+
+if dataset_ftd_path.exists():
+    dataset_ftd = al.from_json(file_path=dataset_ftd_path)
+
+    analysis_ftd = al.AnalysisPoint(
+        dataset=dataset_ftd,
+        solver=solver,
+        fit_positions_cls=al.FitPositionsSourceSolved,
+        fit_flux_cls=al.FitFluxesSolved,
+        fit_time_delays_cls=al.FitTimeDelaysSolved,
+    )
+
+    fitness_ftd = Fitness(
+        model=model_solved,
+        analysis=analysis_ftd,
+        fom_is_log_likelihood=True,
+        resample_figure_of_merit=-1.0e99,
+    )
+
+    param_vector_ftd = jnp.array(model_solved.physical_values_from_prior_medians)
+    key_ftd = jax.random.PRNGKey(46)
+    param_vector_ftd = param_vector_ftd + jax.random.uniform(
+        key_ftd, shape=param_vector_ftd.shape, minval=0.001, maxval=0.005
+    )
+
+    value_ftd, grad_ftd = jax.value_and_grad(fitness_ftd.call)(param_vector_ftd)
+
+    print(f"Log likelihood (fluxes+delays solved) = {float(value_ftd):.6f}")
+
+    assert np.isfinite(float(value_ftd)), "Log likelihood (fluxes+delays) is not finite"
+    assert np.all(
+        np.isfinite(np.array(grad_ftd))
+    ), f"Gradient contains non-finite values (fluxes+delays): {np.array(grad_ftd)}"
+    assert not np.all(np.array(grad_ftd) == 0.0), "Gradient is all zeros (fluxes+delays)"
+
+    comparison_ftd = util.compare_gradients(
+        fitness_ftd.call,
+        param_vector_ftd,
+        param_names=util.parameter_names_from(model_solved),
+    )
+
+    util.assert_gradients_match(comparison_ftd)
+
+    # Every parameter is live: mass moves positions/magnifications/delays, H0 the delays.
+    assert np.all(
+        np.abs(comparison_ftd["ad"]) > 0.0
+    ), "A parameter has zero gradient in the fluxes+time-delays fit."
+
+    print("point_source gradient.py fluxes+time-delays nested-autodiff checks passed.")
+else:
+    print(
+        f"SKIP fluxes+time-delays gradient block: {dataset_ftd_path} not found "
+        "(run scripts/point_source/simulators/simple.py to create it)."
+    )
+
+print("point_source gradient.py ALL phase-5 gradient checks passed.")
