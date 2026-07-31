@@ -32,7 +32,7 @@ __Simulate__
 Isothermal lens + 1e10 Msun NFW subhalo on the Einstein ring; compact double-Gaussian source (sharp gradients are
 what gravitational imaging leverages).
 """
-grid = al.Grid2D.uniform(shape_native=(120, 120), pixel_scales=0.05, over_sample_size=4)
+grid = al.Grid2D.uniform(shape_native=(120, 120), pixel_scales=0.05, over_sample_size=2)
 psf = al.Convolver.from_gaussian(shape_native=(11, 11), sigma=0.05, pixel_scales=0.05)
 
 simulator = al.SimulatorImaging(
@@ -170,7 +170,7 @@ iter_fit = al.pc.IterFitDpsiSrcImaging(
     src_pixelization=src_pixelization,
     src_image_mesh=src_image_mesh,
     gauge_constraints=True,
-    n_iter=5,
+    n_iter=3,
 )
 x0 = np.concatenate([np.asarray(fit.best_fit_source), np.asarray(fit.best_fit_dpsi)])
 s_opt, dpsi_opt = iter_fit.solve_joint_optimization(x0=x0, gauge_project_x0=True)
