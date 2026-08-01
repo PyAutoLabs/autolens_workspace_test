@@ -154,7 +154,9 @@ must also localize the subhalo. It is warm-started from the one-shot joint solut
 recipe (PyAutoLens#630, mirroring the interferometer uv campaign #627): under the Marquardt-scale LM damping
 `mu * diag(H)`, cold-starting from zeros no longer reliably lands in the subhalo basin, but refining inside the
 one-shot basin does. The LM then confirms the one-shot correction is a genuine cost minimum rather than drifting
-off it.
+off it. `damping="marquardt"` is pinned explicitly: PyAutoLens#676 changed the imaging default to `"identity"`,
+whose near Gauss-Newton trial steps are rejected from the warm-started optimum — a rejection storm (each trial a
+full Jacobian rebuild) that pushed this script past the 300s smoke cap without changing the result.
 
 Each accepted LM step re-imposes the gauge constraints <dpsi,1> = <dpsi,x> = <dpsi,y> = 0 on the updated state,
 but from the (un-gauged) one-shot solution the gauge-fixing move slides along the model-degenerate constant /
@@ -170,6 +172,7 @@ iter_fit = al.pc.IterFitDpsiSrcImaging(
     src_pixelization=src_pixelization,
     src_image_mesh=src_image_mesh,
     gauge_constraints=True,
+    damping="marquardt",
     n_iter=3,
 )
 x0 = np.concatenate([np.asarray(fit.best_fit_source), np.asarray(fit.best_fit_dpsi)])
