@@ -20,3 +20,33 @@ pip install "./PyAutoArray[optional]" "./PyAutoGalaxy[optional]" "./PyAutoLens[o
 # last time so site-packages has skip_latents() and other recent
 # autonerves APIs available at import time.
 pip install --force-reinstall --no-deps ./PyAutoNerves
+
+# --- THROWAWAY: provenance check for PyAutoNerves#146 ---------------------
+# This branch exists only to prove the setup.py source-stamp fix end-to-end
+# before the library PRs merge. It is closed, never merged.
+#
+# The right discriminator is the VERSION, not `__file__`: smoke installs
+# non-editable, so every import resolves under site-packages either way. A
+# family package reporting a date version means a PyPI wheel shadowed the
+# local source build — green for the wrong reason.
+python3 - <<'PY'
+import importlib.metadata as md
+
+EXPECTED = "9999.0.0.dev0"
+bad = []
+for pkg in ("autonerves", "autofit", "autoarray", "autogalaxy", "autolens"):
+    try:
+        version = md.version(pkg)
+    except md.PackageNotFoundError:
+        continue
+    print(f"{pkg:12} {version}")
+    if version != EXPECTED:
+        bad.append(f"{pkg}=={version}")
+
+if bad:
+    raise SystemExit(
+        "PROVENANCE FAIL — resolved from PyPI, not the source checkout: "
+        + ", ".join(bad)
+    )
+print("provenance OK — every family package is the local source build")
+PY
