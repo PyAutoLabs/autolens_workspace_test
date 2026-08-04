@@ -53,6 +53,21 @@ except ImportError:  # pragma: no cover - local-run fallback
     sys.path.insert(0, str(WORKSPACE.parent / "PyAutoHands" / "autohands"))
     from env_config import build_env_for_script, load_env_config
 
+# Per-script cap resolution, from the SAME resolver the mega-run uses. The
+# module-global TIMEOUT_SECS above expresses one cap for the whole run, but a
+# profile may set BUILD_SCRIPT_TIMEOUT on an `overrides` pattern — and that
+# value rides the per-script env, which is handed to the CHILD while the
+# `communicate(timeout=...)` kill timer lives HERE in the parent. Without
+# resolving it parent-side this runner would silently ignore a profile budget
+# that PyAutoHands's build_util honours, so the PR gate and the mega-run would
+# disagree about the same profile (PyAutoHands#226/#227).
+try:
+    from build_util import timeout_for
+except ImportError:  # pragma: no cover - keep the gate working without Hands
+    def timeout_for(env=None) -> int:
+        """Fallback: whole-run cap only, matching the pre-#227 behaviour."""
+        return TIMEOUT_SECS
+
 
 def load_smoke_scripts() -> list[str]:
     scripts: list[str] = []
@@ -76,8 +91,8 @@ def load_cfg() -> dict | None:
     return load_env_config(ENV_VARS_FILE)
 
 
-def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str]:
-    """Run one smoke script, capped at TIMEOUT_SECS.
+def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str, int]:
+    """Run one smoke script, capped at the per-script resolved timeout.
 
     The script runs in its own session (``start_new_session=True``) so that a
     timeout can kill the whole process group rather than just the direct child.
@@ -90,6 +105,7 @@ def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str]:
     the inherited pipe and lets the read finish.
     """
     env = build_env_for_script(Path(script_rel), cfg)
+    timeout_secs = timeout_for(env)
     script_path = SCRIPTS_DIR / script_rel
     t0 = time.time()
     proc = subprocess.Popen(
@@ -103,7 +119,7 @@ def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str]:
     )
     timed_out = False
     try:
-        output, _ = proc.communicate(timeout=TIMEOUT_SECS)
+        output, _ = proc.communicate(timeout=timeout_secs)
         returncode = proc.returncode
     except subprocess.TimeoutExpired:
         timed_out = True
@@ -119,11 +135,14 @@ def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str]:
     elapsed = time.time() - t0
     if timed_out:
         output = (output or "") + (
-            f"\n::error::TIMEOUT after {TIMEOUT_SECS}s — killed the process group. "
+            f"\n::error::TIMEOUT after {timeout_secs}s — killed the process group. "
             f"Raise BUILD_SCRIPT_TIMEOUT if this script is legitimately slow, or "
             f"add it to config/build/no_run.yaml with a dated SLOW marker.\n"
         )
-    return script_rel, returncode, elapsed, output or ""
+    # timeout_secs is returned so the caller reports the cap this script
+    # actually ran under, not the run-wide default -- a quoted cap below the
+    # enforced one biases every "too slow to un-skip?" call (the 60s-cap myth).
+    return script_rel, returncode, elapsed, output or "", timeout_secs
 
 
 def _kill_group(proc: subprocess.Popen) -> None:
@@ -145,27 +164,27 @@ def main() -> int:
     cfg = load_cfg()
 
     print(f"Running {len(scripts)} smoke test script(s) from {SMOKE_FILE.name}\n")
-    failures: list[tuple[str, int, str]] = []
+    failures: list[tuple[str, int, str, int]] = []
     for script_rel in scripts:
         print(f"::group::{script_rel}")
-        name, rc, elapsed, output = run_one(script_rel, cfg)
+        name, rc, elapsed, output, cap = run_one(script_rel, cfg)
         print(output, end="")
         if rc == 0:
             status = "PASS"
         elif rc == 124:
-            status = f"TIMEOUT ({TIMEOUT_SECS}s)"
+            status = f"TIMEOUT ({cap}s)"
         else:
             status = f"FAIL (exit {rc})"
         print(f"\n[{status}] {name} — {elapsed:.1f}s")
         print("::endgroup::")
         if rc != 0:
-            failures.append((name, rc, output))
+            failures.append((name, rc, output, cap))
 
     total = len(scripts)
     passed = total - len(failures)
     print(f"\n=== Smoke test summary: {passed}/{total} passed ===")
-    for name, rc, _ in failures:
-        label = f"TIMEOUT ({TIMEOUT_SECS}s)" if rc == 124 else f"FAIL  (exit {rc})"
+    for name, rc, _, cap in failures:
+        label = f"TIMEOUT ({cap}s)" if rc == 124 else f"FAIL  (exit {rc})"
         print(f"  {label}  {name}")
     return 0 if not failures else 1
 
