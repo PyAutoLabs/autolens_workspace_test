@@ -87,9 +87,9 @@ run; note the JSON serializer does not guarantee stable key order between runs).
 """
 flux = 1.0
 
-magnifications = al.LensCalc.from_tracer(tracer=tracer).magnification_2d_via_hessian_from(
-    grid=positions
-)
+magnifications = al.LensCalc.from_tracer(
+    tracer=tracer
+).magnification_2d_via_hessian_from(grid=positions)
 
 fluxes = [flux * np.abs(magnification) for magnification in magnifications]
 fluxes = al.ArrayIrregular(values=fluxes)

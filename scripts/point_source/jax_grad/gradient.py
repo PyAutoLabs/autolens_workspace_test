@@ -322,9 +322,7 @@ The all-pairs mixture is smooth in the pairings (LogSumExp), so with solver
 gradients the whole chain params -> beta* -> solver -> mixture is
 differentiable. The model has no source parameters at all.
 """
-model_ip_solved = af.Collection(
-    galaxies=af.Collection(lens=lens, source=source_solved)
-)
+model_ip_solved = af.Collection(galaxies=af.Collection(lens=lens, source=source_solved))
 
 analysis_ip_solved = al.AnalysisPoint(
     dataset=dataset,
@@ -518,7 +516,9 @@ if dataset_ftd_path.exists():
     assert np.all(
         np.isfinite(np.array(grad_ftd))
     ), f"Gradient contains non-finite values (fluxes+delays): {np.array(grad_ftd)}"
-    assert not np.all(np.array(grad_ftd) == 0.0), "Gradient is all zeros (fluxes+delays)"
+    assert not np.all(
+        np.array(grad_ftd) == 0.0
+    ), "Gradient is all zeros (fluxes+delays)"
 
     comparison_ftd = util.compare_gradients(
         fitness_ftd.call,

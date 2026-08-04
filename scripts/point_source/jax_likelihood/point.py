@@ -372,6 +372,8 @@ assert isinstance(
     fit_all_solved.log_likelihood, jnp.ndarray
 ), f"expected jax.Array, got {type(fit_all_solved.log_likelihood)}"
 np.testing.assert_allclose(
-    float(fit_all_solved.log_likelihood), float(fit_all_solved_np.log_likelihood), rtol=1e-4
+    float(fit_all_solved.log_likelihood),
+    float(fit_all_solved_np.log_likelihood),
+    rtol=1e-4,
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar (all solved).")

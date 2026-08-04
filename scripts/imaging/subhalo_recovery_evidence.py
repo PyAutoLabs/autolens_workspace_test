@@ -345,19 +345,19 @@ At each method's evidence maximum the subhalo must be localized (peak distance w
 solutions (the ridge reference). Results are saved above first, so a failed acceptance still leaves the
 evidence surfaces for inspection.
 """
-assert not on_boundary, (
-    "one-shot evidence maximum sits on the grid boundary — widen the grid"
-)
+assert (
+    not on_boundary
+), "one-shot evidence maximum sits on the grid boundary — widen the grid"
 assert dist < 0.5, f'one-shot evidence-max dkappa peak {dist:.2f}" from true subhalo'
-assert corr > 0.1, (
-    f"one-shot evidence-max dkappa correlation {corr:.3f} below the 0.1 noise floor"
-)
-assert dist_it < 0.7, (
-    f'iterative evidence-max dkappa peak {dist_it:.2f}" from true subhalo'
-)
-assert corr_it > 0.15, (
-    f"iterative evidence-max dkappa correlation {corr_it:.3f} below the 0.15 noise floor"
-)
+assert (
+    corr > 0.1
+), f"one-shot evidence-max dkappa correlation {corr:.3f} below the 0.1 noise floor"
+assert (
+    dist_it < 0.7
+), f'iterative evidence-max dkappa peak {dist_it:.2f}" from true subhalo'
+assert (
+    corr_it > 0.15
+), f"iterative evidence-max dkappa correlation {corr_it:.3f} below the 0.15 noise floor"
 assert corr_ridge > 0.5, (
     f"ridge-reference dkappa correlation {corr_ridge:.3f} below 0.5 — the family "
     "no longer contains a high-fidelity recovery"

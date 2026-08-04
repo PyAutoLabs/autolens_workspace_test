@@ -165,7 +165,9 @@ global_instance = factor_graph.global_prior_model.instance_from_prior_medians()
 """
 __Output Paths__
 """
-image_path_root = Path("scripts") / "multi_dataset" / "images" / "visualization_interferometer"
+image_path_root = (
+    Path("scripts") / "multi_dataset" / "images" / "visualization_interferometer"
+)
 
 if image_path_root.exists():
     shutil.rmtree(image_path_root)
