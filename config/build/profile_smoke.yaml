@@ -38,3 +38,53 @@ overrides:
       - PYAUTO_SMALL_DATASETS
       - PYAUTO_DISABLE_JAX
       - PYAUTO_FAST_PLOTS
+
+  # Per-script timeout budget for the finite-difference gradient-certification
+  # scripts (PyAutoHands#226). NOT a blanket cap raise: smoke's default stays
+  # 300s (`defaults` above is silent on BUILD_SCRIPT_TIMEOUT, so every other
+  # script keeps the built-in default from build_util.TIMEOUT_SECS).
+  #
+  # Why these need their own budget. Every jax_grad script declares
+  # `ENV: jax full_datasets`, which unsets PYAUTO_SMALL_DATASETS and
+  # PYAUTO_DISABLE_JAX. PYAUTO_TEST_MODE stays "2", but that only bypasses
+  # AbstractSearch.fit and these scripts run NO search — they build a Fitness
+  # and call jax.value_and_grad / finite differences directly. So smoke gives
+  # them no reduction at all: they do exactly the full-resolution FD work the
+  # release profile does, and mode=release already budgets this same class at
+  # 1800s with a written rationale (PyAutoHeart workspace-validation.yml).
+  # Smoke was left at 300s on the premise that smoke work is reduced; for this
+  # class that premise is simply false.
+  #
+  # Measured basis (do NOT re-derive this from local runs — local jax_grad runs
+  # fail assertions that pass in CI, and scripts that abort early report
+  # truncated durations):
+  #   point_source/jax_grad/gradient.py  665.9s local PASS, the only one that
+  #     completed locally; CI/local calibration from knn.py (141.6s local vs
+  #     200.0s CI, ~1.41x) projects it to ~940s in CI — over 3x the 300s cap.
+  #   imaging/jax_grad/pixelization.py   244.8s CI PASS on 2026-08-03T06:31Z
+  #     (82% of cap), TIMEOUT 16h later.
+  #   imaging/jax_grad/knn.py            200.0s CI (67% of cap) — under today,
+  #     but the next to fall, which is why this is a family pattern rather than
+  #     three explicit ones.
+  #
+  # 1800s matches the already-reasoned release budget and leaves ~1.9x headroom
+  # over the projected worst case. It is deliberately generous while the true
+  # CI durations are unknown: until now a killed script produced NO duration at
+  # all, so this budget is what makes them measurable. Revisit once a smoke run
+  # reports real numbers — and if pixelization.py then lands far above its
+  # 244.8s baseline, that is a genuine mesh/inversion regression and belongs
+  # with the Profiling Agent, not in this cap.
+  #
+  # Pattern breadth: "jax_grad/" substring-matches 8 scripts — the 6 under
+  # imaging/, point_source/gradient.py and interferometer/gradient.py (the last
+  # is SLOW-skipped in no_run.yaml and will not run). scripts/weak/jax_grad.py
+  # does NOT match: no trailing slash. See env_config._pattern_matches.
+  #
+  # Expressed with `set:` rather than a `timeout:` key on purpose —
+  # validate_env_profiles.ALLOWED_OVERRIDE_KEYS is {pattern, set, unset}, so a
+  # new key would be rejected. build_util.timeout_for reads this value
+  # parent-side; before PyAutoHands#227 it reached only the child and was
+  # silently ignored.
+  - pattern: "jax_grad/"
+    set:
+      BUILD_SCRIPT_TIMEOUT: "1800"
