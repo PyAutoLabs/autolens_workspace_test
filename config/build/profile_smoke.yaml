@@ -55,25 +55,35 @@ overrides:
   # Smoke was left at 300s on the premise that smoke work is reduced; for this
   # class that premise is simply false.
   #
-  # Measured basis (do NOT re-derive this from local runs — local jax_grad runs
-  # fail assertions that pass in CI, and scripts that abort early report
-  # truncated durations):
-  #   point_source/jax_grad/gradient.py  665.9s local PASS, the only one that
-  #     completed locally; CI/local calibration from knn.py (141.6s local vs
-  #     200.0s CI, ~1.41x) projects it to ~940s in CI — over 3x the 300s cap.
-  #   imaging/jax_grad/pixelization.py   244.8s CI PASS on 2026-08-03T06:31Z
-  #     (82% of cap), TIMEOUT 16h later.
-  #   imaging/jax_grad/knn.py            200.0s CI (67% of cap) — under today,
-  #     but the next to fall, which is why this is a family pattern rather than
-  #     three explicit ones.
+  # MEASURED basis — real CI durations from PyAutoHeart workspace-smoke run
+  # 30938311069 (2026-08-04), the first run in which these scripts could finish:
+  #   point_source/jax_grad/gradient.py   568.2s PASS   (63% of this budget)
+  #   imaging/jax_grad/regularization.py  301.7s PASS   (34%)
+  #   imaging/jax_grad/pixelization.py    259.8s PASS   (29%)
+  #   imaging/jax_grad/knn.py             186.5s PASS   (21%)
+  #   imaging/jax_grad/delaunay.py         89.6s PASS
+  #   imaging/jax_grad/lp.py               41.6s PASS
+  #   imaging/jax_grad/mge.py              41.2s PASS
   #
-  # 1800s matches the already-reasoned release budget and leaves ~1.9x headroom
-  # over the projected worst case. It is deliberately generous while the true
-  # CI durations are unknown: until now a killed script produced NO duration at
-  # all, so this budget is what makes them measurable. Revisit once a smoke run
-  # reports real numbers — and if pixelization.py then lands far above its
-  # 244.8s baseline, that is a genuine mesh/inversion regression and belongs
-  # with the Profiling Agent, not in this cap.
+  # 900s covers the measured worst case with ~1.6x headroom. The largest swing
+  # ever observed on these scripts is +23% (pixelization 06:31Z -> 22:25Z on
+  # 2026-08-03), which on 568.2s is ~699s — still inside the budget. Chosen over
+  # matching release's 1800s so the cap stays a runaway detector rather than a
+  # 30-minute sink; it was 1800s only while the true durations were unknown.
+  #
+  # Do NOT re-derive these from local runs: local jax_grad runs fail assertions
+  # that pass in CI, and scripts that abort early report truncated durations.
+  # The provisional value came from a local measurement plus a CI/local ratio
+  # taken from knn.py (~1.41x), which projected gradient.py at ~940s in CI. The
+  # real figure is 568.2s — CI is FASTER than local for that script, so the
+  # ratio did not transfer between scripts. Measure, do not extrapolate.
+  #
+  # These numbers also SETTLED the regression question this budget was accused
+  # of hiding: pixelization.py came back at 259.8s against its 244.8s baseline
+  # (+6%, ordinary variance), and knn.py (200.0 -> 186.5) and delaunay.py
+  # (92.4 -> 89.6) both came back DOWN. A graph-size-dependent XLA regression
+  # would not undo itself, so the 2026-08-03T22:25Z run was simply a slow run
+  # and the cap was the whole problem. Nothing routes to the Profiling Agent.
   #
   # Pattern breadth: "jax_grad/" substring-matches 8 scripts — the 6 under
   # imaging/, point_source/gradient.py and interferometer/gradient.py (the last
@@ -87,4 +97,4 @@ overrides:
   # silently ignored.
   - pattern: "jax_grad/"
     set:
-      BUILD_SCRIPT_TIMEOUT: "1800"
+      BUILD_SCRIPT_TIMEOUT: "900"
