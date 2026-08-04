@@ -58,6 +58,23 @@ Run from the ``autolens_workspace_test/`` repo root::
 
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/interferometer/nufft.py
+
+This script must run at **full resolution**. Its tolerances are calibrated
+against pynufft's gridding error, which is a strong function of the grid size
+N -- see the test (b) assertion below. Under a reduced-resolution profile the
+comparison is against a different problem than the one the tolerances describe,
+so the ``__Env__`` section releases ``PYAUTO_SMALL_DATASETS`` and test (b)
+guards its own grid geometry explicitly.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Numerical-precision test: pynufft's gridding error scales with grid size, so
+the assertions are only meaningful at the documented 256x256 / 0.1" geometry.
+No search and no plotting fidelity is needed, so only the dataset cap is
+released.
+
+ENV: full_datasets
 """
 
 import os
@@ -235,6 +252,33 @@ print("=" * 70)
 
 dataset_path = path.join("dataset", "interferometer", "simple")
 
+real_space_mask = al.Mask2D.circular(
+    shape_native=(256, 256),
+    pixel_scales=0.1,
+    radius=3.0,
+)
+
+# Guard the premise the tolerances below are calibrated against. `Mask2D.circular`
+# silently honours `PYAUTO_SMALL_DATASETS=1` by capping to (16, 16) at 0.6".
+# Without this guard the script keeps printing "256x256" while comparing a 16x16
+# problem, and the failure surfaces ~60 lines later as a blown pynufft tolerance
+# rather than as the geometry error it is. The `ENV: full_datasets` declaration
+# at the top of this file is what keeps this assertion true under the smoke and
+# release profiles.
+#
+# It runs BEFORE `should_simulate` deliberately: that call deletes the on-disk
+# dataset when the cap is active, so guarding first means a misconfigured run
+# fails without first destroying a full-resolution dataset other scripts share.
+assert real_space_mask.shape_native == (256, 256) and real_space_mask.pixel_scales == (
+    0.1,
+    0.1,
+), (
+    f"Test (b) requires the full-resolution 256x256 / 0.1\" grid, but got "
+    f"{real_space_mask.shape_native} at {real_space_mask.pixel_scales}. "
+    f"PYAUTO_SMALL_DATASETS is capping it; this script declares "
+    f"`ENV: full_datasets` to release that cap."
+)
+
 if al.util.dataset.should_simulate(dataset_path):
     print("Dataset missing - running simulator...")
     import subprocess
@@ -247,12 +291,6 @@ if al.util.dataset.should_simulate(dataset_path):
         ],
         check=True,
     )
-
-real_space_mask = al.Mask2D.circular(
-    shape_native=(256, 256),
-    pixel_scales=0.1,
-    radius=3.0,
-)
 
 dataset = al.Interferometer.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
@@ -338,6 +376,13 @@ assert (
 # pynufft <-> nufftax agreement at the same level. We're proving nufftax
 # matches the **truth** (DFT) and is therefore **at least** as accurate as
 # pynufft, not that the two NUFFT implementations agree bit-for-bit.
+#
+# This 1e-1 is a 256x256 number and only a 256x256 number. Measured
+# 2026-08-04: 6.0959e-02 relative at 256x256 / 0.1"; 8.9643e-01 at the
+# PYAUTO_SMALL_DATASETS-capped 16x16 / 0.6" -- ~15x over tolerance, because a
+# Jd=(6,6) interpolation stencil spans ~37% of a 16-pixel axis. nufftax is
+# unaffected either way (3.0e-14 vs 1.7e-14 relative), which is why only this
+# leg trips. The grid guard above is what stops the small-N case reaching here.
 assert (
     np.max(np.abs(vis_b_pyn - vis_b_dft)) / dft_scale < 1e-1
 ), "pynufft should match TransformerDFT within its gridding precision"
