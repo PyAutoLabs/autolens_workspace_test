@@ -5,6 +5,7 @@ misc/database/scrape/general.py
 imaging/jax_likelihood/rectangular.py
 imaging/jax_likelihood/mge.py
 imaging/jax_likelihood/lp.py
+imaging/jax_likelihood/smbh.py
 interferometer/jax_likelihood/rectangular.py
 interferometer/jax_likelihood/mge.py
 point_source/jax_likelihood/point.py

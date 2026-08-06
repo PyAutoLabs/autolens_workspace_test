@@ -153,6 +153,7 @@ likelihoods of the same base name.
 | Script | Model type |
 |---|---|
 | `imaging/jax_likelihood/lp.py` | Light parametric (Sersic, Exponential) |
+| `imaging/jax_likelihood/smbh.py` | Central `SMBH` point mass with FREE (traced) `mass` — regression cover for PyAutoGalaxy#553; non-SMBH components pinned to simulator truth because at prior medians the positive-only solver zeroes the source and the literal goes blind to source-plane mass |
 | `imaging/jax_likelihood/mge.py` | Multi-Gaussian expansion |
 | `imaging/jax_likelihood/delaunay.py` | Delaunay pixelization |
 | `imaging/jax_likelihood/rectangular.py` | Rectangular pixelization |
@@ -206,6 +207,11 @@ targets the methods that are called internally by `LensCalc` and `Tracer`.
 
 **Mass profiles**: `mp.Isothermal`, `mp.PowerLaw`, `mp.NFW`, `mp.ExternalShear`, `mp.ExternalPotential`
 → `deflections_yx_2d_from`, `convergence_2d_from`
+
+**Point-mass profiles**: `mp.PointMass`, `mp.SMBH` (regression cover for PyAutoGalaxy#553)
+→ `deflections_yx_2d_from`, `potential_2d_from`, plus a raw-zeros `convergence_2d_from` check
+(their convergence is undecorated and returns a raw zeros array by design). The traced-mass half
+of #553 needs a free model parameter and lives in `imaging/jax_likelihood/smbh.py`.
 
 Each method is tested on both `Grid2DIrregular` and `Grid2D.uniform`.
 All three steps of the JAX pattern are applied.  NFW uses `rtol=1e-4` (looser) due
