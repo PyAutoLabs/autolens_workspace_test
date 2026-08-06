@@ -46,6 +46,8 @@ Mass:
   - ag.mp.NFW             → deflections_yx_2d_from, convergence_2d_from
   - ag.mp.ExternalShear   → deflections_yx_2d_from, convergence_2d_from
   - ag.mp.ExternalPotential → deflections_yx_2d_from, convergence_2d_from
+  - ag.mp.PointMass       → deflections_yx_2d_from, potential_2d_from (+ raw-zeros convergence check)
+  - ag.mp.SMBH            → deflections_yx_2d_from, potential_2d_from (+ raw-zeros convergence check)
 """
 
 import jax
@@ -659,5 +661,76 @@ for method_name, np_irr, jax_irr, np_uni, jax_uni in [
     )
 
 print("  mp.ExternalPotential OK")
+
+"""
+ag.mp.PointMass and ag.mp.SMBH
+
+Point-mass profiles regressed under JAX (PyAutoGalaxy#553): deflections returned an
+`ArrayIrregular` wrapper into `jnp.multiply` on irregular grids, and `SMBH.__init__`
+called `np.sqrt` on a traced mass. This block pins the profile-level half of that
+coverage (the traced-mass half needs a free model parameter and lives in
+`imaging/jax_likelihood/smbh.py`).
+
+`convergence_2d_from` on these profiles is undecorated and returns a raw zeros
+array (the convergence is a Dirac delta, carried entirely by deflections and
+potential), so it gets a raw-array check instead of the autoarray-type helper.
+"""
+for label_prefix, point_profile in [
+    ("mp.PointMass", ag.mp.PointMass(centre=(0.0, 0.0), einstein_radius=0.1)),
+    (
+        "mp.SMBH",
+        ag.mp.SMBH(
+            centre=(0.0, 0.0), mass=1e10, redshift_object=0.5, redshift_source=1.0
+        ),
+    ),
+]:
+    for method_name, np_irr, jax_irr, np_uni, jax_uni in [
+        (
+            "deflections_yx_2d_from",
+            aa.VectorYX2DIrregular,
+            aa.VectorYX2DIrregular,
+            aa.VectorYX2D,
+            aa.VectorYX2D,
+        ),
+        (
+            "potential_2d_from",
+            aa.ArrayIrregular,
+            aa.ArrayIrregular,
+            aa.Array2D,
+            aa.Array2D,
+        ),
+    ]:
+        check_profile_method(
+            label=f"{label_prefix}.{method_name} (irregular)",
+            profile=point_profile,
+            method_name=method_name,
+            grid=grid_irr,
+            np_type=np_irr,
+            jax_type=jax_irr,
+        )
+        check_profile_method(
+            label=f"{label_prefix}.{method_name} (uniform)",
+            profile=point_profile,
+            method_name=method_name,
+            grid=grid_uni,
+            np_type=np_uni,
+            jax_type=jax_uni,
+        )
+
+    conv_np = point_profile.convergence_2d_from(grid=grid_irr)
+    assert isinstance(conv_np, np.ndarray), f"{label_prefix} convergence (numpy)"
+    assert np.all(np.array(conv_np) == 0.0), f"{label_prefix} convergence not zero"
+
+    conv_jit = jax.jit(
+        lambda p=point_profile: p.convergence_2d_from(grid=grid_irr, xp=jnp)
+    )()
+    assert isinstance(conv_jit, jax.Array), f"{label_prefix} convergence (jax jit)"
+    npt.assert_allclose(
+        np.array(conv_jit),
+        np.array(conv_np),
+        err_msg=f"{label_prefix}: convergence numpy vs jax (jit) mismatch",
+    )
+
+    print(f"  {label_prefix} OK")
 
 print("\nAll profiles_jit.py checks passed.")
