@@ -162,7 +162,16 @@ bulge = af.Model(
     profile_list=bulge_gaussian_list,
 )
 
+# The main mass is anchored near the `simulator/simple.py` truth (einstein_radius=1.6) with a
+# prior whose median is that truth. At the config-default prior median (einstein_radius=4.0) the
+# positive-only solver zeroes the source's solved intensities and the vmap literal below is
+# bit-identical for ANY source-plane mass structure (audit 2026-08-06, autolens_workspace_test#253)
+# — the mass-sensitivity assertion after the literal only works on a retained source.
+
 mass = af.Model(al.mp.Isothermal)
+mass.centre = (0.0, 0.0)
+mass.ell_comps = al.convert.ell_comps_from(axis_ratio=0.8, angle=45.0)
+mass.einstein_radius = af.UniformPrior(lower_limit=1.1, upper_limit=2.1)
 
 shear = af.Model(al.mp.ExternalShear)
 
@@ -313,10 +322,44 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -29060.21511937,
+    -28830.547173,
     rtol=1e-4,
     err_msg="mge_group: JAX vmap likelihood mismatch",
 )
+
+
+"""
+__Mass Sensitivity__
+
+The literal above is evaluated at the model's prior medians, where a +5% change of
+every lens mass parameter moves this likelihood by less than the literal's rtol
+(audit 2026-08-06, autolens_workspace_test#253) — the literal alone would pass a
+source-plane mass regression. This block pins mass sensitivity directly; the floor
+is the audit-measured response divided by five (margin for platform drift).
+"""
+mass_indices = [
+    i
+    for i, name in enumerate(model.model_component_and_parameter_names)
+    if ".mass." in name
+    and "centre" not in name
+    and "ell_comps" not in name
+    and "redshift" not in name
+]
+assert mass_indices, "imaging/mge_group: no mass parameters found for sensitivity check"
+
+parameters_perturbed = np.array(model.physical_values_from_prior_medians)
+for i in mass_indices:
+    parameters_perturbed[i] *= 1.05
+
+ll_median = float(np.asarray(result).ravel()[0])
+ll_perturbed = float(
+    np.asarray(fitness._vmap(jnp.array(parameters_perturbed[None, :]))).ravel()[0]
+)
+assert abs(ll_perturbed - ll_median) > 9.0, (
+    f"imaging/mge_group: likelihood insensitive to a +5% lens-mass perturbation "
+    f"(median={ll_median}, perturbed={ll_perturbed}) — source-plane mass pipeline regression?"
+)
+print("PASS: mass-sensitivity floor exceeded.")
 
 
 """

@@ -237,6 +237,40 @@ np.testing.assert_allclose(
 
 
 """
+__Mass Sensitivity__
+
+The literal above is evaluated at the model's prior medians, where a +5% change of
+every lens mass parameter moves this likelihood by less than the literal's rtol
+(audit 2026-08-06, autolens_workspace_test#253) — the literal alone would pass a
+source-plane mass regression. This block pins mass sensitivity directly; the floor
+is the audit-measured response divided by five (margin for platform drift).
+"""
+mass_indices = [
+    i
+    for i, name in enumerate(model.model_component_and_parameter_names)
+    if ".mass." in name
+    and "centre" not in name
+    and "ell_comps" not in name
+    and "redshift" not in name
+]
+assert mass_indices, "interferometer/rectangular_dspl: no mass parameters found for sensitivity check"
+
+parameters_perturbed = np.array(model.physical_values_from_prior_medians)
+for i in mass_indices:
+    parameters_perturbed[i] *= 1.05
+
+ll_median = float(np.asarray(result).ravel()[0])
+ll_perturbed = float(
+    np.asarray(fitness._vmap(jnp.array(parameters_perturbed[None, :]))).ravel()[0]
+)
+assert abs(ll_perturbed - ll_median) > 0.009, (
+    f"interferometer/rectangular_dspl: likelihood insensitive to a +5% lens-mass perturbation "
+    f"(median={ll_median}, perturbed={ll_perturbed}) — source-plane mass pipeline regression?"
+)
+print("PASS: mass-sensitivity floor exceeded.")
+
+
+"""
 __Path A: jit-wrap ``analysis.fit_from``__
 """
 
