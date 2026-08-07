@@ -273,7 +273,7 @@ assert real_space_mask.shape_native == (256, 256) and real_space_mask.pixel_scal
     0.1,
     0.1,
 ), (
-    f"Test (b) requires the full-resolution 256x256 / 0.1\" grid, but got "
+    f'Test (b) requires the full-resolution 256x256 / 0.1" grid, but got '
     f"{real_space_mask.shape_native} at {real_space_mask.pixel_scales}. "
     f"PYAUTO_SMALL_DATASETS is capping it; this script declares "
     f"`ENV: full_datasets` to release that cap."

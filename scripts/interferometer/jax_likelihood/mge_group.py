@@ -151,7 +151,9 @@ mass_indices = [
     and "ell_comps" not in name
     and "redshift" not in name
 ]
-assert mass_indices, "interferometer/mge_group: no mass parameters found for sensitivity check"
+assert (
+    mass_indices
+), "interferometer/mge_group: no mass parameters found for sensitivity check"
 
 parameters_perturbed = np.array(model.physical_values_from_prior_medians)
 for i in mass_indices:
