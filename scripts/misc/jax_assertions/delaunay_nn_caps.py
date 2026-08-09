@@ -14,7 +14,9 @@ The image-plane mesh is a 1,200-vertex Hilbert mesh built from an arc-like
 adapt image. Every mass model ray-traces the same image-plane data and mesh
 coordinates before qhull and the pure-JAX Sibson calculation run. A 64-entry
 reference pass records the untruncated distributions, then the worst geometry
-is rerun at caps 16 and 32.
+is rerun at caps 16, 24 and 32. The cap-24 result is intentionally reported
+rather than assumed: small qhull/platform differences can move the observed
+maximum across that boundary.
 
 Override ``DELAUNAY_NN_CAP_RANDOM_SAMPLES`` for a shorter exploratory run.
 The fixed stress geometry is always included, so the cap-16 regression remains
@@ -229,8 +231,23 @@ cap_16_overflow = int(np.asarray(cap_16_outputs[10]).sum()) + int(
 cap_24_overflow = int(np.asarray(cap_24_outputs[10]).sum()) + int(
     np.asarray(cap_24_outputs[13]).sum()
 )
+rows_exceeding_16 = {
+    "main_neighbors": int((main_sizes > CANDIDATE_CAP).sum()),
+    "main_cavities": int((main_cavity_sizes > CANDIDATE_CAP).sum()),
+    "split_neighbors": int((split_sizes > CANDIDATE_CAP).sum()),
+    "split_cavities": int((split_cavity_sizes > CANDIDATE_CAP).sum()),
+}
+rows_exceeding_24 = {
+    "main_neighbors": int((main_sizes > INTERMEDIATE_CAP).sum()),
+    "main_cavities": int((main_cavity_sizes > INTERMEDIATE_CAP).sum()),
+    "split_neighbors": int((split_sizes > INTERMEDIATE_CAP).sum()),
+    "split_cavities": int((split_cavity_sizes > INTERMEDIATE_CAP).sum()),
+}
 assert cap_16_overflow > 0, "cap 16 did not report the expected truncation"
-assert cap_24_overflow > 0, "cap 24 did not report the expected truncation"
+assert (cap_24_overflow > 0) == (sum(rows_exceeding_24.values()) > 0), (
+    "cap-24 overflow flags disagree with the 64-entry reference distribution"
+)
+assert cap_24_overflow <= cap_16_overflow
 assert (
     np.isnan(np.asarray(cap_16_outputs[4])).any()
     or np.isnan(np.asarray(cap_16_outputs[8])).any()
@@ -251,14 +268,23 @@ print(
 )
 print(
     "rows exceeding cap 16: "
-    f"main_neighbors={int((main_sizes > 16).sum())}, "
-    f"main_cavities={int((main_cavity_sizes > 16).sum())}, "
-    f"split_neighbors={int((split_sizes > 16).sum())}, "
-    f"split_cavities={int((split_cavity_sizes > 16).sum())}"
+    + ", ".join(f"{name}={count}" for name, count in rows_exceeding_16.items())
+)
+print(
+    "rows exceeding cap 24: "
+    + ", ".join(f"{name}={count}" for name, count in rows_exceeding_24.items())
 )
 print(
     f"worst sample: index={worst_index}, family={worst_parameters['family']}, "
     f"cap_16_overflow_rows={cap_16_overflow}, "
     f"cap_24_overflow_rows={cap_24_overflow}"
 )
-print("PASS: caps 16 and 24 are too low; cap 32 covers this production-like audit.")
+cap_24_result = (
+    "overflowed on this platform"
+    if cap_24_overflow
+    else "did not overflow on this platform"
+)
+print(
+    "PASS: cap 16 is too low; cap 32 covers this production-like audit; "
+    f"cap 24 {cap_24_result}."
+)
