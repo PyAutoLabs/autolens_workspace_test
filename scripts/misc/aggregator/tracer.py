@@ -42,7 +42,10 @@ def aggregator_from(analysis, model, samples):
     result_path = path.join(conf.instance.output_path, "test_mode", database_file)
     clean()
     search = al.m.MockSearch(
-        samples=samples, result=al.m.MockResult(model=model, samples=samples)
+        samples=samples,
+        result=af.m.MockResult(
+            model=model, samples=samples, samples_summary=samples.summary()
+        ),
     )
     search.paths = af.DirectoryPaths(path_prefix=database_file)
     search.fit(model=model, analysis=analysis)
@@ -69,7 +72,17 @@ def make_model():
 
 
 def make_samples(model):
-    parameters = [model.prior_count * [1.0], model.prior_count * [10.0]]
+    def parameter_list_with_physical_ell_comps(value):
+        parameter_list = model.prior_count * [value]
+        for index, path_tuple in enumerate(model.all_paths):
+            if "ell_comps" in path_tuple[0]:
+                parameter_list[index] = 0.1
+        return parameter_list
+
+    parameters = [
+        parameter_list_with_physical_ell_comps(1.0),
+        parameter_list_with_physical_ell_comps(10.0),
+    ]
     sample_list = Sample.from_lists(
         model=model,
         parameter_lists=parameters,
@@ -80,7 +93,7 @@ def make_samples(model):
     return al.m.MockSamples(
         model=model,
         sample_list=sample_list,
-        prior_means=[1.0] * model.prior_count,
+        prior_means=parameter_list_with_physical_ell_comps(1.0),
     )
 
 
