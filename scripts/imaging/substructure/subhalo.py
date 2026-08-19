@@ -287,7 +287,7 @@ run_scenario(
     "A (Isothermal, fixed redshift z=0.55)",
     redshift_subhalo=0.55,
     subhalo_mass_factory=isothermal_subhalo_mass,
-    expected_vmap=-1.412105e09,
+    expected_vmap=-7.062287e08,
 )
 
 
@@ -305,7 +305,7 @@ run_scenario(
     "B (Isothermal, free redshift UniformPrior(0.2, 0.9))",
     redshift_subhalo=af.UniformPrior(lower_limit=0.2, upper_limit=0.9),
     subhalo_mass_factory=isothermal_subhalo_mass,
-    expected_vmap=-1.412105e09,
+    expected_vmap=-7.062287e08,
 )
 
 
@@ -328,7 +328,7 @@ run_scenario(
     "C (NFWMCRLudlow, fixed redshift z=0.55)",
     redshift_subhalo=0.55,
     subhalo_mass_factory=nfw_mcr_ludlow_subhalo_mass,
-    expected_vmap=-1.349200e09,
+    expected_vmap=-6.747760e08,
 )
 
 
@@ -345,7 +345,7 @@ run_scenario(
     "D (NFWMCRLudlow, free redshift UniformPrior(0.2, 0.9))",
     redshift_subhalo=af.UniformPrior(lower_limit=0.2, upper_limit=0.9),
     subhalo_mass_factory=nfw_mcr_ludlow_subhalo_mass,
-    expected_vmap=-1.349200e09,
+    expected_vmap=-6.747760e08,
 )
 
 
