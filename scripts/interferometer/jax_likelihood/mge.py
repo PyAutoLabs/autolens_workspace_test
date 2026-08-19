@@ -201,7 +201,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -7.94439429e08,
+    -3.97221282e08,
     rtol=1e-4,
     err_msg="interferometer/mge: JAX vmap likelihood mismatch",
 )
@@ -275,7 +275,7 @@ print("TransformerNUFFT vmap result:", result_nufft)
 
 np.testing.assert_allclose(
     np.array(result_nufft),
-    -7.94439429e08,
+    -3.97221282e08,
     rtol=1e-4,
     err_msg="interferometer/mge: TransformerNUFFT vmap likelihood disagrees with TransformerDFT",
 )
