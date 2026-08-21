@@ -126,7 +126,7 @@ lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
 
 pixelization = af.Model(
     al.Pixelization,
-    mesh=al.mesh.RectangularBilinearAdaptImage(shape=mesh_shape, weight_power=1.0),
+    mesh=al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0),
     regularization=al.reg.Adapt,
 )
 
@@ -213,7 +213,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 # linear-algebra reduction order change across JAX releases. That is convergence
 # jitter, not a correctness regression. The EXACT, JAX-version-robust check is the
 # vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = -12932.06852498
+EXPECTED_VMAP_LOG_LIKELIHOOD = -8903.89296045
 
 np.testing.assert_allclose(
     np.array(result),

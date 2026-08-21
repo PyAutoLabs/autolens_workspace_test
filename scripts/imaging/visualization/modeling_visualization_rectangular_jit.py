@@ -137,7 +137,7 @@ shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 
 lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
 
-mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
+mesh = al.mesh.RectangularBilinearAdaptImage(shape=mesh_shape, weight_power=1.0)
 regularization = al.reg.Adapt()
 pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
 

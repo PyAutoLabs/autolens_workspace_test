@@ -142,7 +142,7 @@ mass.ell_comps.ell_comps_0 = af.UniformPrior(
 )
 mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
 
-mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
+mesh = al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0)
 
 regularization = al.reg.Adapt()
 
@@ -152,7 +152,7 @@ lens_1 = af.Model(al.Galaxy, redshift=1.0, mass=mass, pixelization=pixelization)
 
 # Source (z=2.0):
 
-mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
+mesh = al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0)
 
 regularization = al.reg.Adapt()
 

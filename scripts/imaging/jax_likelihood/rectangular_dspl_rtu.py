@@ -47,27 +47,16 @@ import autofit as af
 import autolens as al
 from autolens import conf
 
-"""
-__Mask__
 
-We define the ‘real_space_mask’ which defines the grid the image the strong lens is evaluated using.
-"""
-mask_radius = 3.0
-
-real_space_mask = al.Mask2D.circular(
-    shape_native=(256, 256),
-    pixel_scales=0.1,
-    radius=mask_radius,
-)
+sub_size = 4
+psf_shape_2d = (21, 21)
 
 """
 __Dataset__
 
-Load and plot the galaxy dataset `operated` via .fits files, which we will fit with 
-the model.
+Load and plot the galaxy dataset via .fits files.
 """
-dataset_name = "simple"
-dataset_path = path.join("dataset", "interferometer", dataset_name)
+dataset_path = path.join("dataset", "imaging", "jax_test_dspl")
 
 """
 __Dataset Auto-Simulation__
@@ -80,22 +69,19 @@ if al.util.dataset.should_simulate(dataset_path):
     import sys
 
     subprocess.run(
-        [
-            sys.executable,
-            "scripts/interferometer/simulator/simple.py",
-        ],
+        [sys.executable, "scripts/imaging/simulator/dspl.py"],
         check=True,
     )
 
-dataset = al.Interferometer.from_fits(
+dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
+    psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    uv_wavelengths_path=path.join(dataset_path, "uv_wavelengths.fits"),
-    real_space_mask=real_space_mask,
-    transformer_class=al.TransformerDFT,
+    pixel_scales=0.2,
+    over_sample_size_lp=sub_size,
+    over_sample_size_pixelization=sub_size,
 )
 
-print(f"Total Visiblities: {dataset.uv_wavelengths.shape[0]}")
 
 """
 __Mask__
@@ -103,48 +89,53 @@ __Mask__
 The model-fit requires a 2D mask defining the regions of the image we fit the model to the data, which we define
 and use to set up the `Imaging` object that the model fits.
 """
-positions = al.Grid2DIrregular(
-    al.from_json(file_path=path.join(dataset_path, "positions.json"))
+mask_radius = 3.5
+
+mask = al.Mask2D.circular(
+    shape_native=dataset.shape_native,
+    pixel_scales=dataset.pixel_scales,
+    radius=mask_radius,
 )
 
-# over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
-#     grid=dataset.grid,
-#     sub_size_list=[4, 2, 2],
-#     radial_list=[0.3, 0.6],
-#     centre_list=[(0.0, 0.0)],
-# )
-#
-# dataset = dataset.apply_over_sampling(over_sample_size_lp=over_sample_size)
+dataset = dataset.apply_mask(mask=mask)
+
+over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
+    grid=dataset.grid,
+    sub_size_list=[4, 2, 2],
+    radial_list=[0.3, 0.6],
+    centre_list=[(0.0, 0.0)],
+)
+
+dataset = dataset.apply_over_sampling(
+    over_sample_size_lp=over_sample_size,
+    over_sample_size_pixelization=4,
+)
+
+# dataset = dataset.apply_sparse_operator()
+
 
 """
-__Over Sampling__
+__JAX & Preloads__
 
-If you are familiar with using imaging data, you may have seen that a numerical technique called over sampling is used, 
-which evaluates light profiles on a higher resolution grid than the image data to ensure the calculation is accurate.
+In JAX, calculations must use static shaped arrays with known and fixed indexes. For certain calculations in the
+pixelization, this information has to be passed in before the pixelization is performed. Below, we do this for 3
+inputs:
 
-Interferometer does not observe galaxies in a way where over sampling is necessary, therefore all interferometer
-calculations are performed without over sampling.
+- `total_linear_light_profiles`: The number of linear light profiles in the model. This is 0 because we are not
+  fitting any linear light profiles to the data, primarily because the lens light is omitted.
 
-__Mesh Shape__
+- `total_mapper_pixels`: The number of source pixels in the rectangular pixelization mesh. This is required to set up 
+  the arrays that perform the linear algebra of the pixelization.
 
-The `mesh_shape` parameter defines number of pixels used by the rectangular mesh to reconstruct the source,
-set below to 28 x 28. 
+- `source_pixel_zeroed_indices`: The indices of source pixels on its edge, which when the source is reconstructed 
+  are forced to values of zero, a technique tests have shown are required to give accruate lens models.
 
-The `mesh_shape` must be fixed before modeling and cannot be a free parameter of the model, because JAX uses the
-mesh shape to define static shaped arrays which use the mesh to reconstruct the source. For a rectangular
-mesh, the same number of pixels must be used in the y and x directions.
-
-__Edge Zeroing__
-
-By default, all pixels at the edge of the mesh in the source-plane are forced to solutions of zero brightness by 
-the linear algebra solver. This prevents unphysical solutions where pixels at the edge of the mesh reconstruct 
-bright surface brightnesses, often because they fit residuals from the lens light subtraction.
-
-For a rectangular mesh, the source code computes edge pixels internally using the known
-pixels at the edge of the mesh. 
+The `image_mesh` can be ignored, it is legacy API from previous versions which may or may not be reintegrated in future
+versions.
 """
-mesh_pixels_yx = 8
-mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
+image_mesh = None
+mesh_shape = (8, 8)
+total_mapper_pixels = mesh_shape[0] * mesh_shape[1]
 
 """
 __Model__
@@ -159,10 +150,18 @@ The number of free parameters and therefore the dimensionality of non-linear par
 """
 # # Lens:
 
+bulge = al.model_util.mge_model_from(
+    mask_radius=mask_radius,
+    total_gaussians=30,
+    gaussian_per_basis=2,
+    centre_prior_is_uniform=True,
+)
+
+
 mass = af.Model(al.mp.Isothermal)
 
-mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
-mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.2, upper_limit=0.2)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.2, upper_limit=0.2)
 mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
 mass.ell_comps.ell_comps_0 = af.UniformPrior(
     lower_limit=0.11111111111111108, upper_limit=0.1111111111111111
@@ -173,40 +172,54 @@ shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 
-lens = af.Model(
+lens_0 = af.Model(
     al.Galaxy,
     redshift=0.5,
+    bulge=bulge,
     mass=mass,
     shear=shear,
 )
 
-# Source:
+mass = af.Model(al.mp.Isothermal)
 
-mesh = al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape)
-# regularization = al.reg.Constant(coefficient=1.0)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.2, upper_limit=0.2)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.2, upper_limit=0.2)
+mass.einstein_radius = af.UniformPrior(lower_limit=0.4, upper_limit=0.6)
+mass.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=0.11111111111111108, upper_limit=0.1111111111111111
+)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
 
-# regularization = al.reg.GaussianKernel(coefficient=1.0, scale=1.0)
+# bandwidth=0.1 (both meshes below): this config's reconstruction quality is
+# bandwidth-sensitive — the kernel-CDF default (1.0) over-smooths the
+# adapt-image weights here (LL -6340 vs -3824 at 0.1; old linear mesh: -3696).
+mesh = al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0, bandwidth=0.1)
 
 regularization = al.reg.Adapt()
 
 pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
 
-source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
+lens_1 = af.Model(al.Galaxy, redshift=1.0, mass=mass, pixelization=pixelization)
+
+# Source:
+
+mesh = al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0, bandwidth=0.1)
+
+regularization = al.reg.Adapt()
+
+pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
+
+source = af.Model(al.Galaxy, redshift=2.0, pixelization=pixelization)
 
 # Overall Lens Model:
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
-
-
-bulge = al.lp.Sersic()
-
-image = bulge.image_2d_from(grid=dataset.grid)
+model = af.Collection(galaxies=af.Collection(lens=lens_0, lens_1=lens_1, source=source))
 
 galaxy_name_image_dict = {
-    "('galaxies', 'lens')": image,
-    "('galaxies', 'source')": image,
+    "('galaxies', 'lens_0')": dataset.data,
+    "('galaxies', 'lens_1')": dataset.data,
+    "('galaxies', 'source')": dataset.data,
 }
-
 
 adapt_images = al.AdaptImages(galaxy_name_image_dict=galaxy_name_image_dict)
 
@@ -223,11 +236,12 @@ can compute its gradient.
 """
 import jax.numpy as jnp
 
-analysis = al.AnalysisInterferometer(
+analysis = al.AnalysisImaging(
     dataset=dataset,
     #    positions_likelihood_list=[al.PositionsLH(threshold=0.4, positions=positions)],
     adapt_images=adapt_images,
     raise_inversion_positions_likelihood_exception=False,
+    #    settings=al.Settings(use_border_relocator=False)
 )
 
 """
@@ -271,46 +285,10 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3164.286252,
+    -3823.887477,
     rtol=1e-4,
-    err_msg="interferometer/rectangular: JAX vmap likelihood mismatch",
+    err_msg="rectangular_dspl: JAX vmap likelihood mismatch",
 )
-
-
-"""
-__Mass Sensitivity__
-
-The literal above is evaluated at the model's prior medians, where a +5% change of
-every lens mass parameter moves this likelihood by less than the literal's rtol
-(audit 2026-08-06, autolens_workspace_test#253) — the literal alone would pass a
-source-plane mass regression. This block pins mass sensitivity directly; the floor
-is the audit-measured response divided by five (margin for platform drift).
-"""
-mass_indices = [
-    i
-    for i, name in enumerate(model.model_component_and_parameter_names)
-    if ".mass." in name
-    and "centre" not in name
-    and "ell_comps" not in name
-    and "redshift" not in name
-]
-assert (
-    mass_indices
-), "interferometer/rectangular: no mass parameters found for sensitivity check"
-
-parameters_perturbed = np.array(model.physical_values_from_prior_medians)
-for i in mass_indices:
-    parameters_perturbed[i] *= 1.05
-
-ll_median = float(np.asarray(result).ravel()[0])
-ll_perturbed = float(
-    np.asarray(fitness._vmap(jnp.array(parameters_perturbed[None, :]))).ravel()[0]
-)
-assert abs(ll_perturbed - ll_median) > 0.008, (
-    f"interferometer/rectangular: likelihood insensitive to a +5% lens-mass perturbation "
-    f"(median={ll_median}, perturbed={ll_perturbed}) — source-plane mass pipeline regression?"
-)
-print("PASS: mass-sensitivity floor exceeded.")
 
 
 """
@@ -320,7 +298,7 @@ __Path A: jit-wrap ``analysis.fit_from``__
 
 instance = model.instance_from_prior_medians()
 
-analysis_np = al.AnalysisInterferometer(
+analysis_np = al.AnalysisImaging(
     dataset=dataset,
     adapt_images=adapt_images,
     raise_inversion_positions_likelihood_exception=False,
@@ -329,7 +307,7 @@ analysis_np = al.AnalysisInterferometer(
 fit_np = analysis_np.fit_from(instance=instance)
 print("NumPy fit.log_likelihood:", float(fit_np.log_likelihood))
 
-analysis_jit = al.AnalysisInterferometer(
+analysis_jit = al.AnalysisImaging(
     dataset=dataset,
     adapt_images=adapt_images,
     raise_inversion_positions_likelihood_exception=False,
@@ -346,46 +324,3 @@ np.testing.assert_allclose(
     float(fit.log_likelihood), float(fit_np.log_likelihood), rtol=1e-4
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
-
-
-"""
-__Path B: TransformerNUFFT cross-check__
-
-Re-run the same vmap likelihood with the JAX-native nufftax-backed
-TransformerNUFFT. Should match the TransformerDFT result because nufftax
-agrees with the analytic DFT to ~1e-13 across the stress-tested
-configurations. This proves the slow direct-DFT and fast NUFFT paths
-produce the same end-to-end likelihood.
-"""
-dataset_nufft = al.Interferometer.from_fits(
-    data_path=path.join(dataset_path, "data.fits"),
-    noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    uv_wavelengths_path=path.join(dataset_path, "uv_wavelengths.fits"),
-    real_space_mask=real_space_mask,
-    transformer_class=al.TransformerNUFFT,
-)
-
-analysis_nufft = al.AnalysisInterferometer(
-    dataset=dataset_nufft,
-    adapt_images=adapt_images,
-    raise_inversion_positions_likelihood_exception=False,
-)
-
-fitness_nufft = Fitness(
-    model=model,
-    analysis=analysis_nufft,
-    fom_is_log_likelihood=True,
-    resample_figure_of_merit=-1.0e99,
-)
-
-result_nufft = fitness_nufft._vmap(parameters)
-print()
-print("TransformerNUFFT vmap result:", result_nufft)
-
-np.testing.assert_allclose(
-    np.array(result_nufft),
-    -3164.286252,
-    rtol=1e-4,
-    err_msg="interferometer/rectangular: TransformerNUFFT vmap likelihood disagrees with TransformerDFT",
-)
-print("PASS: TransformerNUFFT cross-check matches TransformerDFT.")

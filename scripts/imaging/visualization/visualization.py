@@ -15,7 +15,7 @@ Structure
 
 2. `visualize` runs once per source type, each writing into its own subfolder:
      visualization/parametric/   — Sersic light-profile source
-     visualization/rectangular/  — RectangularAdaptImage pixelization
+     visualization/rectangular/  — RectangularBilinearAdaptImage pixelization
      visualization/delaunay/     — Delaunay pixelization
 
    Each subfolder contains only the source-dependent comparison plots:
@@ -145,7 +145,7 @@ lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass)
 """
 __Image Plane Mesh Grid__
 
-Used by both Delaunay and RectangularAdaptImage pixelizations.
+Used by both Delaunay and RectangularBilinearAdaptImage pixelizations.
 """
 image_mesh = al.image_mesh.Overlay(shape=(26, 26))
 
@@ -172,7 +172,7 @@ model_parametric = af.Collection(
 )
 
 # --- Rectangular pixelization ---
-mesh_rect = al.mesh.RectangularAdaptImage(shape=(22, 22))
+mesh_rect = al.mesh.RectangularBilinearAdaptImage(shape=(22, 22))
 reg_rect = al.reg.Constant(coefficient=1.0)
 pix_rect = al.Pixelization(mesh=mesh_rect, regularization=reg_rect)
 source_rectangular = af.Model(al.Galaxy, redshift=1.0, pixelization=pix_rect)

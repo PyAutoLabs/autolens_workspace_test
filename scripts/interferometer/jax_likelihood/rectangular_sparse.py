@@ -142,7 +142,7 @@ lens = af.Model(
 
 # Source:
 
-mesh = al.mesh.RectangularAdaptDensity(shape=mesh_shape)
+mesh = al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape)
 
 regularization = al.reg.Adapt()
 

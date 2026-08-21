@@ -4,7 +4,7 @@ Func Grad: Datacube Rectangular Pixelization Source
 
 Tests that JAX can compute batched log-likelihoods and jit-wrap the cube
 ``FactorGraphModel`` for a 4-channel datacube fitted with a
-``RectangularAdaptDensity`` pixelization source.
+``RectangularRTUAdaptDensity`` pixelization source.
 
 Mirrors ``interferometer/rectangular.py`` (same lens
 model, same mesh, same regularization, same adapt-images setup) but loads
@@ -115,7 +115,7 @@ mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 """
 __Model__
 
-Same lens (`Isothermal + ExternalShear`) and source (`RectangularAdaptDensity`
+Same lens (`Isothermal + ExternalShear`) and source (`RectangularRTUAdaptDensity`
 + `reg.Adapt()`) as ``interferometer/rectangular.py``.
 """
 mass = af.Model(al.mp.Isothermal)
@@ -139,7 +139,7 @@ lens = af.Model(
     shear=shear,
 )
 
-mesh = al.mesh.RectangularAdaptDensity(shape=mesh_shape)
+mesh = al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape)
 regularization = al.reg.Adapt()
 pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
 
