@@ -176,9 +176,10 @@ likelihoods of the same base name.
 | `multi_dataset/jax_likelihood/rectangular.py` | Rectangular pixelization across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi_dataset/jax_likelihood/delaunay.py` | Delaunay pixelization (Hilbert image-mesh) across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi_dataset/jax_likelihood/rectangular_mge.py` | MGE lens + rectangular source across g/r; per-band `regularization.inner_coefficient` (option B) |
+| `*/jax_likelihood/rectangular*_rtu.py` | RTU (kernel-CDF) counterparts of the imaging/multi_dataset rectangular pin scripts — pure renames of the pre-split scripts, likelihood pins unchanged; kept so the RTU meshes stay pinned after the Bilinear default switch |
 | `multi_dataset/jax_likelihood/delaunay_mge.py` | MGE lens + Delaunay source across g/r; per-band `regularization.inner_coefficient` (option B) |
 | `multi_dataset/jax_likelihood/dataset_model.py` | Parametric Sersic across g/r with `al.DatasetModel.grid_offset` as a free 2D offset prior on every dataset after the first (band 0 stays at the fixed `(0.0, 0.0)` default) |
-| `interferometer/datacube/rectangular.py` | 4-channel datacube via `FactorGraphModel`; `RectangularAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
+| `interferometer/datacube/rectangular.py` | 4-channel datacube via `FactorGraphModel`; `RectangularRTUAdaptDensity` + `reg.Adapt()` source. Identical channels — assertion at `4 × interferometer/rectangular` literal. Path A `jit(log_likelihood_function)` round-trip; Path B `TransformerNUFFT` cross-check |
 | `interferometer/datacube/delaunay.py` | 4-channel datacube via `FactorGraphModel`; Delaunay source (Hilbert image-mesh, edge zeroing, `reg.AdaptSplit()`). Identical channels — assertion at `4 × interferometer/delaunay` literal. Path A + Path B (TransformerNUFFT cross-check) |
 
 ---

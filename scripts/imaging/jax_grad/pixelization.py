@@ -4,7 +4,7 @@ pixelized sources, encoding the 2026-07 gradient-audit verdict
 (autolens_workspace_developer#87) as assertions.
 
 Since the rectangular-mesh consolidation (PyAutoArray#403), the adaptive
-rectangular meshes ``RectangularAdaptDensity`` / ``RectangularAdaptImage``
+rectangular meshes ``RectangularRTUAdaptDensity`` / ``RectangularRTUAdaptImage``
 ARE the kernel-density-CDF meshes (formerly ``RectangularKernelAdapt*``,
 PyAutoArray#374): the per-axis transform is ``F(x) = Σᵢ wᵢ·Φ((x−xᵢ)/h)`` —
 strictly monotone, C^∞ in queries and point positions, no ranks or sorts
@@ -18,7 +18,7 @@ likelihood is smooth in every parameter and autodiff agrees with central
 finite differences across the board (validated: AD = FD to 7 significant
 figures, stable over FD step sizes 1e-7..1e-5).
 
-**Variant B — ``RectangularAdaptDensity`` (os_pix=1, bandwidth=0.1)**: the
+**Variant B — ``RectangularRTUAdaptDensity`` (os_pix=1, bandwidth=0.1)**: the
 configuration where the deleted linear mesh was exactly flat in mass/shear.
 Strict FD on all parameters, with one documented exception: on JAX 0.10.2,
 all three exact FD steps for the os_pix=1 Einstein radius can land on
@@ -27,10 +27,10 @@ the same autodiff value, and adjacent-ULP probes recover the autodiff
 tangent), so that single comparison is excluded by name rather than hidden
 by a loose global tolerance.
 
-**Variant C — ``RectangularAdaptDensity`` (os_pix=4, default bandwidth)**:
+**Variant C — ``RectangularRTUAdaptDensity`` (os_pix=4, default bandwidth)**:
 strict FD on all parameters at production imaging over-sampling.
 
-**Variant D — ``RectangularAdaptImage`` production shape (os_pix=4,
+**Variant D — ``RectangularRTUAdaptImage`` production shape (os_pix=4,
 bandwidth=0.1)**: the full production configuration — ``reg.Adapt()``,
 ``al.AdaptImages`` and the border relocator — strict FD on all parameters.
 
@@ -257,22 +257,22 @@ for (
     production_settings,
 ) in [
     (
-        "RectangularAdaptDensity (os_pix=1, bandwidth=0.1)",
-        al.mesh.RectangularAdaptDensity(shape=mesh_shape, bandwidth=0.1),
+        "RectangularRTUAdaptDensity (os_pix=1, bandwidth=0.1)",
+        al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape, bandwidth=0.1),
         None,
         1,
         False,
     ),
     (
-        "RectangularAdaptDensity (os_pix=4)",
-        al.mesh.RectangularAdaptDensity(shape=mesh_shape),
+        "RectangularRTUAdaptDensity (os_pix=4)",
+        al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape),
         None,
         4,
         False,
     ),
     (
-        "RectangularAdaptImage + reg.Adapt + adapt images + border relocator (os_pix=4, bandwidth=0.1)",
-        al.mesh.RectangularAdaptImage(
+        "RectangularRTUAdaptImage + reg.Adapt + adapt images + border relocator (os_pix=4, bandwidth=0.1)",
+        al.mesh.RectangularRTUAdaptImage(
             shape=mesh_shape, weight_power=1.0, bandwidth=0.1
         ),
         al.reg.Adapt(),

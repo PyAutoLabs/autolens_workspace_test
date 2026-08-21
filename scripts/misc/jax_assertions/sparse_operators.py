@@ -128,7 +128,7 @@ sparse_operator = aa.ImagingSparseOperator.from_noise_map_and_psf(
     psf=psf.kernel.native,
 )
 
-mesh = aa.mesh.RectangularAdaptDensity(shape=(8, 8))
+mesh = aa.mesh.RectangularRTUAdaptDensity(shape=(8, 8))
 
 interpolator = mesh.interpolator_from(
     source_plane_data_grid=mask.derive_grid.unmasked,

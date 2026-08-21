@@ -7,11 +7,11 @@ A 2026-07-26 sweep of every ``al.reg`` scheme against the rectangular
 (kernel-CDF) and k-nearest-neighbour meshes mapped the compatibility
 surface; this script pins its four load-bearing positive results:
 
-**Variant A — ``RectangularAdaptDensity`` (os_pix=4) + ``reg.Zeroth``**:
+**Variant A — ``RectangularRTUAdaptDensity`` (os_pix=4) + ``reg.Zeroth``**:
 zeroth-order regularization (each pixel toward zero) is neighbour-free and
 pure xp — strict FD on all parameters.
 
-**Variant B — ``RectangularAdaptDensity`` (os_pix=4) +
+**Variant B — ``RectangularRTUAdaptDensity`` (os_pix=4) +
 ``reg.MaternKernel(nu=2.5)``**: THE Matérn/tfp question. The JAX path of
 the Matérn kernel evaluates the modified Bessel ``K_nu`` through
 ``tensorflow_probability.substrates.jax.math.bessel_kve`` (tfp-nightly —
@@ -247,16 +247,16 @@ for (
     rtol,
 ) in [
     (
-        "RectangularAdaptDensity (os_pix=4) + reg.Zeroth",
-        al.mesh.RectangularAdaptDensity(shape=mesh_shape),
+        "RectangularRTUAdaptDensity (os_pix=4) + reg.Zeroth",
+        al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape),
         al.reg.Zeroth(coefficient=1.0),
         4,
         adapt_images_rect,
         1e-3,
     ),
     (
-        "RectangularAdaptDensity (os_pix=4) + reg.MaternKernel(nu=2.5) [tfp bessel_kve]",
-        al.mesh.RectangularAdaptDensity(shape=mesh_shape),
+        "RectangularRTUAdaptDensity (os_pix=4) + reg.MaternKernel(nu=2.5) [tfp bessel_kve]",
+        al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape),
         al.reg.MaternKernel(coefficient=100.0, scale=1.0, nu=2.5),
         4,
         adapt_images_rect,

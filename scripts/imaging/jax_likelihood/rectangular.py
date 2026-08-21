@@ -183,7 +183,7 @@ lens = af.Model(
 
 # Source:
 
-mesh = al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0)
+mesh = al.mesh.RectangularBilinearAdaptImage(shape=mesh_shape, weight_power=1.0)
 
 regularization = al.reg.Adapt()
 
@@ -267,7 +267,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -644121.021562,
+    -651692.997799,
     rtol=1e-4,
     err_msg="rectangular: JAX vmap likelihood mismatch",
 )

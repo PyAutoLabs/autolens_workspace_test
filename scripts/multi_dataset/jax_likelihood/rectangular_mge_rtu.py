@@ -1,29 +1,16 @@
 """
-Func Grad: Multi-Wavelength Rectangular Pixelization
-====================================================
+Func Grad: Multi-Wavelength Rectangular + MGE Lens
+==================================================
 Tests that JAX can compute batched log-likelihoods and jit-wrap the
-multi-wavelength ``FactorGraphModel`` for a rectangular-pixelization
-source across both g and r bands.
+multi-wavelength ``FactorGraphModel`` for an MGE lens bulge + rectangular
+pixelization source across both g and r bands.
 
 Uses **option B** — per-band source ``regularization.inner_coefficient``
 priors via ``model.copy()`` + ``af.GaussianPrior`` on each ``AnalysisFactor``.
-This is the pixelized analogue of "per-band source shape": each band gets
-its own regularization strength. The lens mass, shear, and mesh parameters
-remain shared.
+The MGE lens bulge, lens mass, shear, and mesh parameters remain shared.
 
-Path A uses ``jax.jit`` on a parameter-vector entry point that mirrors
-``fitness._vmap`` (``instance_from_vector`` → ``log_likelihood_function``),
-because ``FactorGraphModel`` has no ``fit_from`` method and its global
-instance carries a ``FactorGraphModel`` reference that JAX cannot flatten.
-
-Path A asserts ``vmap == JIT round-trip`` (both through
-``FactorGraphModel.log_likelihood_function``) rather than NumPy-vs-JAX
-parity. For pixelized sources, ``analysis.log_likelihood_function`` under
-``use_jax=True`` takes a different numerical path than under
-``use_jax=False`` (the JAX path matches ``fit.log_likelihood`` only when
-routed through ``fit_from``, which ``FactorGraphModel`` does not expose).
-Parametric-only scripts in this folder (``lp.py``, ``mge_group.py``)
-assert full NumPy/JAX parity.
+Path A asserts ``vmap == JIT round-trip``; see ``rectangular.py`` for
+the rationale.
 
 __Env__
 
@@ -105,12 +92,11 @@ adapt_images_list = [
 
 """
 __Model__
-
-Tight priors pinned to the simulator's mass params (centre=(0,0),
-einstein_radius=1.6, axis_ratio=0.9 / angle=45° → ell_comps≈(0, 0.0526),
-shear=(0.05, 0.05)) so the pixelized inversion gets a physically sensible
-ray-tracing at prior medians.
 """
+bulge = al.model_util.mge_model_from(
+    mask_radius=mask_radius, total_gaussians=10, centre_prior_is_uniform=True
+)
+
 mass = af.Model(al.mp.Isothermal)
 mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.05, upper_limit=0.05)
 mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.05, upper_limit=0.05)
@@ -122,11 +108,11 @@ shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
 shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
 
-lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
 
 pixelization = af.Model(
     al.Pixelization,
-    mesh=al.mesh.RectangularBilinearAdaptImage(shape=mesh_shape, weight_power=1.0),
+    mesh=al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0),
     regularization=al.reg.Adapt,
 )
 
@@ -140,8 +126,7 @@ print(model.info)
 __Per-band models (option B)__
 
 Each band gets its own ``model.copy()`` with an independent prior on the
-source regularization ``inner_coefficient``. This is the pixelized analogue
-of "per-band source shape": each band picks its own regularization strength.
+source regularization ``inner_coefficient``.
 """
 model_per_band_list = []
 for _ in waveband_list:
@@ -152,7 +137,7 @@ for _ in waveband_list:
     model_per_band_list.append(model_analysis)
 
 """
-__FactorGraphModel (vmap path)__
+__FactorGraphModel__
 """
 analysis_list = [
     al.AnalysisImaging(
@@ -207,19 +192,18 @@ print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 # The absolute pin is a GROSS-change guard only (order-of-magnitude / sign / NaN),
-# hence `rtol=1e-2`: a pixelized inversion's log-likelihood drifts by a small,
-# JAX-version-dependent amount (measured ~2.6e-4 rel here between jax 0.9.2 and
-# 0.10.2; the sibling MGE script drifts ~1.8e-3) because the NNLS solve and the
-# linear-algebra reduction order change across JAX releases. That is convergence
-# jitter, not a correctness regression. The EXACT, JAX-version-robust check is the
-# vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = -12932.06852498
+# hence `rtol=1e-2`: this MGE + rectangular inversion drifts ~1.8e-3 relative
+# between JAX versions (measured jax 0.9.2 -> 0.10.2) — larger than the plain
+# rectangular script (~2.6e-4), as the MGE basis amplifies the NNLS/linear-algebra
+# reduction-order jitter. Convergence jitter, not a regression. The EXACT,
+# JAX-version-robust check is the vmap == jit round-trip asserted below.
+EXPECTED_VMAP_LOG_LIKELIHOOD = -3810.18711583
 
 np.testing.assert_allclose(
     np.array(result),
     EXPECTED_VMAP_LOG_LIKELIHOOD,
     rtol=1e-2,
-    err_msg="multi_dataset/rectangular: JAX vmap likelihood gross mismatch",
+    err_msg="multi_dataset/rectangular_mge: JAX vmap likelihood gross mismatch",
 )
 
 
@@ -243,8 +227,5 @@ log_l_jit = log_l_jit_fn(params_jit)
 
 print("JIT log_likelihood_function:", log_l_jit)
 assert isinstance(log_l_jit, jnp.ndarray), f"expected jax.Array, got {type(log_l_jit)}"
-# The real check: jit == vmap (same computation, two transforms) — exact to 1e-4
-# on any JAX version. Compare against the vmap result, not the absolute golden,
-# so this stays green across JAX releases (cf. multi_dataset/rectangular_mge.py).
 np.testing.assert_allclose(float(log_l_jit), float(result[0]), rtol=1e-4)
 print("PASS: jit(log_likelihood_function) round-trip matches vmap scalar.")

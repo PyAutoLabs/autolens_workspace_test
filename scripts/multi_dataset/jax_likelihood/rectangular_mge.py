@@ -112,7 +112,7 @@ lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
 
 pixelization = af.Model(
     al.Pixelization,
-    mesh=al.mesh.RectangularAdaptImage(shape=mesh_shape, weight_power=1.0),
+    mesh=al.mesh.RectangularBilinearAdaptImage(shape=mesh_shape, weight_power=1.0),
     regularization=al.reg.Adapt,
 )
 
@@ -197,7 +197,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 # rectangular script (~2.6e-4), as the MGE basis amplifies the NNLS/linear-algebra
 # reduction-order jitter. Convergence jitter, not a regression. The EXACT,
 # JAX-version-robust check is the vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = -3810.18711583
+EXPECTED_VMAP_LOG_LIKELIHOOD = -6157.55707862
 
 np.testing.assert_allclose(
     np.array(result),

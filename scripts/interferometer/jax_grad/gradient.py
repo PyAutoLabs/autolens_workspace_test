@@ -10,11 +10,11 @@ the model has no lens light component and the evaluation point is anchored
 near the simulator truth so the positive-only NNLS keeps the linear source
 live.
 
-**Variant B — ``RectangularAdaptDensity`` via the sparse linear-algebra
+**Variant B — ``RectangularRTUAdaptDensity`` via the sparse linear-algebra
 path**: mirrors ``interferometer/rectangular_sparse.py``
 exactly — ``TransformerDFT`` + ``apply_sparse_operator(use_jax=True)`` (the
 sparse NUFFT response-matrix formalism; the operator is aux state built once
-outside the JIT trace), ``RectangularAdaptDensity`` mesh + ``reg.Adapt()`` +
+outside the JIT trace), ``RectangularRTUAdaptDensity`` mesh + ``reg.Adapt()`` +
 ``al.AdaptImages``. Since the rectangular-mesh consolidation
 (PyAutoArray#403) this mesh IS the kernel-density-CDF mesh (formerly
 ``RectangularKernelAdaptDensity``, PyAutoArray#374): no ranks or sorts, so
@@ -226,7 +226,7 @@ def sparse_fitness(mesh, regularization):
 
 
 """
-__Variant B: RectangularAdaptDensity — differentiable on the sparse path__
+__Variant B: RectangularRTUAdaptDensity — differentiable on the sparse path__
 
 The kernel-density CDF transform replaces the deleted empirical point-rank
 CDF with ``F(x) = Σᵢ wᵢ·Φ((x−xᵢ)/h)`` — no ranks, no sorts, so the staircase
@@ -235,10 +235,10 @@ no over-sampling to fall back on, which made the old linear adaptive mesh's
 gradients unusable here; the mesh must carry live, strictly FD-matched
 gradients on every (mass/shear) parameter in this exact configuration.
 """
-print("\n=== interferometer RectangularAdaptDensity + reg.Adapt, sparse operator ===")
+print("\n=== interferometer RectangularRTUAdaptDensity + reg.Adapt, sparse operator ===")
 
 fitness, param_vector, param_names = sparse_fitness(
-    mesh=al.mesh.RectangularAdaptDensity(shape=mesh_shape),
+    mesh=al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape),
     regularization=al.reg.Adapt(),
 )
 
@@ -268,13 +268,13 @@ util.assert_gradients_match(comparison)
 # Every parameter here is mass/shear — all must be genuinely live (a flat
 # likelihood would pass the FD match trivially as 0 == 0).
 assert np.all(np.abs(comparison["ad"]) > 1e-2), (
-    "A mass/shear gradient is ~zero on the sparse RectangularAdaptDensity "
+    "A mass/shear gradient is ~zero on the sparse RectangularRTUAdaptDensity "
     "path — the kernel-CDF mesh is not carrying smooth mass information: "
     f"{[(n, a) for n, a in zip(param_names, comparison['ad']) if abs(a) <= 1e-2]}"
 )
 
 print(
-    "interferometer sparse RectangularAdaptDensity: all gradients live and "
+    "interferometer sparse RectangularRTUAdaptDensity: all gradients live and "
     "strictly FD-matched."
 )
 
