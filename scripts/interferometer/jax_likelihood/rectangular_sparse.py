@@ -348,11 +348,14 @@ print("PASS: TransformerDFT (no sparse) matches rectangular.py canonical likelih
 """
 __Path C: TransformerNUFFT (no sparse operator)__
 
-TransformerNUFFT is incompatible with `apply_sparse_operator` (raises
-NotImplementedError because the sparse path depends on pynufft's
-kernel-deconvolved adjoint scale). Run plain TransformerNUFFT + direct
-forward NUFFT for the pixelization. Should match Path B (DFT-no-sparse)
-since nufftax matches the analytic DFT to ~1e-13 in the forward operator.
+TransformerNUFFT is not used with `apply_sparse_operator` here. The reason
+originally recorded was specific to the legacy pynufft backend's
+kernel-deconvolved adjoint scale; that backend has since been removed, so
+whether the incompatibility still holds against the nufftax adjoint has not
+been re-verified — this path deliberately does not depend on the answer.
+Run plain TransformerNUFFT + direct forward NUFFT for the pixelization.
+Should match Path B (DFT-no-sparse) since nufftax matches the analytic DFT
+to ~1e-13 in the forward operator.
 """
 dataset_nufft = al.Interferometer.from_fits(
     data_path=path.join(dataset_path, "data.fits"),

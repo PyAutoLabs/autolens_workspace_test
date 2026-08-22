@@ -1,16 +1,18 @@
 """
-NUFFT Parity: pynufft (TransformerNUFFT) vs nufftax (JAX-compatible)
+NUFFT Parity: nufftax (TransformerNUFFT) vs the exact TransformerDFT
 =====================================================================
 
-This script verifies that **nufftax** (https://github.com/GragasLab/nufftax)
-produces numerically identical visibilities to PyAutoLens's existing
-**pynufft**-based ``TransformerNUFFT`` for the interferometer
-image-to-visibility forward NUFFT and its adjoint.
+This script verifies that **nufftax** (https://github.com/GragasLab/nufftax),
+the backend behind PyAutoLens's ``TransformerNUFFT``, produces numerically
+correct visibilities for the interferometer image-to-visibility forward NUFFT
+and its adjoint. ``TransformerDFT`` — a direct, unapproximated Fourier
+transform — is the reference throughout.
 
-This is the parity prerequisite for swapping pynufft for nufftax inside
-``TransformerNUFFT``, which would unblock end-to-end JAX-jit'd interferometer
-likelihoods (pynufft is not differentiable; nufftax is fully JAX-native and
-supports ``jit`` / ``grad`` / ``vmap``).
+History: this script began as the parity check for swapping pynufft for
+nufftax inside ``TransformerNUFFT``, which unblocked end-to-end JAX-jit'd
+interferometer likelihoods. That swap has shipped and pynufft has since been
+removed from PyAutoArray entirely, so the pynufft legs are gone; what remains
+is the standing correctness check of nufftax against the exact DFT.
 
 The script mirrors ``scripts/imaging/convolution.py`` in structure:
 auto-simulate dataset, build a tracer image, compute via two implementations,
@@ -24,8 +26,7 @@ nufftax computes (with ``isign=-1``, ``modeord=0``, default CMCL ordering):
 
 where ``f`` has shape ``(n2, n1)``, ``k1`` ranges over ``-n1//2 .. n1//2-1``,
 ``k2`` over ``-n2//2 .. n2//2-1``, and ``x, y`` are non-uniform points in
-``[-pi, pi)``. The recipe to match autoarray's ``TransformerDFT``
-(and pynufft's ``TransformerNUFFT``) is:
+``[-pi, pi)``. The recipe to match autoarray's ``TransformerDFT`` is:
 
     image_flipped = image[::-1, :]                  # autoarray row 0 = top (y up); nufftax row 0 = mode -n2//2
     x = 2 * pi * u_lambda * pixel_scale_rad         # x is the col-axis (x) frequency
@@ -36,15 +37,14 @@ where ``f`` has shape ``(n2, n1)``, ``k1`` ranges over ``-n1//2 .. n1//2-1``,
     visibilities = nufft2d2(x, y, image_flipped, eps=1e-12, isign=-1) * shift
 
 For the typical even-by-even image (e.g. 256x256), ``shift = exp(-0.5j*(x+y))``,
-which is the same expression as ``TransformerNUFFT.shift``
-(``transformer.py:243-257``); that ``self.shift`` is dead code in the pynufft
-path because pynufft applies the half-pixel correction internally via its plan,
-but is **required** for nufftax which does not.
+which is the same expression as ``TransformerNUFFT``'s internal ``_shift``.
+It is **required** for nufftax, which does not apply the half-pixel correction
+internally.
 
 Test cases
 ----------
 (a) All-ones 5x5 image, 0.005" pixels, 3 uv points -- low-noise sanity anchor
-    that reproduces the existing TransformerNUFFT pytest fixture.
+    that reproduces the TransformerNUFFT pytest fixture.
 (b) Lensed Sersic image, 256x256, real SMA uv coverage (190 visibilities) --
     the realistic case used by the JAX likelihood scripts.
 (c) Mapping matrix with 2 columns -- exercises the ``transform_mapping_matrix``
@@ -59,20 +59,20 @@ Run from the ``autolens_workspace_test/`` repo root::
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/interferometer/nufft.py
 
-This script must run at **full resolution**. Its tolerances are calibrated
-against pynufft's gridding error, which is a strong function of the grid size
-N -- see the test (b) assertion below. Under a reduced-resolution profile the
-comparison is against a different problem than the one the tolerances describe,
-so the ``__Env__`` section releases ``PYAUTO_SMALL_DATASETS`` and test (b)
-guards its own grid geometry explicitly.
+This script runs at **full resolution**: test (b) is the realistic 256x256 /
+0.1" production geometry the JAX likelihood scripts use, and it guards that
+geometry explicitly. nufftax's accuracy is not grid-size dependent (measured
+3.0e-14 vs 1.7e-14 relative at 16x16 and 256x256), so the tolerances here
+would survive a reduced-resolution profile -- the full-resolution requirement
+is now about testing the production-scale problem, not about a tolerance that
+only holds at one N.
 
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
-Numerical-precision test: pynufft's gridding error scales with grid size, so
-the assertions are only meaningful at the documented 256x256 / 0.1" geometry.
-No search and no plotting fidelity is needed, so only the dataset cap is
-released.
+Numerical-precision test exercised at the documented production 256x256 / 0.1"
+geometry. No search and no plotting fidelity is needed, so only the dataset cap
+is released.
 
 ENV: full_datasets
 """
@@ -83,7 +83,6 @@ os.environ.setdefault("NUMBA_CACHE_DIR", "/tmp/numba_cache")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
-import warnings
 from os import path
 from pathlib import Path
 
@@ -193,7 +192,7 @@ def transform_mapping_matrix_via_nufftax(
 
 
 # =============================================================================
-# Test (a): all-ones 5x5 image -- replicates the pynufft pytest expectation
+# Test (a): all-ones 5x5 image -- replicates the TransformerNUFFT pytest fixture
 # =============================================================================
 
 print("=" * 70)
@@ -205,36 +204,29 @@ mask_a = al.Mask2D.all_false(shape_native=(5, 5), pixel_scales=0.005)
 image_a = al.Array2D.ones(shape_native=(5, 5), pixel_scales=0.005)
 
 dft_a = al.TransformerDFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
-# `al.TransformerNUFFT` is the nufftax-backed default; the pynufft leg of this
-# parity test must name the legacy class explicitly, or the comparison below
-# degenerates into nufftax-vs-itself and asserts nothing.
-nuf_a = al.TransformerNUFFTPyNUFFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
+# `al.TransformerNUFFT` is the shipped nufftax-backed transformer. It is
+# compared against BOTH the exact DFT and the local nufftax recipe below, so
+# the check does not degenerate into comparing the library against itself.
 lib_a = al.TransformerNUFFT(uv_wavelengths=uv_a, real_space_mask=mask_a)
 
 vis_a_dft = np.asarray(dft_a.visibilities_from(image=image_a))
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    vis_a_pyn = np.asarray(nuf_a.visibilities_from(image=image_a.native))
 vis_a_nfx = visibilities_via_nufftax(image_a.native.array, uv_a, mask_a.pixel_scales)
 vis_a_lib = np.asarray(lib_a.visibilities_from(image=image_a.native))
 
 print(f"vis (DFT)     : {vis_a_dft}")
-print(f"vis (pynufft) : {vis_a_pyn}")
 print(f"vis (nufftax) : {vis_a_nfx}")
 print(f"vis (library) : {vis_a_lib}")
 print(f"max |Δ| nufftax - DFT     : {np.max(np.abs(vis_a_nfx - vis_a_dft)):.4e}")
-print(f"max |Δ| pynufft - DFT     : {np.max(np.abs(vis_a_pyn - vis_a_dft)):.4e}")
-print(f"max |Δ| nufftax - pynufft : {np.max(np.abs(vis_a_nfx - vis_a_pyn)):.4e}")
+print(f"max |Δ| library - DFT     : {np.max(np.abs(vis_a_lib - vis_a_dft)):.4e}")
 
 # nufftax matches the analytic DFT to machine precision.
 assert (
     np.max(np.abs(vis_a_nfx - vis_a_dft)) < 1e-10
 ), "nufftax should match TransformerDFT exactly on all-ones 5x5"
-# pynufft is a gridding approximation and has ~0.1% absolute error at N=5
-# (small-N kernel inaccuracy). It will agree with both DFT and nufftax to ~5e-2.
+# The shipped transformer must match the same exact reference.
 assert (
-    np.max(np.abs(vis_a_pyn - vis_a_dft)) < 1e-1
-), "pynufft should match DFT to gridding precision on all-ones 5x5"
+    np.max(np.abs(vis_a_lib - vis_a_dft)) < 1e-10
+), "al.TransformerNUFFT should match TransformerDFT exactly on all-ones 5x5"
 # The shipped `al.TransformerNUFFT` must reproduce the local nufftax recipe.
 assert (
     np.max(np.abs(vis_a_lib - vis_a_nfx)) < 1e-10
@@ -258,11 +250,13 @@ real_space_mask = al.Mask2D.circular(
     radius=3.0,
 )
 
-# Guard the premise the tolerances below are calibrated against. `Mask2D.circular`
+# Guard the production geometry this test is meant to exercise. `Mask2D.circular`
 # silently honours `PYAUTO_SMALL_DATASETS=1` by capping to (16, 16) at 0.6".
 # Without this guard the script keeps printing "256x256" while comparing a 16x16
-# problem, and the failure surfaces ~60 lines later as a blown pynufft tolerance
-# rather than as the geometry error it is. The `ENV: full_datasets` declaration
+# problem — a silently weaker test rather than the geometry error it is. (When
+# this script still had a gridding-based backend, that mismatch surfaced ~60
+# lines later as a blown tolerance; nufftax is accurate at both sizes, so the
+# guard is now the only thing that catches it.) The `ENV: full_datasets` declaration
 # at the top of this file is what keeps this assertion true under the smoke and
 # release profiles.
 #
@@ -331,9 +325,6 @@ image_b_native = image_b.native.array
 dft_b = al.TransformerDFT(
     uv_wavelengths=dataset.uv_wavelengths, real_space_mask=real_space_mask
 )
-nuf_b = al.TransformerNUFFTPyNUFFT(
-    uv_wavelengths=dataset.uv_wavelengths, real_space_mask=real_space_mask
-)
 lib_b = al.TransformerNUFFT(
     uv_wavelengths=dataset.uv_wavelengths, real_space_mask=real_space_mask
 )
@@ -341,9 +332,6 @@ lib_b = al.TransformerNUFFT(
 print("Running TransformerDFT (slow, exact reference)...")
 vis_b_dft = np.asarray(dft_b.visibilities_from(image=image_b))
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    vis_b_pyn = np.asarray(nuf_b.visibilities_from(image=image_b.native))
 vis_b_nfx = visibilities_via_nufftax(
     image_b_native, dataset.uv_wavelengths, real_space_mask.pixel_scales
 )
@@ -357,40 +345,23 @@ print(
     f"(rel: {np.max(np.abs(vis_b_nfx - vis_b_dft)) / dft_scale:.4e})"
 )
 print(
-    f"max |Δ| pynufft - DFT     : "
-    f"{np.max(np.abs(vis_b_pyn - vis_b_dft)):.4e}  "
-    f"(rel: {np.max(np.abs(vis_b_pyn - vis_b_dft)) / dft_scale:.4e})"
-)
-print(
-    f"max |Δ| nufftax - pynufft : "
-    f"{np.max(np.abs(vis_b_nfx - vis_b_pyn)):.4e}  "
-    f"(rel: {np.max(np.abs(vis_b_nfx - vis_b_pyn)) / dft_scale:.4e})"
+    f"max |Δ| library - DFT     : "
+    f"{np.max(np.abs(vis_b_lib - vis_b_dft)):.4e}  "
+    f"(rel: {np.max(np.abs(vis_b_lib - vis_b_dft)) / dft_scale:.4e})"
 )
 
 # nufftax with eps=1e-12 is effectively exact; match DFT to ~1e-9 relative.
 assert (
     np.max(np.abs(vis_b_nfx - vis_b_dft)) / dft_scale < 1e-9
 ), "nufftax should match TransformerDFT to ~1e-9 relative on 256x256"
-# pynufft is a gridding approximation with default Jd=(6,6) and oversample
-# ratio=2; this gives ~6e-2 relative error at 256x256, which floors the
-# pynufft <-> nufftax agreement at the same level. We're proving nufftax
-# matches the **truth** (DFT) and is therefore **at least** as accurate as
-# pynufft, not that the two NUFFT implementations agree bit-for-bit.
-#
-# This 1e-1 is a 256x256 number and only a 256x256 number. Measured
-# 2026-08-04: 6.0959e-02 relative at 256x256 / 0.1"; 8.9643e-01 at the
-# PYAUTO_SMALL_DATASETS-capped 16x16 / 0.6" -- ~15x over tolerance, because a
-# Jd=(6,6) interpolation stencil spans ~37% of a 16-pixel axis. nufftax is
-# unaffected either way (3.0e-14 vs 1.7e-14 relative), which is why only this
-# leg trips. The grid guard above is what stops the small-N case reaching here.
+# The shipped transformer must match the same exact reference. Unlike the
+# gridding-based backend this script was originally written against, nufftax's
+# accuracy does not degrade at small N (measured 2026-08-04: 3.0e-14 relative
+# at 256x256 / 0.1", 1.7e-14 at 16x16 / 0.6"), so this tolerance is not a
+# 256x256-only number.
 assert (
-    np.max(np.abs(vis_b_pyn - vis_b_dft)) / dft_scale < 1e-1
-), "pynufft should match TransformerDFT within its gridding precision"
-# nufftax and pynufft agree only to pynufft's gridding precision (since
-# nufftax is essentially exact, this residual is dominated by pynufft's error).
-assert (
-    np.max(np.abs(vis_b_nfx - vis_b_pyn)) / dft_scale < 1e-1
-), "nufftax and pynufft must agree to pynufft's gridding precision"
+    np.max(np.abs(vis_b_lib - vis_b_dft)) / dft_scale < 1e-9
+), "al.TransformerNUFFT should match TransformerDFT to ~1e-9 relative on 256x256"
 # The shipped `al.TransformerNUFFT` must reproduce the local nufftax recipe.
 assert (
     np.max(np.abs(vis_b_lib - vis_b_nfx)) / dft_scale < 1e-9
@@ -401,20 +372,20 @@ assert (
 script_path = Path("scripts") / "interferometer" / "images"
 script_path.mkdir(parents=True, exist_ok=True)
 
-fig, axes = plt.subplots(1, 3, figsize=(16, 4))
+# Two panels, not three: the shipped transformer and the local nufftax recipe
+# agree bit-for-bit (exactly 0.0 residual), so a third panel plotting their
+# difference is an empty log-scale axis rather than information. The equality
+# is still asserted below.
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
 axes[0].plot(np.abs(vis_b_dft), "k-", label="|DFT|", lw=0.8)
 axes[0].set_title("|visibilities| (DFT reference)")
 axes[0].set_xlabel("uv index")
 axes[1].plot(np.abs(vis_b_nfx - vis_b_dft), "b-", label="nufftax - DFT", lw=0.8)
-axes[1].plot(np.abs(vis_b_pyn - vis_b_dft), "r-", label="pynufft - DFT", lw=0.8)
+axes[1].plot(np.abs(vis_b_lib - vis_b_dft), "r--", label="library - DFT", lw=0.8)
 axes[1].set_yscale("log")
 axes[1].set_title("|residual vs DFT|")
 axes[1].set_xlabel("uv index")
 axes[1].legend()
-axes[2].plot(np.abs(vis_b_nfx - vis_b_pyn), "g-", lw=0.8)
-axes[2].set_yscale("log")
-axes[2].set_title("|nufftax - pynufft|")
-axes[2].set_xlabel("uv index")
 plt.tight_layout()
 plt.savefig(script_path / "nufft_residuals.png", dpi=150)
 plt.close(fig)
@@ -435,9 +406,7 @@ mapping_matrix = np.zeros((image_b.shape[0], 2), dtype=np.float64)
 mapping_matrix[:, 0] = image_b.array
 mapping_matrix[:, 1] = image_b.array * 0.5 + 0.1  # second column is different
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    mm_pyn = np.asarray(nuf_b.transform_mapping_matrix(mapping_matrix=mapping_matrix))
+mm_dft = np.asarray(dft_b.transform_mapping_matrix(mapping_matrix=mapping_matrix))
 mm_nfx = transform_mapping_matrix_via_nufftax(
     mapping_matrix=mapping_matrix,
     mask=real_space_mask,
@@ -445,18 +414,20 @@ mm_nfx = transform_mapping_matrix_via_nufftax(
     pixel_scales=real_space_mask.pixel_scales,
 )
 
-mm_scale = float(np.max(np.abs(mm_pyn)))
-print(f"mapping matrix shape: {mm_pyn.shape}")
-print(f"|mm_pynufft|_max = {mm_scale:.4e}")
+mm_scale = float(np.max(np.abs(mm_dft)))
+print(f"mapping matrix shape: {mm_dft.shape}")
+print(f"|mm_DFT|_max = {mm_scale:.4e}")
 print(
-    f"max |Δ| nufftax - pynufft : "
-    f"{np.max(np.abs(mm_nfx - mm_pyn)):.4e}  "
-    f"(rel: {np.max(np.abs(mm_nfx - mm_pyn)) / mm_scale:.4e})"
+    f"max |Δ| nufftax - DFT     : "
+    f"{np.max(np.abs(mm_nfx - mm_dft)):.4e}  "
+    f"(rel: {np.max(np.abs(mm_nfx - mm_dft)) / mm_scale:.4e})"
 )
 
-assert np.max(np.abs(mm_nfx - mm_pyn)) / mm_scale < 1e-1, (
-    "nufftax mapping matrix must agree with pynufft mapping matrix to "
-    "pynufft's gridding precision"
+# The exact DFT is the reference here. This tolerance is far tighter than the
+# gridding-precision one it replaces, because nufftax is essentially exact.
+assert np.max(np.abs(mm_nfx - mm_dft)) / mm_scale < 1e-9, (
+    "nufftax mapping matrix must agree with the exact TransformerDFT "
+    "mapping matrix"
 )
 
 # The shipped `al.TransformerNUFFT.transform_mapping_matrix` (batched, one
@@ -477,10 +448,9 @@ assert np.max(np.abs(mm_lib - mm_nfx)) / mm_scale < 1e-9, (
 # Test (d): Adjoint -- image_from
 # =============================================================================
 #
-# pynufft's image_from internally applies an IFFT normalization and
-# kernel-deconvolution scaling that is library-specific; comparing pynufft's
-# raw image_from output bit-for-bit to nufftax's nufft2d1 is not meaningful
-# because the two libraries normalize their adjoints differently.
+# The adjoint is checked by property rather than against a second
+# implementation: adjoint normalisation is library-specific, so a bit-for-bit
+# comparison of raw ``image_from`` output across backends is not meaningful.
 #
 # Instead we verify two well-defined properties that any correct adjoint
 # pair must satisfy:
@@ -495,9 +465,7 @@ assert np.max(np.abs(mm_lib - mm_nfx)) / mm_scale < 1e-9, (
 #         then apply nufftax adjoint to those visibilities. The resulting
 #         "dirty image" should peak near the brightest pixel of the original.
 #         This proves the adjoint is correctly oriented relative to the
-#         forward (no row/column sign flip); it does **not** require pynufft
-#         agreement, because pynufft's image_from applies internal kernel
-#         deconvolution that nufftax does not.
+#         forward (no row/column sign flip).
 
 print()
 print("=" * 70)
@@ -512,7 +480,7 @@ n_modes_probe = (
     real_space_mask.shape_native[0],
 )
 
-# (d.1) Adjoint identity for nufftax (no pynufft involved)
+# (d.1) Adjoint identity for nufftax
 rng = np.random.default_rng(0)
 c_probe = rng.standard_normal(
     dataset.uv_wavelengths.shape[0]
@@ -564,10 +532,10 @@ print(
 )
 # Allow a few pixels of slack because the dirty image is smoothed by the
 # uv-coverage PSF; the peak can wander slightly relative to a sharply-
-# peaked source. Bumped from 5.0 to 6.0 in 2026-05-20 — the new
-# TransformerNUFFT default's strict-adjoint scaling produces a slightly
-# larger positional offset (~5.0 px observed) than the legacy pynufft
-# Kaiser-Bessel adjoint. Acceptable for downstream parity checks.
+# peaked source. Bumped from 5.0 to 6.0 in 2026-05-20 — TransformerNUFFT's
+# strict-adjoint scaling produces a slightly larger positional offset
+# (~5.0 px observed) than the Kaiser-Bessel adjoint used before it.
+# Acceptable for downstream parity checks.
 assert (
     distance < 6.0
 ), f"Round-trip dirty-image peak too far from original peak: {distance:.2f} px"
