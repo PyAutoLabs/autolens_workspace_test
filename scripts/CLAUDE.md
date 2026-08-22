@@ -99,21 +99,20 @@ Simulate ALMA-style interferometer data.
 End-to-end model-fit on interferometer data using `FitInterferometer`.
 
 ### `interferometer/nufft.py`
-Parity test of the **pynufft** forward NUFFT (`TransformerNUFFT`) against
-**nufftax** (a JAX-native NUFFT, https://github.com/GragasLab/nufftax). pynufft
-is not differentiable under JAX, so the JAX likelihood scripts currently fall
-back on the slower `TransformerDFT`; if nufftax matches pynufft to gridding
-precision it can be dropped in to unblock fast JIT-compiled interferometer
-likelihoods.
+Accuracy check of **nufftax** (the JAX-native NUFFT behind `TransformerNUFFT`,
+https://github.com/GragasLab/nufftax) against `TransformerDFT`, the exact
+direct Fourier transform. Originally the parity test for swapping pynufft for
+nufftax; that swap shipped and pynufft has since been removed from
+PyAutoArray, so the pynufft legs are gone and the DFT is the sole reference.
 
 The script computes visibilities on (a) a 5x5 all-ones image, (b) a 256x256
 lensed-Sersic image with real SMA uv coverage, (c) a mapping matrix (the
 pixelization code path), and (d) the adjoint (visibilities -> image). It
-asserts that **nufftax matches `TransformerDFT` to machine precision** while
-pynufft sits at its native gridding-precision (~6% relative on 256x256). The
-convention recipe (image flip, frequency scaling, half-pixel parity-aware
-phase shift) is hard-coded in helper functions at the top of the script and
-documented in the module docstring.
+asserts that **nufftax and the shipped `TransformerNUFFT` both match
+`TransformerDFT` to machine precision**. The convention recipe (image flip,
+frequency scaling, half-pixel parity-aware phase shift) is hard-coded in
+helper functions at the top of the script and documented in the module
+docstring.
 
 Saves a residuals plot to `scripts/interferometer/images/nufft_residuals.png`.
 
