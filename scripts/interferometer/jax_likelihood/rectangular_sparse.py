@@ -348,14 +348,23 @@ print("PASS: TransformerDFT (no sparse) matches rectangular.py canonical likelih
 """
 __Path C: TransformerNUFFT (no sparse operator)__
 
-TransformerNUFFT is not used with `apply_sparse_operator` here. The reason
-originally recorded was specific to the legacy pynufft backend's
-kernel-deconvolved adjoint scale; that backend has since been removed, so
-whether the incompatibility still holds against the nufftax adjoint has not
-been re-verified — this path deliberately does not depend on the answer.
-Run plain TransformerNUFFT + direct forward NUFFT for the pixelization.
-Should match Path B (DFT-no-sparse) since nufftax matches the analytic DFT
-to ~1e-13 in the forward operator.
+TransformerNUFFT is not used with `apply_sparse_operator` here — but not
+because it cannot be. That incompatibility was real only for the legacy
+pynufft backend's kernel-deconvolved adjoint scale, and it was lifted for
+nufftax by PyAutoArray#329 (bd18a769, 2026-05-22), which removed the
+`NotImplementedError` guard.
+
+Re-verified 2026-08-22: `apply_sparse_operator` runs with TransformerNUFFT at
+every scale tried, and its dirty image matches the TransformerDFT one to
+~3e-13 relative. Which backend is faster is governed by `N_vis * N_pix`: below
+~1e7 the DFT is faster (it has no fixed setup overhead), above it the NUFFT
+is, and above ~1e8 the DFT's `O(N_vis * N_pix)` allocation makes it infeasible
+rather than merely slow.
+
+This path deliberately keeps the plain TransformerNUFFT + direct forward NUFFT
+route so it exercises a different code path from Path B rather than
+duplicating it. Should match Path B (DFT-no-sparse) since nufftax matches the
+analytic DFT to ~1e-13 in the forward operator.
 """
 dataset_nufft = al.Interferometer.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
