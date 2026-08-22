@@ -16,10 +16,14 @@ No ``try/except`` — any failure in the visualizer surfaces immediately.
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
-Asserts fit.png lands on disk (needs real plots); uses a JSON point dataset
-unaffected by SMALL_DATASETS.
+Asserts fit.png lands on disk (needs real plots). Also needs full datasets:
+``dataset/point_source/simple`` is committed and gitignore-allowlisted, and
+``should_simulate`` would ``rmtree`` it under the cap. It is JSON-only, so the
+``SMALLDAT`` stamp that spares capped FITS datasets cannot reach it, and the
+replacement is degenerate rather than merely coarse — ``PointSolver.solve``
+short-circuits to a fixed position pair under the cap. PyAutoArray#470.
 
-ENV: real_plots
+ENV: full_datasets real_plots
 """
 
 import shutil
