@@ -68,6 +68,19 @@ except ImportError:  # pragma: no cover - keep the gate working without Hands
         """Fallback: whole-run cap only, matching the pre-#227 behaviour."""
         return TIMEOUT_SECS
 
+# The group kill itself is PyAutoHands's, for the same reason the resolver is:
+# one implementation, so the PR gate and the mega-run cannot disagree. The
+# fallback keeps this gate working in a checkout without Hands on PYTHONPATH.
+try:
+    from build_util import kill_group
+except ImportError:  # pragma: no cover - local-run fallback
+    def kill_group(proc: subprocess.Popen) -> None:
+        """SIGKILL the script's whole process group, tolerating a dead one."""
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):  # pragma: no cover - race
+            proc.kill()
+
 
 def load_smoke_scripts() -> list[str]:
     scripts: list[str] = []
@@ -123,7 +136,7 @@ def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str, in
         returncode = proc.returncode
     except subprocess.TimeoutExpired:
         timed_out = True
-        _kill_group(proc)
+        kill_group(proc)
         # The group is gone, so this drains whatever was buffered and returns.
         output, _ = proc.communicate()
         # Always 124 (the conventional timeout code), never the signal we just
@@ -143,14 +156,6 @@ def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str, in
     # actually ran under, not the run-wide default -- a quoted cap below the
     # enforced one biases every "too slow to un-skip?" call (the 60s-cap myth).
     return script_rel, returncode, elapsed, output or "", timeout_secs
-
-
-def _kill_group(proc: subprocess.Popen) -> None:
-    """SIGKILL the script's whole process group, tolerating an already-dead one."""
-    try:
-        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-    except (ProcessLookupError, PermissionError):  # pragma: no cover - race
-        proc.kill()
 
 
 def main() -> int:
