@@ -4,14 +4,20 @@ Potential Correction: Subhalo Recovery Validation
 
 End-to-end validation of the gravitational-imaging (potential correction) implementation of `al.pc`: simulates
 imaging of a lens whose mass model contains a dark NFW subhalo, fits it with the smooth (subhalo-free) model plus
-pixelized potential corrections — one-shot joint inversion and the iterative Levenberg-Marquardt engine — and
-asserts the recovered convergence correction (dkappa) localizes the true subhalo.
+pixelized potential corrections — the one-shot joint inversion — and asserts the recovered convergence correction
+(dkappa) localizes the true subhalo.
 
-This is the workspace-level parity anchor of the port of Cao et al. 2025's `potential_correction` package
-(https://github.com/caoxiaoyue/lensing_potential_correction; cite via
+This is the workspace-level parity anchor of the one-shot engine on the PR smoke gate. It is the port of Cao et
+al. 2025's `potential_correction` package (https://github.com/caoxiaoyue/lensing_potential_correction; cite via
 https://github.com/caoxiaoyue/potential_correction_paper), mirroring its demo reconstruction. On the reference
 200x200 demo dataset the merged implementation recovers corr(dkappa_rec, dkappa_true) = 0.77 with the peak 0.21"
 from the true subhalo (one-shot); the reduced problem here asserts conservative thresholds.
+
+The warm-started iterative-LM confirmation leg was split out into `subhalo_recovery_iterative.py` on #267,
+where the weekly `workspace-smoke.yml` and `release-integrate` channels run it. It was ~80% of this script's
+runtime while reproducing the one-shot dkappa metrics to 3 decimal places, so it bought no discrimination on
+the per-PR gate. The iterative engine class itself stays PR-gated via
+`interferometer/subhalo_recovery_interferometer.py`.
 
 __Env__
 
@@ -146,58 +152,4 @@ assert (
     dist < 0.5
 ), f'one-shot dkappa peak {dist:.2f}" from true subhalo (threshold 0.5")'
 
-"""
-__Iterative LM engine__
-
-The iterative reconstruction (re-ray-tracing through the corrected lens each accepted step, gauge-constrained)
-must also localize the subhalo. It is warm-started from the one-shot joint solution `[s | dpsi]` — the certified
-recipe (PyAutoLens#630, mirroring the interferometer uv campaign #627): under the Marquardt-scale LM damping
-`mu * diag(H)`, cold-starting from zeros no longer reliably lands in the subhalo basin, but refining inside the
-one-shot basin does. The LM then confirms the one-shot correction is a genuine cost minimum rather than drifting
-off it. `damping="marquardt"` is pinned explicitly: PyAutoLens#676 changed the imaging default to `"identity"`,
-whose near Gauss-Newton trial steps are rejected from the warm-started optimum — a rejection storm (each trial a
-full Jacobian rebuild) that pushed this script past the 300s smoke cap without changing the result.
-
-Each accepted LM step re-imposes the gauge constraints <dpsi,1> = <dpsi,x> = <dpsi,y> = 0 on the updated state,
-but from the (un-gauged) one-shot solution the gauge-fixing move slides along the model-degenerate constant /
-deflection-drift modes and is not cost-decreasing, so it is rejected and the solve would stall off the constraint
-surface. Passing `gauge_project_x0=True` has the engine project those modes out of x0 first; they are the null
-space of the Hamiltonian dpsi -> dkappa map, so the recovered convergence correction (and every assertion below)
-is unchanged while the gauge-constrained solve stays on the constraint surface.
-"""
-iter_fit = al.pc.IterFitDpsiSrcImaging(
-    masked_imaging=masked_imaging,
-    lens_start=lens_smooth,
-    dpsi_pixelization=dpsi_pixelization,
-    src_pixelization=src_pixelization,
-    src_image_mesh=src_image_mesh,
-    gauge_constraints=True,
-    damping="marquardt",
-    n_iter=3,
-)
-x0 = np.concatenate([np.asarray(fit.best_fit_source), np.asarray(fit.best_fit_dpsi)])
-s_opt, dpsi_opt = iter_fit.solve_joint_optimization(x0=x0, gauge_project_x0=True)
-print(f"iterative Laplace log evidence = {iter_fit.log_evidence():.4e}")
-
-dkappa_iter = np.asarray(iter_fit.pair_dpsi_data_obj.hamiltonian_dpsi @ dpsi_opt)
-corr_iter, dist_iter = dkappa_metrics(
-    iter_fit.pair_dpsi_data_obj, dkappa_iter, "iterative"
-)
-
-n_dpsi = dpsi_opt.shape[0]
-gauge = np.array(
-    [
-        np.sum(dpsi_opt) / n_dpsi,
-        np.sum(iter_fit.dpsi_points[:, 1] * dpsi_opt) / n_dpsi,
-        np.sum(iter_fit.dpsi_points[:, 0] * dpsi_opt) / n_dpsi,
-    ]
-)
-assert np.allclose(gauge, 0.0, atol=1.0e-5), f"gauge constraints violated: {gauge}"
-assert (
-    corr_iter > 0.3
-), f"iterative dkappa correlation {corr_iter:.3f} below threshold 0.3"
-assert (
-    dist_iter < 0.7
-), f'iterative dkappa peak {dist_iter:.2f}" from true subhalo (threshold 0.7")'
-
-print("potential_correction subhalo recovery checks all passed")
+print("potential_correction one-shot subhalo recovery checks passed")

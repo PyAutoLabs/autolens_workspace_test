@@ -12,6 +12,14 @@ API — see the ``__Point Solver__``, ``__Model__`` and ``__Name Pairing__``
 sections below — built around the same ``FitPositionsImagePairAll`` variant
 tested more tersely in ``point_source/jax_likelihood/image_plane.py``.
 
+The centre-free ``FitPositionsImagePairAllSolved`` block that used to close
+this script was demoted on #267: it cost 33s of XLA compile on the per-PR
+smoke gate while duplicating coverage ``image_plane.py`` already pins, and
+that script runs on the weekly ``workspace-smoke.yml`` and ``release-integrate``
+channels. The rest of the solved coverage is unchanged and lives where it
+always did — the Repeat variant in ``image_plane.py``, the source-plane variant
+in ``source_plane.py``, and fluxes + time delays in ``fluxes_time_delays.py``.
+
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
@@ -308,102 +316,4 @@ np.testing.assert_allclose(
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
 
-
-"""
-__Model: Solved Source (Parameter-Free)__
-
-Swaps the source for parameter-free ``al.ps.PointSolved`` to exercise the
-centre-free ``FitPositionsImagePairAllSolved`` variant. This script is in
-``smoke_tests.txt``, so only this one solved variant is added here — the
-Repeat variant and the source-plane / fluxes+time-delays solved coverage live
-in ``image_plane.py``, ``source_plane.py`` and ``fluxes_time_delays.py``.
-"""
-
-point_0_solved = af.Model(al.ps.PointSolved)
-
-source_solved = af.Model(al.Galaxy, redshift=1.0, point_0=point_0_solved)
-
-model_solved = af.Collection(
-    galaxies=af.Collection(lens=lens, source=source_solved), cosmology=cosmology
-)
-
-print(model_solved.info)
-
-analysis_all_solved = al.AnalysisPoint(
-    dataset=dataset,
-    solver=solver,
-    fit_positions_cls=al.FitPositionsImagePairAllSolved,
-)
-
-fitness_all_solved = Fitness(
-    model=model_solved,
-    analysis=analysis_all_solved,
-    fom_is_log_likelihood=True,
-    resample_figure_of_merit=-1.0e99,
-)
-
-parameters_all_solved = np.zeros((batch_size, model_solved.total_free_parameters))
-for i in range(batch_size):
-    parameters_all_solved[i, :] = model_solved.physical_values_from_prior_medians
-parameters_all_solved = jnp.array(parameters_all_solved)
-
-start = time.time()
-print()
-print(fitness_all_solved._vmap(parameters_all_solved))
-print("JAX Time To VMAP + JIT Function", time.time() - start)
-
-start = time.time()
-print()
-result_all_solved = fitness_all_solved._vmap(parameters_all_solved)
-print(result_all_solved)
-print("JAX Time Taken using VMAP:", time.time() - start)
-print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
-
-EXPECTED_VMAP_LOG_LIKELIHOOD_POINT_ALL_SOLVED = -82.33883111
-
-np.testing.assert_allclose(
-    np.array(result_all_solved),
-    EXPECTED_VMAP_LOG_LIKELIHOOD_POINT_ALL_SOLVED,
-    rtol=1e-4,
-    err_msg="point: JAX vmap likelihood mismatch (all solved)",
-)
-
-
-"""
-__Path A: jit-wrap ``analysis.fit_from`` (FitPositionsImagePairAllSolved)__
-"""
-
-model_solved_jit = af.Collection(
-    galaxies=af.Collection(lens=lens, source=source_solved)
-)
-
-instance_solved = model_solved_jit.instance_from_prior_medians()
-
-analysis_all_solved_np = al.AnalysisPoint(
-    dataset=dataset,
-    solver=solver,
-    fit_positions_cls=al.FitPositionsImagePairAllSolved,
-    use_jax=False,
-)
-fit_all_solved_np = analysis_all_solved_np.fit_from(instance=instance_solved)
-print("NumPy fit.log_likelihood (all solved):", float(fit_all_solved_np.log_likelihood))
-
-analysis_all_solved_jit = al.AnalysisPoint(
-    dataset=dataset,
-    solver=solver,
-    fit_positions_cls=al.FitPositionsImagePairAllSolved,
-    use_jax=True,
-)
-fit_all_solved_jit_fn = jax.jit(analysis_all_solved_jit.fit_from)
-fit_all_solved = fit_all_solved_jit_fn(instance_solved)
-
-print("JIT fit.log_likelihood (all solved):", fit_all_solved.log_likelihood)
-assert isinstance(
-    fit_all_solved.log_likelihood, jnp.ndarray
-), f"expected jax.Array, got {type(fit_all_solved.log_likelihood)}"
-np.testing.assert_allclose(
-    float(fit_all_solved.log_likelihood),
-    float(fit_all_solved_np.log_likelihood),
-    rtol=1e-4,
-)
-print("PASS: jit(fit_from) round-trip matches NumPy scalar (all solved).")
+print("point: JAX vmap likelihood + jit(fit_from) round-trip checks passed")

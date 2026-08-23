@@ -165,7 +165,7 @@ likelihoods of the same base name.
 | `interferometer/jax_likelihood/rectangular_mge.py` | Rectangular source + MGE lens for interferometry |
 | `interferometer/jax_likelihood/rectangular_dspl.py` | Rectangular source on double source plane (interferometry) |
 | `interferometer/jax_likelihood/rectangular_sparse.py` | Rectangular pixelization via JAX sparse-operator NUFFT path |
-| `point_source/jax_likelihood/point.py` | Point-source likelihood walkthrough (image-plane `FitPositionsImagePairAll`) + centre-free `FitPositionsImagePairAllSolved` coverage |
+| `point_source/jax_likelihood/point.py` | Point-source likelihood walkthrough (image-plane `FitPositionsImagePairAll`), plus the `jit(fit_from)` round-trip. The centre-free `FitPositionsImagePairAllSolved` block was dropped on #267 (33s of XLA compile on the PR gate); that coverage now lives only in `image_plane.py`, on the weekly workspace-smoke / release-integrate channels |
 | `point_source/jax_likelihood/image_plane.py` | Point-source image-plane chi-squared (`FitPositionsImagePairAll`) + centre-free `FitPositionsImagePairAllSolved` / `FitPositionsImagePairRepeatSolved` variants |
 | `point_source/jax_likelihood/source_plane.py` | Point-source source-plane chi-squared (`FitPositionsSource`) + centre-free `FitPositionsSourceSolved` — Path A JIT blocked by the fit-return pytree gap (`PyAutoPrompt/autolens/fit_point_pytree.md`), not the (already-fixed) xp-propagation bug |
 | `point_source/jax_likelihood/fluxes_time_delays.py` | Point-source fluxes + time delays via the solved fit classes (`FitFluxesSolved`, `FitTimeDelaysSolved`) alongside `FitPositionsSourceSolved` |

@@ -1,4 +1,4 @@
-misc/database/scrape/general.py
+# misc/database/scrape/general.py  # demoted 2026-08-23 (#267): 63.4s, of which ~72s-local is the real Nautilus search and ~3s is the database-scrape + aggregator assertions the script uniquely gate-tests. Still covered by Heart's weekly workspace-smoke.yml (Mondays 03:00 UTC, same profile) and release-integrate (PYAUTO_TEST_MODE=0, full resolution); the misc/aggregator/ trio keeps the scrape/aggregator API on this gate under test-mode fixtures. Re-promote if real-run database serialization regressions start slipping through.
 # imaging/visualization/visualization.py  # disabled: bypass mode mkdir race condition (rhayes777/PyAutoFit#1179)
 # interferometer/visualization/visualization.py  # disabled: bypass mode missing fit.png assertion (rhayes777/PyAutoFit#1179)
 # imaging/jax_likelihood/delaunay_mge.py  # disabled: jax 0.7 removed jax.interpreters.xla.pytype_aval_mappings — see PyAutoPrompt/autohands/smoke_workspace_fixes.md
@@ -16,6 +16,7 @@ interferometer/datacube/shared_preloads.py
 # multi_dataset/jax_likelihood/mge.py  # disabled 2026-08-22: hangs to the 300s smoke cap. Hit 4/4 jobs (3.12 and 3.13, twice each) on autolens_workspace_test#261, whose diff touches no script this gate runs. Runs green in 32s standalone, simulating its dataset from scratch, so it is not cap margin — it stops making progress. Same signature and same folder as multi_dataset/jax_likelihood/delaunay.py, quarantined in config/build/no_run.yaml as "18s when it passes; intermittent XLA compile stall, family-wide" (autolens_workspace_test#245); its other sibling shared_preloads.py is already disabled here too. Deliberately NOT added to no_run.yaml: every failure observed is at the 300s smoke cap, and there is no evidence about the 1800s release cap. Re-enable when #245's stall is fixed.
 imaging/jax_likelihood/potential_correction.py
 interferometer/jax_likelihood/potential_correction.py
+# imaging/subhalo_recovery.py is the one-shot half of the split (#267); the iterative-LM leg lives in imaging/subhalo_recovery_iterative.py, which is deliberately NOT listed here — the weekly workspace-smoke.yml and release-integrate run every script, so it is covered on those channels.
 imaging/subhalo_recovery.py
 interferometer/subhalo_recovery_interferometer.py
 misc/aggregator/fit_imaging.py
