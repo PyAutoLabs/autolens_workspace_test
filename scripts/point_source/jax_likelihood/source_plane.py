@@ -39,6 +39,8 @@ ENV: jax full_datasets
 # %cd $workspace_path
 # print(f"Working Directory has been set to `{workspace_path}`")
 
+import os
+
 import numpy as np
 import jax.numpy as jnp
 import jax
@@ -53,6 +55,34 @@ __Dataset__
 """
 dataset_name = "simple"
 dataset_path = Path("dataset") / "point_source" / dataset_name
+
+"""
+__Dataset Cap Guard__
+
+Guard the full-resolution regime this parity check depends on, BEFORE anything can
+touch the dataset directory. ``dataset/point_source/simple`` is committed and
+gitignore-allowlisted, and ``should_simulate`` deletes it outright when
+``PYAUTO_SMALL_DATASETS=1`` is in force — it is JSON-only, so the ``SMALLDAT`` stamp
+that spares capped FITS datasets cannot reach it, and a poisoned directory then
+survives into the next full-regime run. Under the cap ``PointSolver.solve`` also
+short-circuits to a fixed, model-independent position pair, so the pinned literal
+below would be measuring nothing at all. Both were observed together as a parity
+assert that failed with a *different* value on every run (PyAutoLens#710).
+
+The ``ENV: jax full_datasets`` declaration at the top of this file is what keeps this
+assertion true under the smoke and release profiles; this guard is what catches a
+hand-rolled environment that overrides it. Checked on the env var rather than on grid
+geometry (the ``interferometer/nufft.py`` approach) because a JSON dataset has no
+capped shape to detect.
+"""
+assert os.environ.get("PYAUTO_SMALL_DATASETS") != "1", (
+    "PYAUTO_SMALL_DATASETS=1 is set, but this script declares `ENV: jax full_datasets` "
+    f"and pins an absolute likelihood literal. Under the cap the committed dataset at "
+    f"{dataset_path} is deleted and re-simulated, and PointSolver.solve returns a fixed "
+    "position pair that is identical for every lens model - the comparison below would "
+    "measure nothing. Unset PYAUTO_SMALL_DATASETS, or run this script through the smoke "
+    "profile, which honours the declaration."
+)
 
 """
 __Dataset Auto-Simulation__

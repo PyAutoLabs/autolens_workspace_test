@@ -32,7 +32,17 @@ Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
 Live Nautilus + JIT point-source path: real search, JAX, full-resolution
 data and real savefig.
 
-ENV: real_output
+``full_datasets`` is load-bearing, not decorative. ``dataset/point_source/simple``
+is committed and gitignore-allowlisted, and the ``should_simulate`` call below
+would ``rmtree`` it under the cap. It is JSON-only, so the ``SMALLDAT`` stamp that
+spares capped FITS datasets cannot reach it, and the replacement is degenerate
+rather than merely coarse — ``PointSolver.solve`` short-circuits to a fixed
+position pair under the cap. ``real_output`` alone does NOT release the cap, so
+this script previously claimed full-resolution data in prose while running capped.
+Same defect as ``point_source/visualization/visualization.py`` (#264), missed by
+that sweep. PyAutoLens#710.
+
+ENV: full_datasets real_output
 """
 
 import shutil
