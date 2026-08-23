@@ -33,6 +33,8 @@ size datasets.
 ENV: jax full_datasets
 """
 
+import os
+
 import numpy as np
 import jax.numpy as jnp
 import jax
@@ -48,6 +50,35 @@ __Dataset__
 dataset_name = "simple"
 dataset_path = Path("dataset") / "point_source" / dataset_name
 dataset_file = dataset_path / "point_dataset_with_fluxes_and_time_delays.json"
+
+"""
+__Dataset Cap Guard__
+
+Guard the full-resolution regime this parity check depends on. Unlike its siblings
+this script bootstraps on ``dataset_file.exists()`` rather than ``should_simulate``,
+so it cannot itself delete ``dataset/point_source/simple`` — but it shares that
+committed, gitignore-allowlisted, JSON-only directory with scripts that can, and a
+directory poisoned by one of them survives into this run (no ``SMALLDAT`` stamp
+exists on JSON data for the library guard to read). Under the cap ``PointSolver.solve`` also
+short-circuits to a fixed, model-independent position pair, so the pinned literal
+below would be measuring nothing at all. Both were observed together as a parity
+assert that failed with a *different* value on every run (PyAutoLens#710).
+
+The ``ENV: jax full_datasets`` declaration at the top of this file is what keeps this
+assertion true under the smoke and release profiles; this guard is what catches a
+hand-rolled environment that overrides it. Checked on the env var rather than on grid
+geometry (the ``interferometer/nufft.py`` approach) because a JSON dataset has no
+capped shape to detect.
+"""
+assert os.environ.get("PYAUTO_SMALL_DATASETS") != "1", (
+    "PYAUTO_SMALL_DATASETS=1 is set, but this script declares `ENV: jax full_datasets` "
+    f"and pins absolute likelihood literals. Under the cap the committed dataset at "
+    f"{dataset_path} is degenerate (deleted and re-simulated by a sibling script), and "
+    "PointSolver.solve returns a fixed "
+    "position pair that is identical for every lens model - the comparison below would "
+    "measure nothing. Unset PYAUTO_SMALL_DATASETS, or run this script through the smoke "
+    "profile, which honours the declaration."
+)
 
 """
 __Dataset Auto-Simulation__
