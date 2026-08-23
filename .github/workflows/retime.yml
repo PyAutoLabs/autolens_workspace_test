@@ -1,0 +1,41 @@
+name: Re-time Scripts
+
+# Diagnostic harness, run by hand — not a gate.
+#
+# Answers one question a single run cannot: is a script that misses its cap
+# SLOW, or does it STALL? A slow script has a tight timing distribution; a
+# stalling one is bimodal. See #271, and config/build/no_run.yaml, where the
+# two have been assigned by which failure a run happened to show.
+#
+# A thin caller, exactly like smoke_tests.yml: the ceremony (dependency-chain
+# checkout at the matching branch, install epilogue, cache dirs) stays in
+# PyAutoHeart's reusable workflow, reached through its `runner` input. Copying
+# that ceremony here is what the runner's own docstring warns against.
+
+on:
+  workflow_dispatch:
+    inputs:
+      scripts:
+        description: "Comma-separated script paths, relative to scripts/"
+        required: true
+        type: string
+      repeats:
+        description: "How many times to run each script"
+        required: false
+        type: string
+        default: "5"
+      script-timeout:
+        description: "Per-script cap in seconds (300 = smoke, 1800 = release)"
+        required: false
+        type: string
+        default: "300"
+
+jobs:
+  retime:
+    uses: PyAutoLabs/PyAutoHeart/.github/workflows/smoke-tests.yml@main
+    with:
+      chain: "PyAutoNerves PyAutoFit PyAutoArray PyAutoGalaxy PyAutoLens"
+      runner: ".github/scripts/retime.py"
+      runner-args: "--repeats ${{ inputs.repeats }} --scripts ${{ inputs.scripts }}"
+      script-timeout: ${{ inputs.script-timeout }}
+    secrets: inherit
