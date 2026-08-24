@@ -13,12 +13,16 @@ Those two route to completely different places -- one is the Profiling Agent's
 speedup, the other is a bug -- and the markers in `config/build/no_run.yaml`
 have been assigning them by which failure a run happened to show. See #271.
 
-Nothing here re-implements how a script is run. `run_one` and the env-profile
-resolution are imported from `run_smoke.py`, which imports them in turn from
-PyAutoHands, so this harness, the PR gate and the release runner cannot
-disagree about what environment a script runs in or how long it may take. The
-ceremony around it (dependency chain, install epilogue, cache dirs) is
-PyAutoHeart's reusable `smoke-tests.yml`, reached through its `runner` input.
+Nothing here *decides* how a script is run. The env-profile resolution, the
+per-script cap and the process-group kill are imported straight from
+PyAutoHands -- the same three primitives `autohands/build_util.py` uses to run
+the mega-run -- so this harness, the PR gate and the release runner cannot
+disagree about what environment a script runs in or how long it may take. Only
+the subprocess loop that spends those decisions is local, because `run_smoke.py`
+is now a shim over `autohands/run_python.py` (PyAutoHands#260) and has no
+per-script entry point left to borrow. The ceremony around it (dependency chain,
+install epilogue, cache dirs) is PyAutoHeart's reusable `smoke-tests.yml`,
+reached through its `runner` input.
 
 Usage
 -----
@@ -35,12 +39,31 @@ import argparse
 import json
 import os
 import statistics
+import subprocess
 import sys
+import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+WORKSPACE = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = WORKSPACE / "scripts"
+ENV_VARS_FILE = WORKSPACE / "config" / "build" / "profile_smoke.yaml"
 
-from run_smoke import SCRIPTS_DIR, load_cfg, run_one  # noqa: E402
+# CI puts PyAutoHands/autohands on PYTHONPATH (PyAutoHeart's reusable
+# smoke-tests.yml clones it alongside the dependency chain); for local runs,
+# fall back to the sibling checkout. Exactly the contract `run_smoke.py` uses,
+# so the two are reached the same way from the same runner input.
+#
+# There is deliberately no local fallback definition of these three. A harness
+# that quietly re-implemented the cap or the env resolution when PyAutoHands was
+# absent would be able to disagree with the gate it exists to explain -- the one
+# thing this file must not do. Absent Hands, it fails at import instead.
+try:
+    from build_util import kill_group, timeout_for
+    from env_config import build_env_for_script, load_env_config
+except ImportError:  # pragma: no cover - local-run fallback
+    sys.path.insert(0, str(WORKSPACE.parent / "PyAutoHands" / "autohands"))
+    from build_util import kill_group, timeout_for
+    from env_config import build_env_for_script, load_env_config
 
 # A completion this far below the cap makes the gap between "completes" and
 # "hits the cap" a difference in kind rather than in degree. 18s against an
@@ -108,6 +131,70 @@ def parse_scripts(raw):
         if chunk:
             out.append(chunk)
     return out
+
+
+def load_cfg():
+    """Parsed env profile, or None when the workspace has none.
+
+    None flows through build_env_for_script -> None -> subprocess inherits the
+    parent environment unchanged.
+    """
+    if not ENV_VARS_FILE.exists():
+        return None
+    return load_env_config(ENV_VARS_FILE)
+
+
+def run_one(script_rel: str, cfg: dict | None) -> tuple[str, int, float, str, int]:
+    """Run one script once, capped at the per-script resolved timeout.
+
+    The script runs in its own session (``start_new_session=True``) so that a
+    timeout can kill the whole process group rather than just the direct child.
+    That distinction is load-bearing: capturing output means waiting for the
+    stdout pipe to reach EOF, and any grandchild that inherited the pipe holds
+    it open even after the child itself has exited. A script whose work has
+    finished can therefore hang the harness indefinitely -- and a harness that
+    hangs measures nothing.
+
+    The wall clock is the PARENT's, so a stall inside the child is timed the
+    same way a completion is, which is the whole point of re-timing.
+    """
+    env = build_env_for_script(Path(script_rel), cfg)
+    timeout_secs = timeout_for(env)
+    script_path = SCRIPTS_DIR / script_rel
+    t0 = time.time()
+    proc = subprocess.Popen(
+        [sys.executable, str(script_path)],
+        cwd=str(WORKSPACE),
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        start_new_session=True,
+    )
+    timed_out = False
+    try:
+        output, _ = proc.communicate(timeout=timeout_secs)
+        returncode = proc.returncode
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        kill_group(proc)
+        # The group is gone, so this drains whatever was buffered and returns.
+        output, _ = proc.communicate()
+        # Always 124 (the conventional timeout code), never the signal we just
+        # sent. Reporting proc.returncode here would surface -9 for a script
+        # killed mid-run, and `classify` reads 124 as the cap being hit and
+        # anything else as an outright failure -- the two verdicts this file
+        # exists to keep apart.
+        returncode = 124
+    elapsed = time.time() - t0
+    if timed_out:
+        output = (output or "") + (
+            f"\n::error::TIMEOUT after {timeout_secs}s — killed the process group.\n"
+        )
+    # timeout_secs is returned so the caller reports the cap this script
+    # actually ran under, not the run-wide default -- a quoted cap below the
+    # enforced one biases every "too slow to un-skip?" call (the 60s-cap myth).
+    return script_rel, returncode, elapsed, output or "", timeout_secs
 
 
 def main() -> int:
