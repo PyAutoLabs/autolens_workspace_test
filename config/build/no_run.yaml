@@ -29,22 +29,15 @@
 
 - point_source/visualization/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
-- imaging/jax_likelihood/delaunay_mge # SLOW 2026-07-21 - real-search JAX imaging Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- imaging/jax_likelihood/mge_group # SLOW 2026-07-21 - real-search JAX imaging MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- multi_dataset/jax_likelihood/delaunay_mge # SLOW 2026-07-14 - real-search JAX Delaunay-MGE multi-band likelihood exceeds the 1800s mode=release cap; speedup tracked by the Profiling Agent (PyAutoHeart#72). Not a bug.
-# Real-search JAX likelihood/gradient scripts that flake around the mode=release
-# per-script timeout cap (the re-val #3/#4 flip-flop population). SLOW-skipped to
-# keep mode=release deterministic; reviewed via hygiene over time. Speedups are the
-# Profiling Agent's job. Not bugs. (PyAutoHeart#74 — chose no_run over an advisory tier.)
-- multi_dataset/jax_likelihood/shared_preloads.py # SLOW 2026-07-14 - real-search JAX multi-band shared-preloads likelihood; flakes at the 1800s mode=release cap (PyAutoHeart#74)
-- interferometer/datacube/delaunay.py # SLOW 2026-07-14 - real-search JAX datacube Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/datacube/shared_preloads.py # SLOW 2026-07-14 - real-search JAX datacube shared-preloads likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/jax_likelihood/mge.py # SLOW 2026-07-14 - real-search JAX interferometer MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/jax_likelihood/mge_group.py # SLOW 2026-07-14 - real-search JAX interferometer MGE-group likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/jax_likelihood/delaunay.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/jax_likelihood/delaunay_mge.py # SLOW 2026-07-14 - real-search JAX interferometer Delaunay-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/jax_likelihood/rectangular_mge.py # SLOW 2026-07-14 - real-search JAX interferometer rectangular-MGE likelihood; flakes at the 1800s cap (PyAutoHeart#74)
-- interferometer/jax_grad/gradient.py # SLOW 2026-07-14 - finite-difference JAX interferometer gradient; flakes at the 1800s cap (PyAutoHeart#74)
+- imaging/jax_likelihood/mge_group # SLOW 2026-08-23 - retimed AMBIGUOUS: capped 5/5 at the 300s cap on both Python legs, never completed, so no runtime is known (run 32664682689); needs a higher-cap retime before it can be judged. Parked (PyAutoHeart#74, autolens_workspace_test#274).
+# The rest of the PyAutoHeart#74 "flakes at the 1800s cap" SLOW family was retimed
+# on 2026-08-24 (5 repeats per Python leg, 300s cap; runs 32741371308 + 32741386752,
+# phase-2 run 32664682689). Eight entries completed 5/5 on both legs (slowest 54.5s)
+# and were removed — marker refuted, scripts back in mega-run coverage. The two below
+# failed deterministically instead of running slow, so they are NEEDS_FIX not SLOW.
+# See autolens_workspace_test#274.
+- interferometer/jax_likelihood/delaunay.py # NEEDS_FIX 2026-08-24 - deterministic exit 1 on both Python legs, 5/5 (run 32741371308): the NaN-poisoning probe at line ~330 (instance_from_vector on an all-NaN vector) now trips autogalaxy validate_ell_comps -> ModelParameterException, so the probe dies before it can test JAX NaN-lane isolation; the likelihood-parity work above it passes first. Not performance; see PyAutoMind draft/bug/autolens_workspace_test/delaunay_nan_probe_ell_comps_validator.md
+- interferometer/jax_grad/gradient.py # NEEDS_FIX 2026-08-24 - 3.13-only deterministic failure, 5/5 (run 32741386752): the RectangularRTUAdaptDensity + reg.Adapt sparse-operator check fails assert_eager_jit_consistent, eager (-3164.0196392095145) vs jitted (-3164.021216643465) disagreeing ~5e-7 rel — possible pure_callback constant-folding. 3.12 fully green at 61.2s (7% of its 900s cap). Not performance; see PyAutoMind draft/bug/autolens_workspace_test/gradient_eager_jit_divergence_py313.md
 
 # BOOTSTRAP-TARGET simulators (NOT to-do markers — correct as-is). These scripts
 # write dataset/ fixtures that are no longer committed (git rm'd, gitignored); the
