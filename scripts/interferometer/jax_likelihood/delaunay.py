@@ -327,9 +327,15 @@ np.testing.assert_allclose(
 )
 print("PASS: jit(fit_from) round-trip matches NumPy scalar.")
 
-nan_instance = model.instance_from_vector(
-    vector=np.full(model.total_free_parameters, np.nan)
-)
+# Construct a valid instance first, then poison the downstream lens mapping. Profile
+# validation intentionally rejects concrete NaN constructor inputs before fitting: an
+# all-NaN free-parameter vector through `instance_from_vector` hands NaN `ell_comps` to
+# autogalaxy's `validate_ell_comps` at `EllProfile.__init__`, which raises
+# `exc.ModelParameterException` (a `FitException`, so a search resamples the point).
+# The NaN therefore has to enter below the model-construction boundary, exactly as the
+# `_vmap` lane above poisons the parameter array rather than an eager constructor.
+nan_instance = model.instance_from_prior_medians()
+nan_instance.galaxies.lens.mass.einstein_radius = np.nan
 nan_fit = fit_jit_fn(nan_instance)
 assert np.isnan(float(nan_fit.log_likelihood))
 print("PASS: invalid Delaunay mesh reaches the raw interferometer likelihood as NaN.")
