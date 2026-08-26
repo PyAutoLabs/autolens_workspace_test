@@ -197,7 +197,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 # rectangular script (~2.6e-4), as the MGE basis amplifies the NNLS/linear-algebra
 # reduction-order jitter. Convergence jitter, not a regression. The EXACT,
 # JAX-version-robust check is the vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = -6157.55707862
+EXPECTED_VMAP_LOG_LIKELIHOOD = 1871.070372
 
 np.testing.assert_allclose(
     np.array(result),

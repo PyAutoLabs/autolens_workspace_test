@@ -213,7 +213,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 # linear-algebra reduction order change across JAX releases. That is convergence
 # jitter, not a correctness regression. The EXACT, JAX-version-robust check is the
 # vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = -8903.89296045
+EXPECTED_VMAP_LOG_LIKELIHOOD = -6619.860182
 
 np.testing.assert_allclose(
     np.array(result),

@@ -38,8 +38,12 @@
 # interferometer/jax_likelihood/delaunay.py was fixed on 2026-08-24 (its NaN probe now
 # poisons a valid instance below the model-construction boundary instead of building
 # one from an all-NaN vector, which validate_ell_comps rejects) and is back in
-# coverage. The one below remains. See autolens_workspace_test#274.
-- interferometer/jax_grad/gradient.py # NEEDS_FIX 2026-08-24 - 3.13-only deterministic failure, 5/5 (run 32741386752): the RectangularRTUAdaptDensity + reg.Adapt sparse-operator check fails assert_eager_jit_consistent, eager (-3164.0196392095145) vs jitted (-3164.021216643465) disagreeing ~5e-7 rel — possible pure_callback constant-folding. 3.12 fully green at 61.2s (7% of its 900s cap). Not performance; see PyAutoMind draft/bug/autolens_workspace_test/gradient_eager_jit_divergence_py313.md
+# coverage. interferometer/jax_grad/gradient.py was the last one remaining and was
+# fixed on 2026-08-26 (autolens_workspace_test#279): the eager/jit disagreement was
+# neither pure_callback constant-folding nor Python-3.13-specific — 3.12 reproduced
+# it identically on the same host — but a discrete cell-assignment flip in
+# PyAutoArray's adaptive rectangular mapper, fixed in PyAutoArray#490. Both entries
+# are now back in coverage. See autolens_workspace_test#274.
 
 # BOOTSTRAP-TARGET simulators (NOT to-do markers — correct as-is). These scripts
 # write dataset/ fixtures that are no longer committed (git rm'd, gitignored); the
