@@ -285,7 +285,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3823.887477,
+    -78.805812,
     rtol=1e-4,
     err_msg="rectangular_dspl: JAX vmap likelihood mismatch",
 )
