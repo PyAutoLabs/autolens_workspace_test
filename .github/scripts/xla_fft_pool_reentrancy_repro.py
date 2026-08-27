@@ -8,6 +8,9 @@ smoke and release profiles (PyAutoFit#1528).
 
     python3 .github/scripts/xla_fft_pool_reentrancy_repro.py
 
+The upstream bug report written from this script is the sibling file
+`xla_fft_pool_reentrancy_upstream.md`.
+
 Hangs at `jax.block_until_ready` on jax/jaxlib 0.11.1, 4 CPUs. Nothing in CI
 runs it.
 
