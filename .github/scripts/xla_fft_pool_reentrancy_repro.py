@@ -11,6 +11,15 @@ smoke and release profiles (PyAutoFit#1528).
 Hangs at `jax.block_until_ready` on jax/jaxlib 0.11.1, 4 CPUs. Nothing in CI
 runs it.
 
+Measured on this reproducer, 8 trials per arm at the defaults below:
+
+    default                                 0 pass / 8 hang
+    --xla_cpu_multi_thread_eigen=false      8 pass / 8 hang -> 0, in 3-4s each
+
+Perfect separation, Fisher exact two-sided p = 0.000155. The flag does not
+merely avoid the hang, it completes the same work in seconds -- so this script
+reproduces the very bug that flag is deployed against, standalone.
+
 THE BUG
 -------
 `xla::cpu::FftThunk::Execute` runs ON an Eigen intra-op pool worker and hands
