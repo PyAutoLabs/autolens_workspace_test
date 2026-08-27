@@ -29,7 +29,6 @@
 
 - point_source/visualization/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
-- imaging/jax_likelihood/mge_group # NEEDS_FIX 2026-08-24 - higher-cap retime settled it: capped 3/3 at 1800s on BOTH Python legs (run 32758924176), on top of 5/5 at 300s in phase 2 (run 32664682689) -- 16/16 lifetime executions, zero completions. The log shows vmap+JIT compile finishing in ~16s and then nothing for the remaining ~1784s: a deterministic hang, not slowness. Owned by the stall bug (PyAutoMind draft/bug/ci/jax_vmap_jit_compile_stall.md -- the "compile stall" misnomer note applies; the stack sits in jax.block_until_ready). Not performance; do not raise the cap further (autolens_workspace_test#274).
 # The rest of the PyAutoHeart#74 "flakes at the 1800s cap" SLOW family was retimed
 # on 2026-08-24 (5 repeats per Python leg, 300s cap; runs 32741371308 + 32741386752,
 # phase-2 run 32664682689). Eight entries completed 5/5 on both legs (slowest 54.5s)
@@ -83,4 +82,32 @@
 - imaging/visualization/modeling_visualization_rectangular_jit # NEEDS_FIX 2026-07-30 - now FAILS its own JIT-cache assertion at 36s (cached 2.21s not < 0.5x compile 2.28s) - same as delaunay variant
 - interferometer/visualization/modeling_visualization_jit # SLOW 2026-07-30 - historically >300s cap; local re-measurement OOM-killed (SIGKILL) at 132s - memory-heavy interferometer JIT
 - imaging/subhalo_recovery_evidence.py # SLOW 2026-07-31 - evidence-grid acceptance test of PyAutoLens#672 (156-point one-shot + 25-point iterative-to-convergence scan): ~1-2h by design; run by hand, results recorded on the issue. Deliberately a manual validation script, not a smoke/release entry - its 300s-scale sibling imaging/subhalo_recovery.py stays the automated gate.
-- multi_dataset/jax_likelihood/delaunay.py # NEEDS_FIX 2026-08-01 - hangs to the 1800s release cap in 3 of 5 release-integrate runs since 07-31 (18s when it passes; intermittent XLA compile stall, family-wide - ag_test rectangular.py also hit); quarantined to unblock the 2026-08-01 release; see autolens_workspace_test#245
+
+# The jax-compile-stall family is RESTORED (PyAutoFit#1528, 2026-08-27). Both
+# entries below were removed from this file, and multi_dataset/jax_likelihood/
+# mge.py + shared_preloads.py were re-enabled in smoke_tests.txt:
+#
+#   imaging/jax_likelihood/mge_group      NEEDS_FIX 2026-08-24, 16/16 lifetime cap hits
+#   multi_dataset/jax_likelihood/delaunay.py  NEEDS_FIX 2026-08-01 (#245)
+#
+# The name every marker used was wrong. It is NOT an XLA compile stall: the
+# captured stacks put the process in jax.block_until_ready / jax.Array._value
+# with compilation already finished in ~12-18s. It is an execution hang --
+# materialising the vmap result never returns.
+#
+# The trigger is XLA CPU's multithreaded Eigen thread pool.
+# profile_smoke.yaml and profile_release.yaml now set
+# XLA_FLAGS=--xla_cpu_multi_thread_eigen=false. ABAB on mge_group, 3 repeats x
+# 2 Python legs at the 300s cap: 12 passes / 0 hangs with the flag against
+# 2 passes / 14 hangs without (Fisher exact p ~ 3e-6).
+#
+# Family re-time with the flag (run 33087267785), 3 repeats x 2 legs, 24/24
+# completions, verdict NEITHER on every entry and every leg:
+#   imaging/jax_likelihood/mge_group.py            61.2s / 61.3s
+#   multi_dataset/jax_likelihood/delaunay.py       24.4s / 23.2s
+#   multi_dataset/jax_likelihood/mge.py            16.0s / 14.5s
+#   multi_dataset/jax_likelihood/shared_preloads.py 43.9s / 43.8s
+#
+# This is a WORKAROUND, not a root-cause fix: we know where it hangs and what
+# avoids it, not why XLA's CPU thread pool wedges on these graphs. If the flag
+# is ever removed, expect these four back.
