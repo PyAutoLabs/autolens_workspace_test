@@ -79,7 +79,12 @@ watching the hang disappear:
    and the deadlock appears. That threshold is ducc0's own, so it is likely
    machine-dependent — raise `S` if the script completes for you.
 
-The hang is a race, so it needs a few iterations rather than a single call.
+The hang is a race, so it needs a few iterations rather than a single call. A
+single call passed 5/5 here; the 20-iteration loop hangs 8/8.
+
+`float64` is not required. Dropping the `jax_enable_x64` line and using the
+default `float32` reproduces just as reliably (0 pass / 6 hang), so the script
+above can be shortened by two lines if that is preferred.
 
 ## Observed behaviour
 
