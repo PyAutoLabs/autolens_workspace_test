@@ -11,6 +11,12 @@ name: Re-time Scripts
 # checkout at the matching branch, install epilogue, cache dirs) stays in
 # PyAutoHeart's reusable workflow, reached through its `runner` input. Copying
 # that ceremony here is what the runner's own docstring warns against.
+#
+# It also carries the A/B arms for PyAutoFit#1530 (the XLA CPU Eigen-pool
+# wedge), through `extra-args` rather than through new plumbing. Arms are an
+# argument to the runner, not a step in the job, precisely so this file stays
+# thin: dumps land in the job log inside ::group:: blocks instead of becoming
+# an artifact upload step that would start reimplementing the ceremony above.
 
 on:
   workflow_dispatch:
@@ -29,6 +35,17 @@ on:
         required: false
         type: string
         default: "300"
+      extra-args:
+        description: >-
+          Extra retime.py arguments, word-split. The A/B mode lives here:
+          `--arm NAME:KEY=VALUE[,KEY=VALUE]` (repeatable, runs dealt
+          round-robin between arms within this one dispatch) and
+          `--dump-after SECONDS` (read a still-running child's native stacks
+          before the cap kills it). No value may contain a space — the
+          reusable workflow runs `python "$RUNNER" $RUNNER_ARGS` unquoted.
+        required: false
+        type: string
+        default: ""
 
 jobs:
   retime:
@@ -36,6 +53,6 @@ jobs:
     with:
       chain: "PyAutoNerves PyAutoFit PyAutoArray PyAutoGalaxy PyAutoLens"
       runner: ".github/scripts/retime.py"
-      runner-args: "--repeats ${{ inputs.repeats }} --scripts ${{ inputs.scripts }}"
+      runner-args: "--repeats ${{ inputs.repeats }} --scripts ${{ inputs.scripts }} ${{ inputs.extra-args }}"
       script-timeout: ${{ inputs.script-timeout }}
     secrets: inherit
