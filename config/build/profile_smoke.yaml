@@ -18,15 +18,14 @@ defaults:
   PYAUTO_FAST_PLOTS: "1"                    # Skip tight_layout() + critical curve/caustic overlays
   PYAUTO_SKIP_WORKSPACE_VERSION_CHECK: "1"  # profile-owned so the base-env scrub (#161 step 3) cannot drop the mega-run's CI injection
   JAX_ENABLE_X64: "True"                    # Enable 64-bit precision in JAX
-  # EXPERIMENT (PyAutoFit#1528, not for merge as-is): serialise XLA's CPU
+  # NARROWING 1 of 3 (PyAutoFit#1528, not for merge as-is). The combined arm
   # execution. The cache rung is REFUTED (6/6 hangs with it disabled vs 4/4
   # with it on), and the three stacks it produced put the hang in
   # jax.Array._value -- the device->host transfer -- meaning the vmap'd
   # computation itself never terminates. A hosted runner reports more CPUs
   # than the container can actually schedule, which is the classic way an
   # intra-op thread pool deadlocks. Single variable vs the 4/4 control.
-  XLA_FLAGS: "--xla_cpu_multi_thread_eigen=false --xla_force_host_platform_device_count=1"
-  OMP_NUM_THREADS: "1"
+  XLA_FLAGS: "--xla_cpu_multi_thread_eigen=false"
   NUMBA_CACHE_DIR: "/tmp/numba_cache"       # Writable cache dir for numba
   MPLCONFIGDIR: "/tmp/matplotlib"           # Writable config dir for matplotlib
 
