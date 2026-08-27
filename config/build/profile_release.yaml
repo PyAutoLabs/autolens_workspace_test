@@ -32,6 +32,29 @@ defaults:
   PYAUTO_FAST_PLOTS: "0"                    # real plots (release fidelity, not smoke)
   PYAUTO_SKIP_WORKSPACE_VERSION_CHECK: "1"  # TestPyPI dev version won't match the workspace pin
   JAX_ENABLE_X64: "True"                    # enable 64-bit precision in JAX
+  # XLA CPU intra-op thread pool: disable multithreaded Eigen (PyAutoFit#1528).
+  #
+  # WORKAROUND, NOT A ROOT-CAUSE FIX. The heaviest multi_dataset/composite JAX
+  # vmap graphs intermittently never finish MATERIALISING their result -- the
+  # compile completes in ~12-18s, then jax.block_until_ready / jax.Array._value
+  # never returns and the runner caps it. Five scripts were quarantined across
+  # the two test workspaces over a month under the wrong name ("XLA compile
+  # stall"); the stacks say execution, not compilation.
+  #
+  # Measured, ABAB, imaging/jax_likelihood/mge_group.py, 3 repeats x 2 Python
+  # legs at the 300s cap:
+  #   default          4/4 HANG   (run 33076408637)
+  #   cache disabled   6/6 HANG   (run 33078033016) -- cache hypothesis refuted
+  #   flag + 2 others  6/6 PASS   (run 33080638510, slowest 63.2s)
+  #   this flag alone  6/6 PASS   (run 33082896277, slowest 62.3s)
+  #   default again    4/6 HANG   (run 33085024710, verdict STALL, bimodal)
+  # 12 passes / 0 hangs with the flag against 2 passes / 14 hangs without;
+  # Fisher exact p ~ 3e-6. Costs ~15% on this script (62.3s vs 54.4s when it
+  # completes at all), and affects only JAX/XLA scripts since nothing else
+  # reads XLA_FLAGS.
+  #
+  # Remove it if the underlying XLA CPU deadlock is ever fixed upstream.
+  XLA_FLAGS: "--xla_cpu_multi_thread_eigen=false"
   NUMBA_CACHE_DIR: "/tmp/numba_cache"       # writable cache dir for numba
   MPLCONFIGDIR: "/tmp/matplotlib"           # writable config dir for matplotlib
 
