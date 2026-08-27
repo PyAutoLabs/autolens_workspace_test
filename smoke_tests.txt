@@ -12,8 +12,8 @@ point_source/jax_likelihood/point.py
 misc/jax_assertions/delaunay_nn.py
 misc/jax_assertions/delaunay_nn_caps.py
 interferometer/datacube/shared_preloads.py
-# multi_dataset/jax_likelihood/shared_preloads.py  # disabled 2026-07-22: exceeds the 300s smoke cap (measured 300s+ in CI, autolens_workspace_test#196). Already SLOW-marked in config/build/no_run.yaml for flaking at the release runner's 1800s cap (PyAutoHeart#74) — it is the heaviest entry here and does not belong in the fast PR gate. Its sibling interferometer/datacube/shared_preloads.py (27.8s) keeps the shared-preloads path covered. Re-enable if it is made fast enough.
-# multi_dataset/jax_likelihood/mge.py  # disabled 2026-08-22: hangs to the 300s smoke cap. Hit 4/4 jobs (3.12 and 3.13, twice each) on autolens_workspace_test#261, whose diff touches no script this gate runs. Runs green in 32s standalone, simulating its dataset from scratch, so it is not cap margin — it stops making progress. Same signature and same folder as multi_dataset/jax_likelihood/delaunay.py, quarantined in config/build/no_run.yaml as "18s when it passes; intermittent XLA compile stall, family-wide" (autolens_workspace_test#245); its other sibling shared_preloads.py is already disabled here too. Deliberately NOT added to no_run.yaml: every failure observed is at the 300s smoke cap, and there is no evidence about the 1800s release cap. Re-enable when #245's stall is fixed.
+multi_dataset/jax_likelihood/shared_preloads.py
+multi_dataset/jax_likelihood/mge.py
 imaging/jax_likelihood/potential_correction.py
 interferometer/jax_likelihood/potential_correction.py
 # imaging/subhalo_recovery.py is the one-shot half of the split (#267); the iterative-LM leg lives in imaging/subhalo_recovery_iterative.py, which is deliberately NOT listed here — the weekly workspace-smoke.yml and release-integrate run every script, so it is covered on those channels.
