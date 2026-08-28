@@ -1,4 +1,5 @@
-"""DelaunayNN fixed-shape cap audit on production-like lensing geometries.
+"""
+DelaunayNN fixed-shape cap audit on production-like lensing geometries.
 
 The Sibson implementation requires static JAX shapes for the Delaunay
 insertion cavity and compact natural-neighbour stencil. This script tests the
@@ -21,6 +22,15 @@ maximum across that boundary.
 Override ``DELAUNAY_NN_CAP_RANDOM_SAMPLES`` for a shorter exploratory run.
 The fixed stress geometry is always included, so the cap-16 regression remains
 covered even in a reduced run.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+The fixed-shape caps under audit are a constraint of the pure-JAX Sibson
+calculation, which must therefore stay enabled. The cap distributions are
+sampled on a production-like 1,200-vertex Hilbert mesh ray-traced through full
+mass models, so the SMALL_DATASETS cap must stay off or the observed maxima are
+not the ones the cap is chosen against.
 
 ENV: jax full_datasets
 """
