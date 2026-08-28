@@ -1,4 +1,5 @@
-"""Correctness, reconstruction, autodiff, and performance gate for DelaunayNN.
+"""
+Correctness, reconstruction, autodiff, and performance gate for DelaunayNN.
 
 The first check exercises the public ``aa.mesh.DelaunayNN`` through a Mapper
 and Inversion and compares its reconstructed source with the otherwise
@@ -14,6 +15,14 @@ synthetic production-sized arrays so they can be timed on an accelerator:
 
 Override ``SIBSON_POINTS``, ``SIBSON_QUERIES`` and ``SIBSON_REPEATS`` for a
 short local probe or a larger accelerator run.
+
+__Env__
+
+Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
+Every check below gates a JAX code path — JIT execution, the analytic
+query-coordinate gradient and a jitted ``vmap`` through the qhull callbacks —
+so JAX must stay enabled. The timing gate runs on synthetic production-sized
+arrays, so the SMALL_DATASETS cap must stay off or it measures nothing.
 
 ENV: jax full_datasets
 """
