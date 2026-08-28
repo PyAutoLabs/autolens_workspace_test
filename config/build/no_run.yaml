@@ -82,13 +82,17 @@
 - imaging/visualization/modeling_visualization_rectangular_jit # NEEDS_FIX 2026-07-30 - now FAILS its own JIT-cache assertion at 36s (cached 2.21s not < 0.5x compile 2.28s) - same as delaunay variant
 - interferometer/visualization/modeling_visualization_jit # SLOW 2026-07-30 - historically >300s cap; local re-measurement OOM-killed (SIGKILL) at 132s - memory-heavy interferometer JIT
 - imaging/subhalo_recovery_evidence.py # SLOW 2026-07-31 - evidence-grid acceptance test of PyAutoLens#672 (156-point one-shot + 25-point iterative-to-convergence scan): ~1-2h by design; run by hand, results recorded on the issue. Deliberately a manual validation script, not a smoke/release entry - its 300s-scale sibling imaging/subhalo_recovery.py stays the automated gate.
+- multi_dataset/jax_likelihood/delaunay.py # NEEDS_FIX 2026-08-28 - hung 1805s in release-integrate run 33177898708 (second vmap call, post-compile) with XLA_FLAGS=--xla_cpu_multi_thread_eigen=false in force: XLA FftThunk/ducc0 Eigen-pool deadlock (epic xla-cpu-eigen-pool-deadlock); restored 2026-08-27 by PyAutoFit#1528 on 24/24, one hang since. Smoke run passed it in 18.9s the same day.
 
-# The jax-compile-stall family is RESTORED (PyAutoFit#1528, 2026-08-27). Both
+# The jax-compile-stall family was RESTORED (PyAutoFit#1528, 2026-08-27). Both
 # entries below were removed from this file, and multi_dataset/jax_likelihood/
 # mge.py + shared_preloads.py were re-enabled in smoke_tests.txt:
 #
 #   imaging/jax_likelihood/mge_group      NEEDS_FIX 2026-08-24, 16/16 lifetime cap hits
-#   multi_dataset/jax_likelihood/delaunay.py  NEEDS_FIX 2026-08-01 (#245)
+#   multi_dataset/jax_likelihood/delaunay.py  NEEDS_FIX 2026-08-01 (#245),
+#     restored 2026-08-27 (PyAutoFit#1528), then RE-QUARANTINED 2026-08-28 (#287)
+#     after a single 1805s hang at the release cap -- it is back in this file as
+#     the NEEDS_FIX 2026-08-28 entry above. The other three stay restored.
 #
 # The name every marker used was wrong. It is NOT an XLA compile stall: the
 # captured stacks put the process in jax.block_until_ready / jax.Array._value
