@@ -11,6 +11,8 @@ interferometer/jax_likelihood/mge.py
 point_source/jax_likelihood/point.py
 misc/jax_assertions/delaunay_nn.py
 misc/jax_assertions/delaunay_nn_caps.py
+misc/jax_assertions/fit_imaging_sparse_operator.py
+misc/jax_assertions/fit_interferometer_sparse_operator.py
 interferometer/datacube/shared_preloads.py
 multi_dataset/jax_likelihood/shared_preloads.py
 multi_dataset/jax_likelihood/mge.py
