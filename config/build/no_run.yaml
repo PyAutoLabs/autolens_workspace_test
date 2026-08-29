@@ -83,6 +83,7 @@
 - interferometer/visualization/modeling_visualization_jit # SLOW 2026-07-30 - historically >300s cap; local re-measurement OOM-killed (SIGKILL) at 132s - memory-heavy interferometer JIT
 - imaging/subhalo_recovery_evidence.py # SLOW 2026-07-31 - evidence-grid acceptance test of PyAutoLens#672 (156-point one-shot + 25-point iterative-to-convergence scan): ~1-2h by design; run by hand, results recorded on the issue. Deliberately a manual validation script, not a smoke/release entry - its 300s-scale sibling imaging/subhalo_recovery.py stays the automated gate.
 - multi_dataset/jax_likelihood/delaunay.py # NEEDS_FIX 2026-08-28 - hung 1805s in release-integrate run 33177898708 (second vmap call, post-compile) with XLA_FLAGS=--xla_cpu_multi_thread_eigen=false in force: XLA FftThunk/ducc0 Eigen-pool deadlock (epic xla-cpu-eigen-pool-deadlock); restored 2026-08-27 by PyAutoFit#1528 on 24/24, one hang since. Smoke run passed it in 18.9s the same day.
+- multi_dataset/jax_likelihood/shared_preloads.py # NEEDS_FIX 2026-08-28 - hung 1805s in release-integrate run 33220882817 (vmap trace at shared_preloads.py:211 _assert_two_band_shared_jit; the inner pjit executing under the batching trace never returned, heartbeat still logging "still compiling" at 1740s) with XLA_FLAGS=--xla_cpu_multi_thread_eigen=false in force: XLA FftThunk/ducc0 Eigen-pool deadlock (epic xla-cpu-eigen-pool-deadlock). Same family and same signature as the delaunay.py entry above; restored 2026-08-27 by PyAutoFit#1528 on 24/24 (43.9s/43.8s in the family re-time below), one hang since. Stays on the smoke gate (smoke_tests.txt), which deliberately does not apply this file.
 
 # The jax-compile-stall family was RESTORED (PyAutoFit#1528, 2026-08-27). Both
 # entries below were removed from this file, and multi_dataset/jax_likelihood/
@@ -92,7 +93,11 @@
 #   multi_dataset/jax_likelihood/delaunay.py  NEEDS_FIX 2026-08-01 (#245),
 #     restored 2026-08-27 (PyAutoFit#1528), then RE-QUARANTINED 2026-08-28 (#287)
 #     after a single 1805s hang at the release cap -- it is back in this file as
-#     the NEEDS_FIX 2026-08-28 entry above. The other three stay restored.
+#     the NEEDS_FIX 2026-08-28 entry above.
+#   multi_dataset/jax_likelihood/shared_preloads.py  RE-QUARANTINED 2026-08-28
+#     after the same 1805s hang at the release cap in integrate run 33220882817,
+#     one wave after delaunay.py -- it is back in this file as the second
+#     NEEDS_FIX 2026-08-28 entry above. The other two stay restored.
 #
 # The name every marker used was wrong. It is NOT an XLA compile stall: the
 # captured stacks put the process in jax.block_until_ready / jax.Array._value
