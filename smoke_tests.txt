@@ -29,3 +29,4 @@ multi_galaxy/model_fit.py
 multi_galaxy/jax_likelihood/lp.py
 misc/latent/latent_variables_smoke.py
 misc/latent/latent_nan_robustness_jax.py
+imaging/over_sample_adapt_snr.py
