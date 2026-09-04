@@ -116,7 +116,8 @@ def fit():
                         pixelization=af.Model(
                             al.Pixelization,
                             mesh=af.Model(
-                                al.mesh.RectangularBilinearAdaptDensity, shape=mesh_shape
+                                al.mesh.RectangularBilinearAdaptDensity,
+                                shape=mesh_shape,
                             ),
                             regularization=al.reg.Adapt,
                         ),

@@ -426,8 +426,7 @@ print(
 # The exact DFT is the reference here. This tolerance is far tighter than the
 # gridding-precision one it replaces, because nufftax is essentially exact.
 assert np.max(np.abs(mm_nfx - mm_dft)) / mm_scale < 1e-9, (
-    "nufftax mapping matrix must agree with the exact TransformerDFT "
-    "mapping matrix"
+    "nufftax mapping matrix must agree with the exact TransformerDFT " "mapping matrix"
 )
 
 # The shipped `al.TransformerNUFFT.transform_mapping_matrix` (batched, one

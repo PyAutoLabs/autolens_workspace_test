@@ -136,7 +136,9 @@ def fit():
                     redshift=source_lp_result.instance.galaxies.source.redshift,
                     pixelization=af.Model(
                         al.Pixelization,
-                        mesh=af.Model(al.mesh.RectangularBilinearAdaptImage, shape=mesh_shape),
+                        mesh=af.Model(
+                            al.mesh.RectangularBilinearAdaptImage, shape=mesh_shape
+                        ),
                         regularization=al.reg.Adapt,
                     ),
                 ),
@@ -339,7 +341,9 @@ def fit():
                     redshift=source_lp_result.instance.galaxies.source.redshift,
                     pixelization=af.Model(
                         al.Pixelization,
-                        mesh=af.Model(al.mesh.RectangularBilinearAdaptImage, shape=mesh_shape),
+                        mesh=af.Model(
+                            al.mesh.RectangularBilinearAdaptImage, shape=mesh_shape
+                        ),
                         regularization=al.reg.Adapt,
                     ),
                 ),

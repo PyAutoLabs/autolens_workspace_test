@@ -217,9 +217,9 @@ assert max(observed.values()) > CANDIDATE_CAP, (
     "The fixed stress geometry should demonstrate that cap 16 truncates a "
     f"production-like stencil; observed {observed}"
 )
-assert max(observed.values()) <= DEFAULT_CAP, (
-    f"The current cap 32 needs increasing for this audit; observed {observed}"
-)
+assert (
+    max(observed.values()) <= DEFAULT_CAP
+), f"The current cap 32 needs increasing for this audit; observed {observed}"
 
 _, worst_index, worst_parameters, worst_points, worst_queries = worst
 cap_16_outputs = table_function(CANDIDATE_CAP)(
@@ -254,9 +254,9 @@ rows_exceeding_24 = {
     "split_cavities": int((split_cavity_sizes > INTERMEDIATE_CAP).sum()),
 }
 assert cap_16_overflow > 0, "cap 16 did not report the expected truncation"
-assert (cap_24_overflow > 0) == (sum(rows_exceeding_24.values()) > 0), (
-    "cap-24 overflow flags disagree with the 64-entry reference distribution"
-)
+assert (cap_24_overflow > 0) == (
+    sum(rows_exceeding_24.values()) > 0
+), "cap-24 overflow flags disagree with the 64-entry reference distribution"
 assert cap_24_overflow <= cap_16_overflow
 assert (
     np.isnan(np.asarray(cap_16_outputs[4])).any()

@@ -193,7 +193,9 @@ mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01
 # bandwidth=0.1 (both meshes below): this config's reconstruction quality is
 # bandwidth-sensitive — the kernel-CDF default (1.0) over-smooths the
 # adapt-image weights here (LL -6340 vs -3824 at 0.1; old linear mesh: -3696).
-mesh = al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0, bandwidth=0.1)
+mesh = al.mesh.RectangularRTUAdaptImage(
+    shape=mesh_shape, weight_power=1.0, bandwidth=0.1
+)
 
 regularization = al.reg.Adapt()
 
@@ -203,7 +205,9 @@ lens_1 = af.Model(al.Galaxy, redshift=1.0, mass=mass, pixelization=pixelization)
 
 # Source:
 
-mesh = al.mesh.RectangularRTUAdaptImage(shape=mesh_shape, weight_power=1.0, bandwidth=0.1)
+mesh = al.mesh.RectangularRTUAdaptImage(
+    shape=mesh_shape, weight_power=1.0, bandwidth=0.1
+)
 
 regularization = al.reg.Adapt()
 

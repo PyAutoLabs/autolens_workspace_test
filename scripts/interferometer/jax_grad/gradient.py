@@ -235,7 +235,9 @@ no over-sampling to fall back on, which made the old linear adaptive mesh's
 gradients unusable here; the mesh must carry live, strictly FD-matched
 gradients on every (mass/shear) parameter in this exact configuration.
 """
-print("\n=== interferometer RectangularRTUAdaptDensity + reg.Adapt, sparse operator ===")
+print(
+    "\n=== interferometer RectangularRTUAdaptDensity + reg.Adapt, sparse operator ==="
+)
 
 fitness, param_vector, param_names = sparse_fitness(
     mesh=al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape),
