@@ -501,6 +501,9 @@ for method_name, np_irr, jax_irr, np_uni, jax_uni in [
         aa.Array2D,
     ),
 ]:
+    # atol: PyAutoGalaxy#598 gave the numpy deflections an exact unit-vector
+    # transform, so on-axis points are exactly 0.0 while the JAX branch's
+    # arctan2/cos/sin route returns ~1e-16 there -- an infinite rtol-only error.
     check_profile_method(
         label=f"mp.PowerLaw.{method_name} (irregular)",
         profile=power_law,
@@ -508,6 +511,7 @@ for method_name, np_irr, jax_irr, np_uni, jax_uni in [
         grid=grid_irr,
         np_type=np_irr,
         jax_type=jax_irr,
+        atol=1e-12,
     )
     check_profile_method(
         label=f"mp.PowerLaw.{method_name} (uniform)",
@@ -516,6 +520,7 @@ for method_name, np_irr, jax_irr, np_uni, jax_uni in [
         grid=grid_uni,
         np_type=np_uni,
         jax_type=jax_uni,
+        atol=1e-12,
     )
 
 print("  mp.PowerLaw OK")
