@@ -75,7 +75,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
 )
 
 """
@@ -322,7 +322,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -28830.547173,
+    -1358.450245,
     rtol=1e-4,
     err_msg="mge_group: JAX vmap likelihood mismatch",
 )

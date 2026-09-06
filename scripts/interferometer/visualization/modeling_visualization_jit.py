@@ -60,8 +60,8 @@ Re-use the ``simple`` interferometer dataset. Auto-simulate if missing.
 mask_radius = 3.5
 
 real_space_mask = al.Mask2D.circular(
-    shape_native=(256, 256),
-    pixel_scales=0.1,
+    shape_native=(128, 128),
+    pixel_scales=0.2,
     radius=mask_radius,
 )
 

@@ -1,10 +1,11 @@
 """
-Simulator: HST
-==============
+Simulator: Simple
+=================
 
 This script simulates `Imaging` of a strong lens where:
 
- - The resolution, PSF and S/N are representative of Hubble Space Telescope imaging.
+ - The pixel scale is 0.3" and the PSF is a 0.8"-FWHM Gaussian, i.e. ground-based-seeing-like
+   sampling, sized so that the models fitted to this dataset resolve the data they fit.
 
 __Env__
 
@@ -42,13 +43,13 @@ sub-size of the grid is iteratively increased (in steps of 2, 4, 8, 16, 24) unti
 This ensures that the divergent and bright central regions of the source galaxy are fully resolved when determining the
 total flux emitted within a pixel.
 """
-grid = al.Grid2D.uniform(shape_native=(180, 180), pixel_scales=0.2)
+grid = al.Grid2D.uniform(shape_native=(100, 100), pixel_scales=0.3)
 
 """
 Simulate a simple Gaussian PSF for the image.
 """
 psf = al.Convolver.from_gaussian(
-    shape_native=(21, 21), sigma=0.2, pixel_scales=grid.pixel_scales, normalize=True
+    shape_native=(11, 11), sigma=0.35, pixel_scales=grid.pixel_scales, normalize=True
 )
 
 """
@@ -71,14 +72,14 @@ lens_galaxy = al.Galaxy(
     bulge=al.lp.Sersic(
         centre=(0.0, 0.0),
         ell_comps=al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0),
-        intensity=4.0,
+        intensity=1.0,
         effective_radius=0.6,
         sersic_index=3.0,
     ),
     disk=al.lp.Exponential(
         centre=(0.0, 0.0),
         ell_comps=al.convert.ell_comps_from(axis_ratio=0.7, angle=30.0),
-        intensity=2.0,
+        intensity=0.5,
         effective_radius=1.6,
     ),
     mass=al.mp.Isothermal(

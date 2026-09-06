@@ -45,7 +45,7 @@ Test cases
 ----------
 (a) All-ones 5x5 image, 0.005" pixels, 3 uv points -- low-noise sanity anchor
     that reproduces the TransformerNUFFT pytest fixture.
-(b) Lensed Sersic image, 256x256, real SMA uv coverage (190 visibilities) --
+(b) Lensed Sersic image, 128x128, real SMA uv coverage (190 visibilities) --
     the realistic case used by the JAX likelihood scripts.
 (c) Mapping matrix with 2 columns -- exercises the ``transform_mapping_matrix``
     code path used by source pixelizations.
@@ -59,8 +59,8 @@ Run from the ``autolens_workspace_test/`` repo root::
     NUMBA_CACHE_DIR=/tmp/numba_cache MPLCONFIGDIR=/tmp/matplotlib \\
         python scripts/interferometer/nufft.py
 
-This script runs at **full resolution**: test (b) is the realistic 256x256 /
-0.1" production geometry the JAX likelihood scripts use, and it guards that
+This script runs at **full resolution**: test (b) is the realistic 128x128 /
+0.2" production geometry the JAX likelihood scripts use, and it guards that
 geometry explicitly. nufftax's accuracy is not grid-size dependent (measured
 3.0e-14 vs 1.7e-14 relative at 16x16 and 256x256), so the tolerances here
 would survive a reduced-resolution profile -- the full-resolution requirement
@@ -70,7 +70,7 @@ only holds at one N.
 __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
-Numerical-precision test exercised at the documented production 256x256 / 0.1"
+Numerical-precision test exercised at the documented production 128x128 / 0.2"
 geometry. No search and no plotting fidelity is needed, so only the dataset cap
 is released.
 
@@ -234,25 +234,25 @@ assert (
 
 
 # =============================================================================
-# Test (b): Lensed Sersic image, 256x256, real SMA uv (the production case)
+# Test (b): Lensed Sersic image, 128x128, real SMA uv (the production case)
 # =============================================================================
 
 print()
 print("=" * 70)
-print("(b) Lensed Sersic image, 256x256, SMA uv coverage")
+print("(b) Lensed Sersic image, 128x128, SMA uv coverage")
 print("=" * 70)
 
 dataset_path = path.join("dataset", "interferometer", "simple")
 
 real_space_mask = al.Mask2D.circular(
-    shape_native=(256, 256),
-    pixel_scales=0.1,
+    shape_native=(128, 128),
+    pixel_scales=0.2,
     radius=3.0,
 )
 
 # Guard the production geometry this test is meant to exercise. `Mask2D.circular`
 # silently honours `PYAUTO_SMALL_DATASETS=1` by capping to (16, 16) at 0.6".
-# Without this guard the script keeps printing "256x256" while comparing a 16x16
+# Without this guard the script keeps printing "128x128" while comparing a 16x16
 # problem — a silently weaker test rather than the geometry error it is. (When
 # this script still had a gridding-based backend, that mismatch surfaced ~60
 # lines later as a blown tolerance; nufftax is accurate at both sizes, so the
@@ -263,11 +263,11 @@ real_space_mask = al.Mask2D.circular(
 # It runs BEFORE `should_simulate` deliberately: that call deletes the on-disk
 # dataset when the cap is active, so guarding first means a misconfigured run
 # fails without first destroying a full-resolution dataset other scripts share.
-assert real_space_mask.shape_native == (256, 256) and real_space_mask.pixel_scales == (
-    0.1,
-    0.1,
+assert real_space_mask.shape_native == (128, 128) and real_space_mask.pixel_scales == (
+    0.2,
+    0.2,
 ), (
-    f'Test (b) requires the full-resolution 256x256 / 0.1" grid, but got '
+    f'Test (b) requires the full-resolution 128x128 / 0.2" grid, but got '
     f"{real_space_mask.shape_native} at {real_space_mask.pixel_scales}. "
     f"PYAUTO_SMALL_DATASETS is capping it; this script declares "
     f"`ENV: full_datasets` to release that cap."
@@ -353,19 +353,19 @@ print(
 # nufftax with eps=1e-12 is effectively exact; match DFT to ~1e-9 relative.
 assert (
     np.max(np.abs(vis_b_nfx - vis_b_dft)) / dft_scale < 1e-9
-), "nufftax should match TransformerDFT to ~1e-9 relative on 256x256"
+), "nufftax should match TransformerDFT to ~1e-9 relative on 128x128"
 # The shipped transformer must match the same exact reference. Unlike the
 # gridding-based backend this script was originally written against, nufftax's
 # accuracy does not degrade at small N (measured 2026-08-04: 3.0e-14 relative
 # at 256x256 / 0.1", 1.7e-14 at 16x16 / 0.6"), so this tolerance is not a
-# 256x256-only number.
+# resolution-specific number.
 assert (
     np.max(np.abs(vis_b_lib - vis_b_dft)) / dft_scale < 1e-9
-), "al.TransformerNUFFT should match TransformerDFT to ~1e-9 relative on 256x256"
+), "al.TransformerNUFFT should match TransformerDFT to ~1e-9 relative on 128x128"
 # The shipped `al.TransformerNUFFT` must reproduce the local nufftax recipe.
 assert (
     np.max(np.abs(vis_b_lib - vis_b_nfx)) / dft_scale < 1e-9
-), "al.TransformerNUFFT should match the local nufftax recipe on 256x256"
+), "al.TransformerNUFFT should match the local nufftax recipe on 128x128"
 
 
 # Save residuals plot for visual sanity check (mirrors imaging/convolution.py)

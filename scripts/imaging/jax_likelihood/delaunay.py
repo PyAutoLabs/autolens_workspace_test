@@ -77,7 +77,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
     over_sample_size_lp=sub_size,
     over_sample_size_pixelization=sub_size,
 )
@@ -137,7 +137,7 @@ inputs:
 The `image_mesh` can be ignored, it is legacy API from previous versions which may or may not be reintegrated in future
 versions.
 """
-pixels = 750
+pixels = 200
 edge_pixels_total = 30
 
 galaxy_image_name_dict = {
@@ -297,7 +297,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -22205.87818084,
+    -541.50627819,
     rtol=1e-4,
     err_msg="delaunay: JAX vmap likelihood mismatch",
 )

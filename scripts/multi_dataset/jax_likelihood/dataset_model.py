@@ -40,7 +40,7 @@ import autofit as af
 import autolens as al
 
 waveband_list = ["g", "r"]
-pixel_scales = 0.1
+pixel_scales = 0.2
 mask_radius = 3.0
 
 dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
@@ -174,7 +174,7 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-EXPECTED_VMAP_LOG_LIKELIHOOD = -2699469.80625228
+EXPECTED_VMAP_LOG_LIKELIHOOD = -583018.98815524
 
 np.testing.assert_allclose(
     np.array(result),

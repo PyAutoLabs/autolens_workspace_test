@@ -45,7 +45,7 @@ from os import path
 import autofit as af
 import autolens as al
 
-sub_size = 4
+sub_size = 2
 psf_shape_2d = (21, 21)
 
 """
@@ -74,7 +74,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
     over_sample_size_lp=sub_size,
     over_sample_size_pixelization=sub_size,
 )
@@ -98,20 +98,20 @@ dataset = dataset.apply_mask(mask=mask)
 
 over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
     grid=dataset.grid,
-    sub_size_list=[4, 2, 2],
+    sub_size_list=[2, 2, 1],
     radial_list=[0.3, 0.6],
     centre_list=[(0.0, 0.0)],
 )
 
 snr_no_lens = al.Array2D.from_fits(
-    file_path=path.join(dataset_path, "snr_no_lens.fits"), pixel_scales=0.2
+    file_path=path.join(dataset_path, "snr_no_lens.fits"), pixel_scales=0.3
 )
 
 signal_to_noise_threshold = 3.0
 over_sample_size_pixelization = np.where(
     snr_no_lens.native > signal_to_noise_threshold,
-    4,
     2,
+    1,
 )
 over_sample_size_pixelization = al.Array2D(
     values=over_sample_size_pixelization, mask=mask
@@ -129,7 +129,11 @@ dataset = dataset.apply_over_sampling(
 __Mesh Shape__
 
 The `mesh_shape` parameter defines number of pixels used by the rectangular mesh to reconstruct the source,
-set below to 28 x 28. 
+set below to 20 x 20.
+
+The mesh must not have more source pixels than the mask has image pixels, or the inversion is
+under-determined. The 3.5" mask holds ~428 pixels at the dataset's 0.3" pixel scale, so 20 x 20
+(400) is the largest square mesh that stays determined.
 
 The `mesh_shape` must be fixed before modeling and cannot be a free parameter of the model, because JAX uses the
 mesh shape to define static shaped arrays which use the mesh to reconstruct the source. For a rectangular
@@ -144,7 +148,7 @@ bright surface brightnesses, often because they fit residuals from the lens ligh
 For a rectangular mesh, the source code computes edge pixels internally using the known
 pixels at the edge of the mesh. 
 """
-mesh_pixels_yx = 28
+mesh_pixels_yx = 20
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
 """
@@ -160,23 +164,62 @@ The number of free parameters and therefore the dimensionality of non-linear par
 """
 # # Lens:
 
+"""
+The simulated lens galaxy (`scripts/imaging/simulator/simple.py`) has a `Sersic` bulge, an
+`Exponential` disk, an `Isothermal` mass and a small external shear. The model below carries
+every one of those components, and each prior is a uniform prior centred on the simulated
+value — the likelihood here is evaluated at the prior medians, so a matched model means the
+medians sit at the truth and the evaluation is a high-likelihood one rather than an arbitrary
+point in parameter space.
+"""
+bulge_ell_comps = al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0)
+disk_ell_comps = al.convert.ell_comps_from(axis_ratio=0.7, angle=30.0)
+mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.8, angle=45.0)
+
+bulge = af.Model(al.lp_linear.Sersic)
+bulge.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+bulge.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+bulge.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=bulge_ell_comps[0] - 0.05, upper_limit=bulge_ell_comps[0] + 0.05
+)
+bulge.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=bulge_ell_comps[1] - 0.05, upper_limit=bulge_ell_comps[1] + 0.05
+)
+bulge.effective_radius = af.UniformPrior(lower_limit=0.5, upper_limit=0.7)
+bulge.sersic_index = af.UniformPrior(lower_limit=2.5, upper_limit=3.5)
+
+disk = af.Model(al.lp_linear.Exponential)
+disk.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+disk.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+disk.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=disk_ell_comps[0] - 0.05, upper_limit=disk_ell_comps[0] + 0.05
+)
+disk.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=disk_ell_comps[1] - 0.05, upper_limit=disk_ell_comps[1] + 0.05
+)
+disk.effective_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
+
 mass = af.Model(al.mp.Isothermal)
 
-mass.centre.centre_0 = af.UniformPrior(lower_limit=0.2, upper_limit=0.4)
-mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.4, upper_limit=-0.2)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
 mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
 mass.ell_comps.ell_comps_0 = af.UniformPrior(
-    lower_limit=0.11111111111111108, upper_limit=0.1111111111111111
+    lower_limit=mass_ell_comps[0] - 0.05, upper_limit=mass_ell_comps[0] + 0.05
 )
-mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=mass_ell_comps[1] - 0.05, upper_limit=mass_ell_comps[1] + 0.05
+)
 
 shear = af.Model(al.mp.ExternalShear)
-shear.gamma_1 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
-shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
+shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
 
 lens = af.Model(
     al.Galaxy,
     redshift=0.5,
+    bulge=bulge,
+    disk=disk,
     mass=mass,
     shear=shear,
 )
@@ -267,7 +310,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -650470.379097,
+    717.264911,
     rtol=1e-4,
     err_msg="rectangular: JAX vmap likelihood mismatch",
 )

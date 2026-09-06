@@ -29,10 +29,13 @@ import autofit as af
 import autolens as al
 
 waveband_list = ["g", "r"]
-pixel_scales = 0.1
+pixel_scales = 0.2
 mask_radius = 3.0
 
-dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
+# This model carries a lens light (MGE) component, so it reads the `lens_sersic_light`
+# dataset written by `scripts/multi_dataset/simulator.py`, whose lens galaxy has a
+# `Sersic` light profile — the model therefore fits data that contains what it models.
+dataset_path = path.join("dataset", "multi_dataset", "lens_sersic_light")
 
 """
 __Dataset Auto-Simulation__
@@ -77,7 +80,7 @@ dataset_list = [
 """
 __Mesh & Adapt Images (per band)__
 """
-mesh_pixels_yx = 28
+mesh_pixels_yx = 26
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
 adapt_images_list = [
@@ -197,7 +200,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 # rectangular script (~2.6e-4), as the MGE basis amplifies the NNLS/linear-algebra
 # reduction-order jitter. Convergence jitter, not a regression. The EXACT,
 # JAX-version-robust check is the vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = 1964.629322
+EXPECTED_VMAP_LOG_LIKELIHOOD = 2442.899004
 
 np.testing.assert_allclose(
     np.array(result),

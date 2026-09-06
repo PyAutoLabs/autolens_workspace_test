@@ -42,7 +42,7 @@ import autofit as af
 import autolens as al
 
 waveband_list = ["g", "r"]
-pixel_scales = 0.1
+pixel_scales = 0.2
 mask_radius = 3.0
 
 dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
@@ -90,7 +90,7 @@ dataset_list = [
 """
 __Mesh & Adapt Images (per band)__
 """
-mesh_pixels_yx = 28
+mesh_pixels_yx = 26
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
 adapt_images_list = [
@@ -213,7 +213,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 # linear-algebra reduction order change across JAX releases. That is convergence
 # jitter, not a correctness regression. The EXACT, JAX-version-robust check is the
 # vmap == jit round-trip asserted below.
-EXPECTED_VMAP_LOG_LIKELIHOOD = -6619.860182
+EXPECTED_VMAP_LOG_LIKELIHOOD = 1902.509864
 
 np.testing.assert_allclose(
     np.array(result),

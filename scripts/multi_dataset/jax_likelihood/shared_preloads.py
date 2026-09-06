@@ -49,7 +49,7 @@ from os import path
 import autofit as af
 import autolens as al
 
-pixel_scales = 0.1
+pixel_scales = 0.2
 mask_radius = 3.0
 pixels = 500
 edge_pixels_total = 30
@@ -114,14 +114,27 @@ def _adapt_images(dataset):
 
 
 def _model():
+    # Uniform priors centred on the values used by `scripts/multi_dataset/simulator.py`: an
+    # `Isothermal` with an axis ratio of 0.9 at 45 degrees and an Einstein radius of 1.6, plus an
+    # external shear of (0.05, 0.05) — the shear the data contains and the model must carry.
+    mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0)
+
     mass = af.Model(al.mp.Isothermal)
     mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.05, upper_limit=0.05)
     mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.05, upper_limit=0.05)
     mass.einstein_radius = af.UniformPrior(lower_limit=1.55, upper_limit=1.65)
-    mass.ell_comps.ell_comps_0 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
-    mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=0.045, upper_limit=0.060)
+    mass.ell_comps.ell_comps_0 = af.UniformPrior(
+        lower_limit=mass_ell_comps[0] - 0.01, upper_limit=mass_ell_comps[0] + 0.01
+    )
+    mass.ell_comps.ell_comps_1 = af.UniformPrior(
+        lower_limit=mass_ell_comps[1] - 0.01, upper_limit=mass_ell_comps[1] + 0.01
+    )
 
-    lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
+    shear = af.Model(al.mp.ExternalShear)
+    shear.gamma_1 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
+    shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
+
+    lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
 
     pixelization = af.Model(
         al.Pixelization,

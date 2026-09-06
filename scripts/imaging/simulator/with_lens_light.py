@@ -1,11 +1,13 @@
 """
-Simulator: SIE
-==============
+Simulator: With Lens Light
+==========================
 
 This script simulates `Imaging` of a strong lens where:
 
- - The lens galaxy's total mass distribution is an `Isothermal` and `ExternalShear`.
- - The source galaxy's `LightProfile` is an `Sersic`.
+ - The lens galaxy's light is a `DevVaucouleursSph` and its total mass distribution an
+   `IsothermalSph` — the mass model `imaging/model_fit.py` fits.
+ - The source galaxy's `LightProfile` is an `ExponentialSph` with a 0.3" effective radius,
+   i.e. resolved at the 0.3" pixel scale of this dataset.
 """
 
 # %matplotlib inline
@@ -41,15 +43,15 @@ This ensures that the divergent and bright central regions of the source galaxy 
 total flux emitted within a pixel.
 """
 grid = al.Grid2D.uniform(
-    shape_native=(80, 80),
-    pixel_scales=0.2,
+    shape_native=(60, 60),
+    pixel_scales=0.3,
 )
 
 """
 Simulate a simple Gaussian PSF for the image.
 """
 psf = al.Convolver.from_gaussian(
-    shape_native=(11, 11), sigma=0.2, pixel_scales=grid.pixel_scales
+    shape_native=(11, 11), sigma=0.35, pixel_scales=grid.pixel_scales
 )
 
 """
@@ -61,6 +63,7 @@ simulator = al.SimulatorImaging(
     psf=psf,
     background_sky_level=0.1,
     add_poisson_noise_to_data=True,
+    noise_seed=1,
 )
 
 """
@@ -81,11 +84,9 @@ lens_galaxy = al.Galaxy(
         intensity=0.1,
         effective_radius=0.8,
     ),
-    mass=al.mp.PowerLaw(
+    mass=al.mp.IsothermalSph(
         centre=(0.0, 0.0),
-        ell_comps=(0.0, 0.0),
         einstein_radius=1.6,
-        slope=1.8,
     ),
 )
 
@@ -94,7 +95,7 @@ source_galaxy = al.Galaxy(
     bulge=al.lp.ExponentialSph(
         centre=(0.5, 0.25),
         intensity=0.3,
-        effective_radius=0.1,
+        effective_radius=0.3,
     ),
 )
 

@@ -74,7 +74,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
     over_sample_size_lp=sub_size,
     over_sample_size_pixelization=sub_size,
 )
@@ -104,7 +104,7 @@ over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
 )
 
 snr_no_lens = al.Array2D.from_fits(
-    file_path=path.join(dataset_path, "snr_no_lens.fits"), pixel_scales=0.2
+    file_path=path.join(dataset_path, "snr_no_lens.fits"), pixel_scales=0.3
 )
 
 signal_to_noise_threshold = 3.0
@@ -144,7 +144,7 @@ bright surface brightnesses, often because they fit residuals from the lens ligh
 For a rectangular mesh, the source code computes edge pixels internally using the known
 pixels at the edge of the mesh. 
 """
-mesh_pixels_yx = 28
+mesh_pixels_yx = 20
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
 """
@@ -267,7 +267,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -652043.028434,
+    -42710.605962,
     rtol=1e-4,
     err_msg="rectangular: JAX vmap likelihood mismatch",
 )

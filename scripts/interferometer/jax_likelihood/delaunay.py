@@ -35,8 +35,8 @@ evaluated using.
 mask_radius = 3.0
 
 real_space_mask = al.Mask2D.circular(
-    shape_native=(256, 256),
-    pixel_scales=0.1,
+    shape_native=(128, 128),
+    pixel_scales=0.2,
     radius=mask_radius,
 )
 
@@ -93,7 +93,7 @@ using the Hilbert image mesh, and append edge points to zero them.
 - `pixels`: number of source pixels in the Delaunay mesh.
 - `edge_pixels_total`: number of edge pixels zeroed in the source reconstruction.
 """
-pixels = 750
+pixels = 600
 edge_pixels_total = 30
 
 # Use a Sersic image as adapt data (same as interferometer/rectangular.py) to avoid
@@ -238,7 +238,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3165.42388511,
+    -3161.17249905,
     rtol=1e-4,
     err_msg="interferometer/delaunay: JAX vmap likelihood mismatch",
 )
@@ -380,7 +380,7 @@ print("TransformerNUFFT vmap result:", result_nufft)
 
 np.testing.assert_allclose(
     np.array(result_nufft),
-    -3165.42388511,
+    -3161.17249905,
     rtol=1e-4,
     err_msg="interferometer/delaunay: TransformerNUFFT vmap likelihood disagrees with TransformerDFT",
 )

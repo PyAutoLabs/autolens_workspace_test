@@ -78,7 +78,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
     over_sample_size_lp=sub_size,
     over_sample_size_pixelization=sub_size,
 )
@@ -112,7 +112,7 @@ circle-edge zeroing). ``pixels`` and ``edge_pixels_total`` are static JAX
 shapes — hardcode per the reference at
 ``imaging/delaunay.py``.
 """
-pixels = 400
+pixels = 200
 edge_pixels_total = 20
 
 galaxy_name_image_dict = {

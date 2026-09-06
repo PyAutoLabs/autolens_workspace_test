@@ -56,8 +56,8 @@ Same as ``interferometer/rectangular.py`` — shared across all channels.
 mask_radius = 3.0
 
 real_space_mask = al.Mask2D.circular(
-    shape_native=(256, 256),
-    pixel_scales=0.1,
+    shape_native=(128, 128),
+    pixel_scales=0.2,
     radius=mask_radius,
 )
 
@@ -118,19 +118,27 @@ __Model__
 Same lens (`Isothermal + ExternalShear`) and source (`RectangularRTUAdaptDensity`
 + `reg.Adapt()`) as ``interferometer/rectangular.py``.
 """
+# Uniform priors centred on the values used by `scripts/interferometer/simulator/simple.py`: an
+# `Isothermal` with an axis ratio of 0.9 at 45 degrees and an Einstein radius of 1.6, plus an
+# external shear of (0.05, 0.05). Kept identical to `interferometer/jax_likelihood/rectangular.py`,
+# which this script's likelihood literal is asserted to match.
+mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0)
+
 mass = af.Model(al.mp.Isothermal)
 
 mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
 mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
 mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
 mass.ell_comps.ell_comps_0 = af.UniformPrior(
-    lower_limit=0.11111111111111108, upper_limit=0.1111111111111111
+    lower_limit=mass_ell_comps[0] - 0.05, upper_limit=mass_ell_comps[0] + 0.05
 )
-mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=mass_ell_comps[1] - 0.05, upper_limit=mass_ell_comps[1] + 0.05
+)
 
 shear = af.Model(al.mp.ExternalShear)
-shear.gamma_1 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
-shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
+shear.gamma_1 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
+shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
 
 lens = af.Model(
     al.Galaxy,
@@ -153,8 +161,36 @@ __Adapt Images__
 Same Sersic-image reference as ``interferometer/rectangular.py``. Shared across
 all channels in the cube (same `dataset.grid` since channels share the mask).
 """
-bulge = al.lp.Sersic()
-image = bulge.image_2d_from(grid=dataset_list[0].grid)
+"""
+The adapt image is the image of the TRUE source: an `al.lp.SersicCore` whose literals are copied
+from `scripts/interferometer/simulator/simple.py`, ray-traced through the simulator's own lens.
+Kept identical to `interferometer/jax_likelihood/rectangular.py` — an image-plane adapt image
+built from the source the data actually contains.
+"""
+source_bulge_truth = al.lp.SersicCore(
+    centre=(0.1, 0.1),
+    ell_comps=al.convert.ell_comps_from(axis_ratio=0.8, angle=60.0),
+    intensity=0.3,
+    effective_radius=1.0,
+    sersic_index=2.5,
+)
+
+truth_tracer = al.Tracer(
+    galaxies=[
+        al.Galaxy(
+            redshift=0.5,
+            mass=al.mp.Isothermal(
+                centre=(0.0, 0.0),
+                einstein_radius=1.6,
+                ell_comps=al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0),
+            ),
+            shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05),
+        ),
+        al.Galaxy(redshift=1.0, bulge=source_bulge_truth),
+    ]
+)
+
+image = truth_tracer.image_2d_from(grid=dataset_list[0].grid)
 
 galaxy_name_image_dict = {
     "('galaxies', 'lens')": image,
@@ -226,10 +262,10 @@ print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 """
-Cube log-likelihood ≈ N × single-channel log-likelihood (-3164.286252) for
+Cube log-likelihood ≈ N × single-channel log-likelihood (-3162.347549) for
 identical channels. Pinned empirically below.
 """
-EXPECTED_VMAP_LOG_LIKELIHOOD = n_channels * -3164.286252
+EXPECTED_VMAP_LOG_LIKELIHOOD = n_channels * -3162.347549
 
 np.testing.assert_allclose(
     np.array(result),

@@ -189,11 +189,12 @@ lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
 # Source:
 
-point_0 = af.Model(al.ps.PointFlux)
+# The simulated source (`scripts/point_source/simulators/simple.py`) is an `al.ps.Point`, which
+# carries no flux; the model is the same class, so it fits exactly what the data contains.
+point_0 = af.Model(al.ps.Point)
 
 point_0.centre.centre_0 = af.UniformPrior(lower_limit=0.06, upper_limit=0.08)
 point_0.centre.centre_1 = af.UniformPrior(lower_limit=0.06, upper_limit=0.08)
-# point_0.flux = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
 
 source = af.Model(al.Galaxy, redshift=1.0, point_0=point_0)
 

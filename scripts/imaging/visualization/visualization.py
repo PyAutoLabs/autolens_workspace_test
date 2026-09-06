@@ -67,11 +67,11 @@ from autolens.imaging.model.visualizer import VisualizerImaging
 """
 __Dataset__
 
-Build imaging (with_lens_light): pixel_scale=0.2", 80x80 grid.
+Build imaging (with_lens_light): pixel_scale=0.3", 60x60 grid.
 Uses fixed over_sample_size to avoid loading snr_no_lens.fits.
 """
 
-pixel_scale = 0.2
+pixel_scale = 0.3
 
 dataset_path = path.join("dataset", "build", "imaging", "with_lens_light")
 
