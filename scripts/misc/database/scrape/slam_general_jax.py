@@ -315,7 +315,7 @@ def fit():
         data_path=path.join(dataset_path, "data.fits"),
         noise_map_path=path.join(dataset_path, "noise_map.fits"),
         psf_path=path.join(dataset_path, "psf.fits"),
-        pixel_scales=0.2,
+        pixel_scales=0.3,
     )
 
     mask_radius = 3.0

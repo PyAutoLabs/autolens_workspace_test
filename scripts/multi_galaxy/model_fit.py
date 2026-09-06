@@ -35,12 +35,12 @@ Simulate the merging-pair dataset inline: two `Sersic` + `Isothermal` galaxies o
 (1.0" and 0.8") and a compact `SersicCore` source inside the tangential caustic, producing an Einstein-cross-like
 configuration around the pair.
 """
-grid = al.Grid2D.uniform(shape_native=(150, 150), pixel_scales=0.1)
+grid = al.Grid2D.uniform(shape_native=(80, 80), pixel_scales=0.2)
 
 psf = al.Convolver.from_gaussian(
     convolve_over_sample_size=1,
     shape_native=(11, 11),
-    sigma=0.1,
+    sigma=0.2,
     pixel_scales=grid.pixel_scales,
 )
 
@@ -79,7 +79,7 @@ lens_1 = al.Galaxy(
 source = al.Galaxy(
     redshift=1.0,
     bulge=al.lp.SersicCore(
-        centre=(0.0, 0.03), intensity=3.0, effective_radius=0.15, sersic_index=1.0
+        centre=(0.0, 0.03), intensity=3.0, effective_radius=0.3, sersic_index=1.0
     ),
 )
 

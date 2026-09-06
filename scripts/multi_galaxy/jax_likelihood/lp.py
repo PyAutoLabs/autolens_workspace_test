@@ -44,12 +44,12 @@ Simulate the merging-pair dataset inline (identical to `multi_galaxy/model_fit.p
 `SersicCore` source. The fixed `noise_seed` makes the dataset — and therefore the hardcoded likelihood
 literal below — deterministic.
 """
-grid = al.Grid2D.uniform(shape_native=(150, 150), pixel_scales=0.1)
+grid = al.Grid2D.uniform(shape_native=(80, 80), pixel_scales=0.2)
 
 psf = al.Convolver.from_gaussian(
     convolve_over_sample_size=1,
     shape_native=(11, 11),
-    sigma=0.1,
+    sigma=0.2,
     pixel_scales=grid.pixel_scales,
 )
 
@@ -88,7 +88,7 @@ lens_1 = al.Galaxy(
 source_galaxy = al.Galaxy(
     redshift=1.0,
     bulge=al.lp.SersicCore(
-        centre=(0.0, 0.03), intensity=3.0, effective_radius=0.15, sersic_index=1.0
+        centre=(0.0, 0.03), intensity=3.0, effective_radius=0.3, sersic_index=1.0
     ),
 )
 
@@ -202,7 +202,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -1321338125.2585614,
+    -222782098.0392115,
     rtol=1e-4,
     err_msg="multi_galaxy lp: JAX vmap likelihood mismatch",
 )

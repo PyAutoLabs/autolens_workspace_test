@@ -26,10 +26,13 @@ import autofit as af
 import autolens as al
 
 waveband_list = ["g", "r"]
-pixel_scales = 0.1
+pixel_scales = 0.2
 mask_radius = 3.0
 
-dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
+# This model carries a lens light (MGE) component, so it reads the `lens_sersic_light`
+# dataset written by `scripts/multi_dataset/simulator.py`, whose lens galaxy has a
+# `Sersic` light profile — the model therefore fits data that contains what it models.
+dataset_path = path.join("dataset", "multi_dataset", "lens_sersic_light")
 
 """
 __Dataset Auto-Simulation__
@@ -69,8 +72,12 @@ dataset_list = [
     dataset.apply_mask(mask=mask) for dataset, mask in zip(dataset_list, mask_list)
 ]
 
-for dataset in dataset_list:
-    dataset = dataset.apply_over_sampling(over_sample_size_lp=1)
+# `apply_over_sampling` returns a new dataset rather than mutating in place, so the list has to be
+# rebuilt from its return value — assigning to the loop variable discarded it and left the default
+# over-sampling in force.
+dataset_list = [
+    dataset.apply_over_sampling(over_sample_size_lp=1) for dataset in dataset_list
+]
 
 # Model: shared across both bands
 bulge_lens = al.model_util.mge_model_from(
@@ -157,7 +164,7 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-EXPECTED_VMAP_LOG_LIKELIHOOD = -2173221.43685875
+EXPECTED_VMAP_LOG_LIKELIHOOD = -250393.57039463
 
 np.testing.assert_allclose(
     np.array(result),

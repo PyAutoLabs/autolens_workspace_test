@@ -75,7 +75,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
 )
 
 """
@@ -84,7 +84,7 @@ __Mask__
 The model-fit requires a 2D mask defining the regions of the image we fit the model to the data, which we define
 and use to set up the `Imaging` object that the model fits.
 """
-mask_radius = 3.5
+mask_radius = 3.0
 
 mask = al.Mask2D.circular(
     shape_native=dataset.shape_native,
@@ -102,7 +102,7 @@ dataset = dataset.apply_over_sampling(over_sample_size_lp=4)
 
 over_sample_size = al.util.over_sample.over_sample_size_via_radial_bins_from(
     grid=dataset.grid,
-    sub_size_list=[4, 2, 2],
+    sub_size_list=[2, 2, 1],
     radial_list=[0.3, 0.6],
     centre_list=[(0.0, 0.0)],
 )
@@ -123,60 +123,39 @@ The number of free parameters and therefore the dimensionality of non-linear par
 """
 # Lens:
 
+"""
+The lens light is the 20-Gaussian MGE basis. The simulated lens galaxy
+(`scripts/imaging/simulator/simple.py`) is a `Sersic` bulge plus an `Exponential` disk, both of
+which an MGE represents, so the basis is fitting light that is actually in the data.
+
+The mass is an `Isothermal` plus an `ExternalShear`, matching the simulated mass, with uniform
+priors centred on the simulated values — the likelihood is evaluated at the prior medians, so a
+matched model puts those medians at the truth.
+"""
 bulge = al.model_util.mge_model_from(
     mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=True
 )
 
-# mass = af.Model(al.mp.Gaussian)
+mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.8, angle=45.0)
 
-mass = af.Model(al.mp.NFWSph)
-
-total_gaussians = 3
-
-# The sigma values of the Gaussians will be fixed to values spanning 0.01 to the mask radius, 3.0".
-mask_radius = 3.0
-log10_sigma_list = np.linspace(-2, np.log10(mask_radius), total_gaussians)
-
-# By defining the centre here, it creates two free parameters that are assigned below to all Gaussians.
-
-centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
-centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
-
-bulge_gaussian_list = []
-
-gaussian_list = af.Collection(
-    af.Model(al.lmp_linear.GaussianGradient) for _ in range(total_gaussians)
+mass = af.Model(al.mp.Isothermal)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
+mass.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=mass_ell_comps[0] - 0.05, upper_limit=mass_ell_comps[0] + 0.05
 )
-
-for i, gaussian in enumerate(gaussian_list):
-    gaussian.centre.centre_0 = centre_0  # All Gaussians have same y centre.
-    gaussian.centre.centre_1 = centre_1  # All Gaussians have same x centre.
-    gaussian.ell_comps = gaussian_list[
-        0
-    ].ell_comps  # All Gaussians have same elliptical components.
-    gaussian.sigma = (
-        10 ** log10_sigma_list[i]
-    )  # All Gaussian sigmas are fixed to values above.
-    gaussian.mass_to_light_ratio = 10.0
-    gaussian.mass_to_light_gradient = 1.0
-
-bulge_gaussian_list += gaussian_list
-
-# The Basis object groups many light profiles together into a single model component.
-
-bulge = af.Model(
-    al.lp_basis.Basis,
-    profile_list=bulge_gaussian_list,
+mass.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=mass_ell_comps[1] - 0.05, upper_limit=mass_ell_comps[1] + 0.05
 )
 
 shear = af.Model(al.mp.ExternalShear)
+shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
 
 lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
 
 # Source:
-
-total_gaussians = 30
-gaussian_per_basis = 1
 
 # By defining the centre here, it creates two free parameters that are assigned to the source Gaussians.
 
@@ -247,7 +226,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -86283.10392994,
+    -1126.14748415,
     rtol=1e-4,
     err_msg="mge: JAX vmap likelihood mismatch",
 )

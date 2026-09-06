@@ -61,6 +61,7 @@ simulator = al.SimulatorImaging(
     psf=psf,
     background_sky_level=0.1,
     add_poisson_noise_to_data=True,
+    noise_seed=1,
 )
 
 """
@@ -87,7 +88,7 @@ source_galaxy = al.Galaxy(
     bulge=al.lp.ExponentialSph(
         centre=(0.0, 0.1),
         intensity=0.3,
-        effective_radius=0.1,
+        effective_radius=0.3,
     ),
 )
 

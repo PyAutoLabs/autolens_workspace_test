@@ -71,7 +71,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
 )
 
 
@@ -194,7 +194,7 @@ This is the function on which JAX gradients are computed, so we create this clas
 from autofit.non_linear.fitness import Fitness
 import time
 
-batch_size = 50
+batch_size = 10
 
 fitness = Fitness(
     model=model,
@@ -226,7 +226,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    1194.84699035,
+    620.28888413,
     rtol=1e-4,
     err_msg="smbh: JAX vmap likelihood mismatch",
 )

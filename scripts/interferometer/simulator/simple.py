@@ -42,9 +42,10 @@ dataset_path = path.join("dataset", dataset_type, dataset_name)
 __Grid__
 
 Real-space grid on which the lens image is evaluated before Fourier transforming.
-We use 256 x 256 at 0.1" per pixel — consistent with the mge.py JAX test.
+We use 128 x 128 at 0.2" per pixel — the same 25.6" field of view, sampled at the
+resolution the source models fitted to this dataset actually resolve.
 """
-grid = al.Grid2D.uniform(shape_native=(256, 256), pixel_scales=0.1)
+grid = al.Grid2D.uniform(shape_native=(128, 128), pixel_scales=0.2)
 
 """
 __UV Wavelengths__

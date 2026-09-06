@@ -51,7 +51,9 @@ jax.config.update("jax_enable_x64", True)
 
 POINT_COUNT = int(os.environ.get("SIBSON_POINTS", "1200"))
 QUERY_COUNT = int(os.environ.get("SIBSON_QUERIES", "15000"))
-REPEATS = int(os.environ.get("SIBSON_REPEATS", "5"))
+# The repeat loop only tightens a printed timing; no assertion reads it, so one pass is enough
+# on the gate. Raise `SIBSON_REPEATS` when actually benchmarking.
+REPEATS = int(os.environ.get("SIBSON_REPEATS", "1"))
 MAX_CAVITY_TRIANGLES = int(os.environ.get("SIBSON_CAVITY", "32"))
 MAX_NEIGHBORS = int(os.environ.get("SIBSON_NEIGHBORS", "32"))
 QUERY_CHUNK = int(os.environ.get("SIBSON_CHUNK", "256"))

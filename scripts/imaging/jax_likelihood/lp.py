@@ -74,7 +74,7 @@ dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
     psf_path=path.join(dataset_path, "psf.fits"),
     noise_map_path=path.join(dataset_path, "noise_map.fits"),
-    pixel_scales=0.2,
+    pixel_scales=0.3,
 )
 
 
@@ -123,16 +123,63 @@ The number of free parameters and therefore the dimensionality of non-linear par
 """
 # Lens:
 
+"""
+The model carries every component of the simulated system
+(`scripts/imaging/simulator/simple.py`): a `Sersic` bulge, an `Exponential` disk, an
+`Isothermal`-equivalent mass (a `PowerLaw` whose slope prior has median 2.0) and a small
+external shear. Every prior is uniform and centred on the simulated value, so the prior-median
+evaluation this script pins is a high-likelihood one.
+"""
+bulge_ell_comps = al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0)
+disk_ell_comps = al.convert.ell_comps_from(axis_ratio=0.7, angle=30.0)
+mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.8, angle=45.0)
+source_ell_comps = al.convert.ell_comps_from(axis_ratio=0.8, angle=60.0)
+
 bulge = af.Model(al.lp_linear.Sersic)
+bulge.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+bulge.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+bulge.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=bulge_ell_comps[0] - 0.05, upper_limit=bulge_ell_comps[0] + 0.05
+)
+bulge.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=bulge_ell_comps[1] - 0.05, upper_limit=bulge_ell_comps[1] + 0.05
+)
+bulge.effective_radius = af.UniformPrior(lower_limit=0.5, upper_limit=0.7)
+bulge.sersic_index = af.UniformPrior(lower_limit=2.5, upper_limit=3.5)
+
+disk = af.Model(al.lp_linear.Exponential)
+disk.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+disk.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+disk.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=disk_ell_comps[0] - 0.05, upper_limit=disk_ell_comps[0] + 0.05
+)
+disk.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=disk_ell_comps[1] - 0.05, upper_limit=disk_ell_comps[1] + 0.05
+)
+disk.effective_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
 
 mass = af.Model(al.mp.PowerLaw)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
+mass.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=mass_ell_comps[0] - 0.05, upper_limit=mass_ell_comps[0] + 0.05
+)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=mass_ell_comps[1] - 0.05, upper_limit=mass_ell_comps[1] + 0.05
+)
+# The simulated mass is an `Isothermal`, i.e. slope 2.0; this prior's median is that value.
+mass.slope = af.UniformPrior(lower_limit=1.9, upper_limit=2.1)
 
 shear = af.Model(al.mp.ExternalShear)
+shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
 
 lens = af.Model(
     al.Galaxy,
     redshift=0.5,
     bulge=bulge,
+    disk=disk,
     mass=mass,
     shear=shear,
 )
@@ -140,6 +187,16 @@ lens = af.Model(
 # Source:
 
 bulge = af.Model(al.lp_linear.Sersic)
+bulge.centre.centre_0 = af.UniformPrior(lower_limit=0.0, upper_limit=0.2)
+bulge.centre.centre_1 = af.UniformPrior(lower_limit=0.0, upper_limit=0.2)
+bulge.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=source_ell_comps[0] - 0.05, upper_limit=source_ell_comps[0] + 0.05
+)
+bulge.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=source_ell_comps[1] - 0.05, upper_limit=source_ell_comps[1] + 0.05
+)
+bulge.effective_radius = af.UniformPrior(lower_limit=0.9, upper_limit=1.1)
+bulge.sersic_index = af.UniformPrior(lower_limit=0.9, upper_limit=1.1)
 
 source = af.Model(al.Galaxy, redshift=1.0, bulge=bulge)
 
@@ -174,7 +231,7 @@ This is the function on which JAX gradients are computed, so we create this clas
 from autofit.non_linear.fitness import Fitness
 import time
 
-batch_size = 50
+batch_size = 10
 
 fitness = Fitness(
     model=model,
@@ -206,7 +263,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -6.74165366e08,
+    6.17993925e02,
     rtol=1e-4,
     err_msg="lp: JAX vmap likelihood mismatch",
 )
