@@ -111,7 +111,12 @@ dataset_masked = dataset.apply_mask(mask=mask)
 """
 __Image Mesh (KNN variants)__
 """
-pixels = 300
+# Sized from the mask rather than inherited: the 3.5" mask holds 432 image pixels at this
+# dataset's 0.3" pixel scale, and this script's autodiff-vs-finite-difference certification is a
+# conditioning comparison — at 300 mesh points plus 30 edge points (a ratio of 0.76) it fails by
+# 4% against its 1% tolerance, while 200 (a ratio of 0.53) reproduces the gradients. 130 was also
+# measured and under-resolves the source badly enough to fail the same comparison far worse.
+pixels = 200
 edge_pixels_total = 30
 
 galaxy_image_name_dict = {
