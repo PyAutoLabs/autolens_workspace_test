@@ -109,24 +109,66 @@ One free light + mass model per co-dominant deflector, composed with the same li
 API the workspace package uses. Mass profiles are **untruncated** isothermals by design. Only `lens_0` carries
 the `ExternalShear`.
 """
+# The simulated values, copied from the simulation block above. Every prior below is uniform and
+# centred on them, so the prior-median evaluation this model is used for sits at the truth rather
+# than at the workspace defaults.
+main_lens_truth = [
+    {"intensity": 1.0, "effective_radius": 0.6, "sersic_index": 3.0, "einstein_radius": 1.0},
+    {"intensity": 0.8, "effective_radius": 0.5, "sersic_index": 3.0, "einstein_radius": 0.8},
+]
+
 lens_dict = {}
 
 for i, centre in enumerate(main_lens_centres):
+    truth = main_lens_truth[i]
+
     bulge = af.Model(al.lp.SersicSph)
     bulge.centre = centre
+    bulge.intensity = af.UniformPrior(
+        lower_limit=0.9 * truth["intensity"], upper_limit=1.1 * truth["intensity"]
+    )
+    bulge.effective_radius = af.UniformPrior(
+        lower_limit=truth["effective_radius"] - 0.1,
+        upper_limit=truth["effective_radius"] + 0.1,
+    )
+    bulge.sersic_index = af.UniformPrior(
+        lower_limit=truth["sersic_index"] - 0.5,
+        upper_limit=truth["sersic_index"] + 0.5,
+    )
 
     mass = af.Model(al.mp.IsothermalSph)
     mass.centre = centre
+    mass.einstein_radius = af.UniformPrior(
+        lower_limit=truth["einstein_radius"] - 0.1,
+        upper_limit=truth["einstein_radius"] + 0.1,
+    )
+
+    shear = None
+
+    if i == 0:
+        # There is no shear in the simulated system, so both components have median zero.
+        shear = af.Model(al.mp.ExternalShear)
+        shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+        shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
 
     lens_dict[f"lens_{i}"] = af.Model(
         al.Galaxy,
         redshift=0.5,
         bulge=bulge,
         mass=mass,
-        shear=af.Model(al.mp.ExternalShear) if i == 0 else None,
+        shear=shear,
     )
 
-source_model = af.Model(al.Galaxy, redshift=1.0, bulge=af.Model(al.lp.SersicCore))
+# The simulated source: `SersicCore(centre=(0.0, 0.03), intensity=3.0, effective_radius=0.3,
+# sersic_index=1.0)` with the default (zero) `ell_comps`, whose own prior medians are already zero.
+source_bulge = af.Model(al.lp.SersicCore)
+source_bulge.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+source_bulge.centre.centre_1 = af.UniformPrior(lower_limit=-0.07, upper_limit=0.13)
+source_bulge.intensity = af.UniformPrior(lower_limit=2.7, upper_limit=3.3)
+source_bulge.effective_radius = af.UniformPrior(lower_limit=0.25, upper_limit=0.35)
+source_bulge.sersic_index = af.UniformPrior(lower_limit=0.9, upper_limit=1.1)
+
+source_model = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 model = af.Collection(galaxies=af.Collection(**lens_dict, source=source_model))
 

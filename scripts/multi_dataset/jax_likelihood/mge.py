@@ -84,12 +84,34 @@ bulge_lens = al.model_util.mge_model_from(
     mask_radius=mask_radius, total_gaussians=10, centre_prior_is_uniform=True
 )
 
+# The mass priors are uniform and centred on the values used by
+# `scripts/multi_dataset/simulator.py`: an `Isothermal` with an axis ratio of 0.9 at 45 degrees
+# and an Einstein radius of 1.6, plus an external shear of (0.05, 0.05). The likelihood is
+# evaluated at the prior medians, so a matched model puts those medians at the truth rather than
+# at the workspace defaults (whose Einstein-radius median of 4.0 is nowhere near this lens).
+mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0)
+
+mass = af.Model(al.mp.Isothermal)
+mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
+mass.ell_comps.ell_comps_0 = af.UniformPrior(
+    lower_limit=mass_ell_comps[0] - 0.05, upper_limit=mass_ell_comps[0] + 0.05
+)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=mass_ell_comps[1] - 0.05, upper_limit=mass_ell_comps[1] + 0.05
+)
+
+shear = af.Model(al.mp.ExternalShear)
+shear.gamma_1 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
+shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
+
 lens = af.Model(
     al.Galaxy,
     redshift=0.5,
     bulge=bulge_lens,
-    mass=al.mp.Isothermal,
-    shear=al.mp.ExternalShear,
+    mass=mass,
+    shear=shear,
 )
 
 bulge_source = al.model_util.mge_model_from(
@@ -164,7 +186,7 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-EXPECTED_VMAP_LOG_LIKELIHOOD = -250393.57039463
+EXPECTED_VMAP_LOG_LIKELIHOOD = -30003.27414460
 
 np.testing.assert_allclose(
     np.array(result),
