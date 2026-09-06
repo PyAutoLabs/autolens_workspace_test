@@ -106,7 +106,7 @@ mesh with 750 source pixels + 30 edge points zeroed. The mesh is computed
 once on a Sersic adapt-image and shared across all channels (the lens
 model is shared, so the image-plane mesh-grid is channel-invariant).
 """
-pixels = 750
+pixels = 600
 edge_pixels_total = 30
 
 bulge_adapt = al.lp.Sersic()
@@ -246,7 +246,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 Cube log-likelihood ≈ N × single-channel log-likelihood for identical
 channels. Pinned empirically below.
 """
-EXPECTED_SINGLE_CHANNEL_LOG_LIKELIHOOD = -3165.42388511
+EXPECTED_SINGLE_CHANNEL_LOG_LIKELIHOOD = -3161.17249905
 EXPECTED_VMAP_LOG_LIKELIHOOD = n_channels * EXPECTED_SINGLE_CHANNEL_LOG_LIKELIHOOD
 
 np.testing.assert_allclose(

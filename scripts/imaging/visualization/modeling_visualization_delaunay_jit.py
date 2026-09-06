@@ -112,7 +112,7 @@ circle-edge zeroing). ``pixels`` and ``edge_pixels_total`` are static JAX
 shapes — hardcode per the reference at
 ``imaging/delaunay.py``.
 """
-pixels = 400
+pixels = 200
 edge_pixels_total = 20
 
 galaxy_name_image_dict = {

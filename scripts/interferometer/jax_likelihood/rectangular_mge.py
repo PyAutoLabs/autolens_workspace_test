@@ -93,7 +93,7 @@ reconstruct the source, set below to 28 x 28.
 The `mesh_shape` must be fixed before modeling and cannot be a free parameter of
 the model.
 """
-mesh_pixels_yx = 28
+mesh_pixels_yx = 26
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
 # Use a Sersic image as adapt data (same as interferometer/rectangular.py) to avoid
@@ -134,19 +134,28 @@ shear = af.Model(al.mp.ExternalShear)
 
 lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
 
+# Uniform priors centred on the values used by `scripts/interferometer/simulator/simple.py`: an
+# `Isothermal` with an axis ratio of 0.9 at 45 degrees and an Einstein radius of 1.6, plus an
+# external shear of (0.05, 0.05). The old `ell_comps_0` was pinned to an axis ratio of 0.8 and
+# the shear priors had median 0.001 against a truth of 0.05 — a lens far enough from the data
+# that the +5% mass-sensitivity assertion below no longer cleared its floor.
+mass_ell_comps = al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0)
+
 mass = af.Model(al.mp.Isothermal)
 
 mass.centre.centre_0 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
 mass.centre.centre_1 = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
 mass.einstein_radius = af.UniformPrior(lower_limit=1.5, upper_limit=1.7)
 mass.ell_comps.ell_comps_0 = af.UniformPrior(
-    lower_limit=0.11111111111111108, upper_limit=0.1111111111111111
+    lower_limit=mass_ell_comps[0] - 0.05, upper_limit=mass_ell_comps[0] + 0.05
 )
-mass.ell_comps.ell_comps_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+mass.ell_comps.ell_comps_1 = af.UniformPrior(
+    lower_limit=mass_ell_comps[1] - 0.05, upper_limit=mass_ell_comps[1] + 0.05
+)
 
 shear = af.Model(al.mp.ExternalShear)
-shear.gamma_1 = af.UniformPrior(lower_limit=0.000, upper_limit=0.002)
-shear.gamma_2 = af.UniformPrior(lower_limit=0.000, upper_limit=0.002)
+shear.gamma_1 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
+shear.gamma_2 = af.UniformPrior(lower_limit=0.04, upper_limit=0.06)
 
 lens = af.Model(
     al.Galaxy,
@@ -230,7 +239,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3162.38741934,
+    -3159.05945834,
     rtol=1e-4,
     err_msg="interferometer/rectangular_mge: JAX vmap likelihood mismatch",
 )
@@ -363,7 +372,7 @@ print("TransformerNUFFT vmap result:", result_nufft)
 
 np.testing.assert_allclose(
     np.array(result_nufft),
-    -3162.38741934,
+    -3159.05945834,
     rtol=1e-4,
     err_msg="interferometer/rectangular_mge: TransformerNUFFT vmap likelihood disagrees with TransformerDFT",
 )

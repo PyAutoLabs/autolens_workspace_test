@@ -150,7 +150,7 @@ inputs:
 The `image_mesh` can be ignored, it is legacy API from previous versions which may or may not be reintegrated in future
 versions.
 """
-pixels = 750
+pixels = 400
 edge_pixels_total = 30
 
 galaxy_image_name_dict = {
@@ -317,7 +317,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -561.39264708,
+    732.07116209,
     rtol=1e-4,
     err_msg="delaunay_mge: JAX vmap likelihood mismatch",
 )

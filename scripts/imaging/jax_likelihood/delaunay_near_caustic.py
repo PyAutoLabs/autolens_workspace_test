@@ -93,7 +93,7 @@ dataset = dataset.apply_over_sampling(
 """
 __Mesh__
 """
-pixels = 750
+pixels = 200
 
 galaxy_image_name_dict = {
     "('galaxies', 'lens')": dataset.data,

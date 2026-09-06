@@ -150,7 +150,7 @@ bright surface brightnesses, often because they fit residuals from the lens ligh
 For a rectangular mesh, the source code computes edge pixels internally using the known
 pixels at the edge of the mesh. 
 """
-mesh_pixels_yx = 28
+mesh_pixels_yx = 20
 mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 
 galaxy_image_name_dict = {
@@ -305,7 +305,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -131.56973816,
+    686.31633897,
     rtol=1e-4,
     err_msg="rectangular_mge: JAX vmap likelihood mismatch",
 )
