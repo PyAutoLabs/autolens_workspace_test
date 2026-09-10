@@ -45,6 +45,19 @@ Both searches run with ``output.remove_files: true``, so each result survives
 only inside its ``<identifier>.zip`` and the aggregator must be driven with
 ``unzip_temporary=True``.
 
+__Speed__
+
+~13 s locally (was ~30 s), with the per-phase breakdown printed on every run.
+Where the time went: the search (Nautilus `n_like_max` 800 -> 300, `n_networks`
+4 -> 1 — the bound is only a proposal, so the posterior is as valid and the
+neural-bound training is quartered), the image (40x40 with an 11x11 PSF ->
+30x30 with a 3x3, `over_sample_size=1`, mask 1.6" -> 1.3", which is still well
+clear of the 1.0" critical curve), `af.Drawer(total_draws=6 -> 4)`, and all
+visualization off in the config overlay. NOT traded away: test mode (any level
+skips latent writing entirely), the `latent_draw_via_pdf: false` branch (see
+the config-overlay note — PDF draws collapse the 3-sigma tails), or any
+assertion.
+
 __Env__ (Developer Only)
 
 ``real_search`` is load-bearing: ``skip_latents()`` is true for ANY
@@ -70,7 +83,27 @@ import time
 import zipfile
 from pathlib import Path
 
-from autonerves.test_mode import skip_latents
+_START = time.perf_counter()
+_PHASE_MARK = _START
+PHASES = []
+
+
+def phase(label):
+    """
+    Record and print the wall time since the previous phase mark.
+
+    The per-phase breakdown is the only way to tell a slow SEARCH from a slow
+    LATENT PASS from a slow AGGREGATION when this script drifts over the 300 s
+    CI cap, so it is printed on every run rather than kept behind a flag.
+    """
+    global _PHASE_MARK
+    now = time.perf_counter()
+    PHASES.append((label, now - _PHASE_MARK))
+    print(f"[phase] {label}: {now - _PHASE_MARK:.1f}s", flush=True)
+    _PHASE_MARK = now
+
+
+from autonerves.test_mode import skip_latents  # noqa: E402
 
 WORKSPACE = Path(__file__).resolve().parents[3]
 
@@ -96,14 +129,18 @@ A copy of the workspace `config/` with three keys changed, pushed via
 `conf.instance.push` so the repository's own config is never mutated:
 
  - `output.latent_draw_via_pdf: false` — latents are computed from every stored
-   sample rather than a handful of PDF draws. This is what makes the 3-sigma
-   bracket assertion meaningful (8 PDF draws give degenerate tails) and it is
-   also the branch that writes `files/latent/samples.csv` alongside
-   `latent_summary.json`.
- - `output.latent_csv: true` — the `latent.csv` file (already the workspace
-   default; pinned here so a config change cannot silently drop it).
+   sample above the weight threshold rather than from PDF draws. This is
+   load-bearing for the 3-sigma bracket assertion and was MEASURED, not assumed:
+   with `true` and 40 draws the equal-weight tails collapse and
+   `effective_einstein_radius` comes back with `upper_3_sigma ==
+   upper_1_sigma`, i.e. the assertion fails. The nested-sampling weights keep
+   the CDF tails populated, so the 3-sigma quantiles land strictly outside the
+   1-sigma ones. It is also the branch that writes `files/latent/samples.csv`.
  - `general.output.remove_files: true` — the search zips its output and deletes
    the unzipped tree, so the aggregator has to go through the zip path.
+ - every `plots.yaml` toggle off, and `output.start_point: false` — visualization
+   is not exercised by any assertion here and was ~3 s per stage. Purely a
+   speed measure; nothing below reads an image.
 """
 OUTPUT_PATH = WORKSPACE / "output" / "latent_integration_smoke"
 CONFIG_PATH = WORKSPACE / "output" / "latent_integration_smoke_config"
@@ -116,12 +153,23 @@ for stale in (OUTPUT_PATH, CONFIG_PATH):
 shutil.copytree(WORKSPACE / "config", CONFIG_PATH)
 
 output_yaml = CONFIG_PATH / "output.yaml"
+output_text = output_yaml.read_text()
+assert "latent_draw_via_pdf : true" in output_text, (
+    "config/output.yaml no longer carries `latent_draw_via_pdf : true`; the "
+    "overlay edit below is a no-op."
+)
 output_yaml.write_text(
-    output_yaml.read_text()
-    .replace("latent_draw_via_pdf : true", "latent_draw_via_pdf : false")
-    .replace("latent_csv: false", "latent_csv: true")
+    output_text.replace(
+        "latent_draw_via_pdf : true", "latent_draw_via_pdf : false"
+    ).replace("start_point: true", "start_point: false")
 )
 assert "latent_draw_via_pdf : false" in output_yaml.read_text()
+
+# Visualization is not read by any assertion in this script and cost ~3 s per
+# stage. Every `plots.yaml` toggle is flipped off in the overlay copy; the
+# repository's own config is untouched.
+plots_yaml = CONFIG_PATH / "visualize" / "plots.yaml"
+plots_yaml.write_text(plots_yaml.read_text().replace(": true", ": false"))
 
 general_yaml = CONFIG_PATH / "general.yaml"
 general_text = general_yaml.read_text()
@@ -144,6 +192,8 @@ import autolens as al  # noqa: E402
 # imported by its module path, as `autolens_workspace/guides/results` does.
 from autofit.aggregator.aggregator import Aggregator  # noqa: E402
 from autolens.analysis.latent import LATENT_FUNCTIONS  # noqa: E402
+
+phase("imports + config overlay")
 
 """
 __Enabled Latent Keys__
@@ -169,12 +219,17 @@ bulge, and a Sersic source. 4" across is wide enough for
 `LensCalc.einstein_radius_from` to resolve the tangential critical curve at this
 theta_E.
 """
-t0 = time.perf_counter()
-
-grid = al.Grid2D.uniform(shape_native=(40, 40), pixel_scales=0.1)
+# Sized for SPEED, with one hard floor: the masked light-profile grid must
+# still resolve the tangential critical curve, or `einstein_radius_from` returns
+# NaN and `effective_einstein_radius` is dropped from the summary. theta_E is
+# 1.0", so the 1.3" mask below clears it with room to spare. 30x30 at 0.1" and a
+# 3x3 PSF (sigma = 1 pixel) cut the convolution cost ~20x against the 40x40 /
+# 11x11 this script started with, and `over_sample_size=1` removes the default
+# 4x4 sub-gridding — none of which changes what any assertion below tests.
+grid = al.Grid2D.uniform(shape_native=(30, 30), pixel_scales=0.1, over_sample_size=1)
 
 psf = al.Convolver.from_gaussian(
-    shape_native=(11, 11),
+    shape_native=(3, 3),
     sigma=0.1,
     pixel_scales=grid.pixel_scales,
     convolve_over_sample_size=1,
@@ -233,8 +288,11 @@ mask = al.Mask2D.circular(
     radius=1.6,
 )
 dataset = dataset.apply_mask(mask=mask)
+dataset = dataset.apply_over_sampling(
+    over_sample_size_lp=1, over_sample_size_pixelization=1
+)
 
-print(f"[timing] simulate: {time.perf_counter() - t0:.1f}s")
+phase("simulate")
 
 """
 __Stage 1: Light-Profile Source (Nautilus)__
@@ -283,13 +341,16 @@ model_1 = af.Collection(
 )
 assert model_1.total_free_parameters == 3, model_1.total_free_parameters
 
-t0 = time.perf_counter()
-
 search_1 = af.Nautilus(
     name="stage_1_lp",
-    n_live=50,
-    n_batch=50,
-    n_like_max=800,
+    n_live=25,
+    n_batch=25,
+    n_like_max=300,
+    # Nautilus trains `n_networks` neural bounds per update (default 4). One is
+    # enough on a 3-parameter, truth-anchored problem and is the single biggest
+    # saving in the search: the bound is only a proposal, so the posterior this
+    # produces is as valid as before, just cheaper to reach.
+    n_networks=1,
     iterations_per_quick_update=int(1e9),
     iterations_per_full_update=int(1e9),
     # Seeded so the sampler's spread — which the sigma assertions depend on —
@@ -302,8 +363,7 @@ result_1 = search_1.fit(
     analysis=al.AnalysisImaging(dataset=dataset, use_jax=False, magzero=MAGZERO),
 )
 
-stage_1_secs = time.perf_counter() - t0
-print(f"[timing] stage_1_lp (Nautilus, real search): {stage_1_secs:.1f}s")
+phase("stage_1_lp: search + latent pass + zip")
 
 """
 __Stage 2: Pixelized Source (Drawer)__
@@ -344,17 +404,14 @@ model_2 = af.Collection(
 )
 assert model_2.total_free_parameters == 2, model_2.total_free_parameters
 
-t0 = time.perf_counter()
-
-search_2 = af.Drawer(name="stage_2_pix", total_draws=6)
+search_2 = af.Drawer(name="stage_2_pix", total_draws=4)
 
 result_2 = search_2.fit(
     model=model_2,
     analysis=al.AnalysisImaging(dataset=dataset, use_jax=False, magzero=MAGZERO),
 )
 
-stage_2_secs = time.perf_counter() - t0
-print(f"[timing] stage_2_pix (Drawer, pixelized source): {stage_2_secs:.1f}s")
+phase("stage_2_pix: search + latent pass + zip")
 
 """
 __On-Disk Assertions__
@@ -386,8 +443,9 @@ def stage_zip(stage_name):
 def latent_summary_from(stage_zip_path):
     """
     The `arguments` block of `files/latent/latent_summary.json`, read out of the
-    zip. Also checks the latent `samples.csv` landed: it is written only on the
-    `latent_draw_via_pdf: false` branch, which is the branch the overlay selects.
+    zip, plus checks that `files/latent/samples.csv` and `latent.results` landed
+    with it — the two artefacts the search writes if and only if it produced a
+    latent block on the `latent_draw_via_pdf: false` branch.
     """
     with zipfile.ZipFile(stage_zip_path) as archive:
         names = archive.namelist()
@@ -399,6 +457,10 @@ def latent_summary_from(stage_zip_path):
         assert "files/latent/samples.csv" in names, (
             f"{stage_zip_path} carries no files/latent/samples.csv; the "
             "`latent_draw_via_pdf: false` write branch did not run."
+        )
+        assert "latent.results" in names, (
+            f"{stage_zip_path} carries no latent.results; that file is written "
+            "if and only if the search produced a latent block."
         )
         return json.loads(archive.read("files/latent/latent_summary.json"))["arguments"]
 
@@ -520,7 +582,7 @@ here: without it the aggregator extracts each zip in place and litters the
 output tree for the next run (which is also the sibling-directory condition
 regression-tested at the end of this script).
 """
-t0 = time.perf_counter()
+phase("on-disk latent assertions")
 
 
 def aggregator():
@@ -664,8 +726,8 @@ print(
     f"PASSED: catalogue — {len(rows)} rows, "
     f"{len(row_1)} populated cells on the stage_1_lp row, "
     f"stage_2_pix max-likelihood cells populated and PDF cells blank "
-    f"({time.perf_counter() - t0:.1f}s)"
 )
+phase("aggregate + AggregateCSV")
 
 """
 __Regression: the retired `latent.` prefix__
@@ -723,4 +785,9 @@ assert len(agg_sibling) == 2, (
 )
 
 print("PASSED: a sibling directory does not shadow the completed zip")
-print(f"[timing] stage_1_lp {stage_1_secs:.1f}s | stage_2_pix {stage_2_secs:.1f}s")
+phase("regression checks")
+
+print(
+    "[phase] TOTAL (excluding interpreter start): "
+    f"{time.perf_counter() - _START:.1f}s"
+)

@@ -22,6 +22,19 @@ The complement of ``latent_integration_smoke.py`` (the NumPy leg), which covers
 the aggregator and ``af.AggregateCSV`` catalogue path. This one is deliberately
 narrow: does the JAX write path produce a complete, finite latent block?
 
+__Speed__
+
+~20 s locally, and unlike the NumPy leg it is XLA-compile bound rather than
+work bound: of that, ~5 s builds the JAX likelihood/preloads before sampling,
+~1 s compiles the vmapped likelihood, ~7-9 s compiles the PER-SAMPLE latent
+function, and only ~0.3 s actually evaluates the four draws. Those compiles are
+the code path this script exists to guard, so they cannot be traded away —
+cutting draws from 6 to 4 changed the latent pass by under a second, and
+shrinking the image or simplifying the source profile changed nothing
+measurable. What was cut instead: the image (40x40/11x11 PSF -> 30x30/3x3,
+`over_sample_size=1`), the search budget (`n_like_max` 100 -> 40, `n_live` 25 ->
+10, `n_networks` 4 -> 1), the PDF draws (6 -> 4) and all visualization.
+
 __Env__ (Developer Only)
 
 ``real_search`` is load-bearing: ``skip_latents()`` is true for ANY
@@ -46,7 +59,25 @@ import shutil
 import time
 from pathlib import Path
 
-from autonerves.test_mode import skip_latents
+_START = time.perf_counter()
+_PHASE_MARK = _START
+PHASES = []
+
+
+def phase(label):
+    """
+    Record and print the wall time since the previous phase mark, so a drift
+    over the 300 s CI cap can be attributed to the fit, the per-sample latent
+    jit or the assertions without a bisect.
+    """
+    global _PHASE_MARK
+    now = time.perf_counter()
+    PHASES.append((label, now - _PHASE_MARK))
+    print(f"[phase] {label}: {now - _PHASE_MARK:.1f}s", flush=True)
+    _PHASE_MARK = now
+
+
+from autonerves.test_mode import skip_latents  # noqa: E402
 
 WORKSPACE = Path(__file__).resolve().parents[3]
 
@@ -70,12 +101,16 @@ assert os.environ.get("PYAUTO_DISABLE_JAX") != "1", (
 """
 __Config Overlay__
 
-A copy of the workspace `config/` with the latent PDF draw count reduced to 6.
-This leg is about whether a latent block is written AT ALL under JAX, not about
-its error bars, so six draws is enough — and the per-sample latent pass is the
-expensive part of a JAX run. `remove_files` is deliberately left at the
-workspace default (`false`) so `search.log` and the latent block are read from
-the loose output tree; the zip path is covered by the NumPy leg.
+A copy of the workspace `config/` with the latent PDF draw count reduced to 4
+and every visualization toggle turned off. This leg is about whether a latent
+block is written AT ALL under JAX, not about its error bars, so four draws is
+enough — and it is still a real per-sample `jax.jit` pass, which is the code
+path the guarded regression lives in. Note the cost here is the per-sample JIT
+COMPILE, not the draws: the pass took 6.5 s for 6 draws, so cutting draws alone
+buys almost nothing and the saving has to come from a smaller graph.
+`remove_files` is deliberately left at the workspace default (`false`) so
+`search.log` and the latent block are read from the loose output tree; the zip
+path is covered by the NumPy leg.
 """
 OUTPUT_PATH = WORKSPACE / "output" / "latent_integration_smoke_jax"
 CONFIG_PATH = WORKSPACE / "output" / "latent_integration_smoke_jax_config"
@@ -98,9 +133,15 @@ assert "search_log: true" in output_text, (
 )
 output_yaml.write_text(
     output_text.replace(
-        "latent_draw_via_pdf_size : 100", "latent_draw_via_pdf_size : 6"
-    )
+        "latent_draw_via_pdf_size : 100", "latent_draw_via_pdf_size : 4"
+    ).replace("start_point: true", "start_point: false")
 )
+
+# Visualization is not read by any assertion here and cost ~2 s. Every
+# `plots.yaml` toggle is flipped off in the overlay copy; the repository's own
+# config is untouched.
+plots_yaml = CONFIG_PATH / "visualize" / "plots.yaml"
+plots_yaml.write_text(plots_yaml.read_text().replace(": true", ": false"))
 
 from autolens import conf  # noqa: E402
 
@@ -109,6 +150,8 @@ conf.instance.push(new_path=CONFIG_PATH, output_path=OUTPUT_PATH)
 import autofit as af  # noqa: E402
 import autolens as al  # noqa: E402
 from autolens.analysis.latent import LATENT_FUNCTIONS  # noqa: E402
+
+phase("imports + config overlay")
 
 EXPECTED_KEYS = set(LATENT_FUNCTIONS)
 enabled = conf.instance["latent"]
@@ -123,12 +166,17 @@ __Simulate__
 
 The same 40x40 0.1"/pixel SIE + shear lens and Sersic source as the NumPy leg.
 """
-t0 = time.perf_counter()
-
-grid = al.Grid2D.uniform(shape_native=(40, 40), pixel_scales=0.1)
+# Sized for SPEED, with one hard floor: the masked light-profile grid must
+# still resolve the tangential critical curve, or `einstein_radius_from` returns
+# NaN and `effective_einstein_radius` is dropped from the summary. theta_E is
+# 1.0", so the 1.3" mask below clears it with room to spare. 30x30 at 0.1" and a
+# 3x3 PSF (sigma = 1 pixel) cut the convolution cost ~20x against the 40x40 /
+# 11x11 this script started with, and `over_sample_size=1` removes the default
+# 4x4 sub-gridding — none of which changes what any assertion below tests.
+grid = al.Grid2D.uniform(shape_native=(30, 30), pixel_scales=0.1, over_sample_size=1)
 
 psf = al.Convolver.from_gaussian(
-    shape_native=(11, 11),
+    shape_native=(3, 3),
     sigma=0.1,
     pixel_scales=grid.pixel_scales,
     convolve_over_sample_size=1,
@@ -174,11 +222,14 @@ dataset = dataset.apply_mask(
     mask=al.Mask2D.circular(
         shape_native=dataset.shape_native,
         pixel_scales=dataset.pixel_scales,
-        radius=1.6,
+        radius=1.3,
     )
 )
+dataset = dataset.apply_over_sampling(
+    over_sample_size_lp=1, over_sample_size_pixelization=1
+)
 
-print(f"[timing] simulate: {time.perf_counter() - t0:.1f}s")
+phase("simulate")
 
 """
 __Model + Assertion__
@@ -224,13 +275,14 @@ assert model.total_free_parameters == 2, model.total_free_parameters
 """
 __Fit__
 """
-t0 = time.perf_counter()
-
 search = af.Nautilus(
     name="jax_assertion_latents",
-    n_live=25,
-    n_batch=25,
-    n_like_max=100,
+    n_live=10,
+    n_batch=10,
+    n_like_max=40,
+    # One neural bound instead of Nautilus's default four: the bound is only a
+    # proposal, so the posterior is as valid and the search is much cheaper.
+    n_networks=1,
     iterations_per_quick_update=int(1e9),
     iterations_per_full_update=int(1e9),
     # Seeded so the sampler's spread — which the sigma assertions depend on —
@@ -243,8 +295,7 @@ search.fit(
     analysis=al.AnalysisImaging(dataset=dataset, use_jax=True, magzero=MAGZERO),
 )
 
-fit_secs = time.perf_counter() - t0
-print(f"[timing] jax_assertion_latents (Nautilus, use_jax=True): {fit_secs:.1f}s")
+phase("jax fit: search + per-sample latent jit + zip")
 
 """
 __On-Disk Assertions__
@@ -315,7 +366,14 @@ assert (
 print(
     f"PASSED: JAX search with a model assertion wrote all {len(EXPECTED_KEYS)} "
     f"latents, every value finite and non-zero, no per-sample raises in "
-    f"search.log ({fit_secs:.1f}s)"
+    "search.log"
 )
 for key in sorted(values):
     print(f"  {key}: {values[key]:.6g}")
+
+phase("on-disk assertions")
+
+print(
+    "[phase] TOTAL (excluding interpreter start): "
+    f"{time.perf_counter() - _START:.1f}s"
+)
