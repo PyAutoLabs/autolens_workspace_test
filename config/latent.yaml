@@ -1,7 +1,12 @@
 # Workspace overrides for the library lensing latent toggles. Enables
 # every entry in `autolens.analysis.latent.LATENT_FUNCTIONS` so the smoke
 # test exercises the full registry. See
-# `scripts/latent/latent_variables_smoke.py`.
+# `scripts/misc/latent/latent_variables_smoke.py` (bypass-mode registry check),
+# `scripts/misc/latent/latent_integration_smoke.py` (real search, on-disk latent
+# block, aggregator + AggregateCSV catalogue) and
+# `scripts/misc/latent/latent_integration_smoke_jax.py` (real JAX search with a
+# model assertion). The exact-key-set assertions in those scripts read the
+# toggles below, so a change here must be made with them in mind.
 total_lens_flux: true
 total_lensed_source_flux: true
 total_source_flux: true
