@@ -192,16 +192,11 @@ overrides:
     set:
       JAX_PERSISTENT_CACHE_MIN_COMPILE_TIME_SECS: "0"
 
-# ---------------------------------------------------------------------------
-# A3 — append this entry to `overrides:` in
-#      autolens_workspace_test/config/build/profile_smoke.yaml
-# ---------------------------------------------------------------------------
-
   # Make the restored JAX compile cache actually serve the DelaunayNN
   # correctness gate (PyAutoBrain /ci_speedup, 2026-09-10).
   #
   # NOTHING IS REDUCED. This is not a smoke-sizing override like the
-  # delaunay_nn_caps.py entry below/above it: the script runs exactly the work
+  # delaunay_nn_caps.py entry above it: the script runs exactly the work
   # it ran before, on exactly the same shapes, and every printed value is
   # byte-identical. The only change is that the compiled executables are
   # persisted and reloaded instead of re-derived on every run.
