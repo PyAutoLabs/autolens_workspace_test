@@ -1,9 +1,10 @@
 # misc/database/scrape/general.py  # demoted 2026-08-23 (#267): 63.4s, of which ~72s-local is the real Nautilus search and ~3s is the database-scrape + aggregator assertions the script uniquely gate-tests. Still covered by Heart's weekly workspace-smoke.yml (Mondays 03:00 UTC, same profile) and release-integrate (PYAUTO_TEST_MODE=0, full resolution); the misc/aggregator/ trio keeps the scrape/aggregator API on this gate under test-mode fixtures. Re-promote if real-run database serialization regressions start slipping through.
 # imaging/visualization/visualization.py  # disabled: bypass mode mkdir race condition (rhayes777/PyAutoFit#1179)
 # interferometer/visualization/visualization.py  # disabled: bypass mode missing fit.png assertion (rhayes777/PyAutoFit#1179)
-# imaging/jax_likelihood/delaunay_mge.py  # disabled: jax 0.7 removed jax.interpreters.xla.pytype_aval_mappings — see PyAutoPrompt/autohands/smoke_workspace_fixes.md
 # promoted 2026-09-07 (#296) — the entry below is ENABLED: imaging/jax_likelihood/delaunay.py runs in 18.7s in CI, and its absence from this gate is why jax_delaunay's six-tuple return (PyAutoArray #524) broke it silently on the weekly and integrate channels.
 imaging/jax_likelihood/delaunay.py
+# promoted 2026-09-15 (autolens_workspace_test#317) — disabled 2026-04 for jax 0.7's removed pytype_aval_mappings; refuted on jax 0.10.2: 6/6 release-profile pass 2026-08-21 and again 2026-09-15, 3/3 cold smoke runs at 62.1/58.7/53.3 s vs the 300 s cap. Same reason delaunay.py was promoted in #296: off this gate, a break reaches the weekly/integrate channels silently.
+imaging/jax_likelihood/delaunay_mge.py
 imaging/jax_likelihood/rectangular.py
 imaging/jax_likelihood/mge.py
 imaging/jax_likelihood/lp.py
