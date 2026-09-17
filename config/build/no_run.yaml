@@ -27,7 +27,12 @@
 #   environment that has the dependency. Remove the entry if the dependency
 #   ever joins the validated install set.
 
-- point_source/visualization/modeling_visualization_jit # SLOW 2026-07-08 - JIT + Part-2 live Nautilus fit exceeds 300s cap; same family as imaging/interferometer modeling_visualization_jit (the zero_contour perf-assert false-positive was separately fixed to a cold/warm ratio, which now lets the script run past it into the slow fit)
+# point_source/visualization/modeling_visualization_jit was parked here as SLOW
+# 2026-07-08 ("JIT + Part-2 live Nautilus fit exceeds 300s cap"). Refuted by CI
+# retime run 35245806121 (2026-09-17, 5 repeats per Python leg, 300s cap):
+# 3.12 completed 5/5 in 73.6-98.6s, 3.13 completed 5/5 in 71.0-85.7s, verdict
+# NEITHER on both legs; 168s / 202s local. Entry removed, script back in
+# coverage (autolens_workspace_test#318).
 - cluster/visualization # SLOW 2026-07-21 - per-plane critical-curve + caustic computation on the required full-extent 250x250 viz_grid (multi-plane marching squares) totals ~580s, over the 300s cap; same perf family as the modeling_visualization_jit scripts. Curves DO recover (plane-1 7 CC, plane-2 1 CC at full data) and the per-plane physics assertion passes — this is NOT the mislabelled "#1280 zero_contour algorithmic regression", which does not reproduce. profile_smoke.yaml unsets FAST_PLOTS/SMALL_DATASETS so it runs green in manual/full runs.
 # The rest of the PyAutoHeart#74 "flakes at the 1800s cap" SLOW family was retimed
 # on 2026-08-24 (5 repeats per Python leg, 300s cap; runs 32741371308 + 32741386752,
