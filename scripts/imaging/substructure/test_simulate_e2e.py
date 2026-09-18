@@ -42,6 +42,10 @@ max_n = 10
 
 all_galaxies = []
 
+# One `al.MassField` per plane: the negative-kappa sheet describes structure outside the modelled
+# system, so it is a field at that plane's redshift rather than a galaxy with no light.
+sheet_fields = []
+
 for plane_idx, z in enumerate(plane_redshifts[:3]):
     for _ in range(n_halos_per_plane):
         halo = ag.Galaxy(
@@ -59,11 +63,12 @@ for plane_idx, z in enumerate(plane_redshifts[:3]):
         all_galaxies.append(halo)
 
     sheet_kappa = -np.random.uniform(0.001, 0.005)
-    sheet = ag.Galaxy(
-        redshift=z,
-        mass_sheet=ag.mp.MassSheet(centre=(0.0, 0.0), kappa=sheet_kappa),
+    sheet_fields.append(
+        ag.MassField(
+            redshift=z,
+            mass_sheet=ag.mp.MassSheet(centre=(0.0, 0.0), kappa=sheet_kappa),
+        )
     )
-    all_galaxies.append(sheet)
 
 macro_galaxy = al.Galaxy(
     redshift=0.5,
@@ -73,7 +78,10 @@ macro_galaxy = al.Galaxy(
         slope=2.2,
         einstein_radius=1.6,
     ),
-    shear=al.mp.ExternalShear(gamma_1=0.01, gamma_2=-0.01),
+)
+
+macro_field = al.MassField(
+    redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.01, gamma_2=-0.01)
 )
 all_galaxies.append(macro_galaxy)
 
@@ -89,6 +97,8 @@ source_galaxy = al.Galaxy(
     ),
 )
 all_galaxies.append(source_galaxy)
+
+all_fields = sheet_fields + [macro_field]
 
 """
 __PSF kernel__
@@ -111,8 +121,10 @@ halo_galaxies = [
     if g.redshift < 1.0 and g is not macro_galaxy and g is not source_galaxy
 ]
 
+# `galaxies_to_halo_arrays` reads `redshift` and `mass_sheet`, so the per-plane `MassField` sheets are
+# handed to it beside the halo galaxies — the sheet kappas it returns come from `tracer.fields`.
 halo_params, halo_mask, sheet_kappas = substructure_util.galaxies_to_halo_arrays(
-    galaxies=halo_galaxies,
+    galaxies=halo_galaxies + sheet_fields,
     plane_redshifts=plane_redshifts,
     max_n=max_n,
     profile_cls=ag.mp.NFWTruncatedSph,
@@ -131,10 +143,17 @@ def lens_mass_fn(grid_raw, params):
         slope=params[4],
         einstein_radius=params[5],
     )
-    shear = al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
-    galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
+    galaxy = al.Galaxy(redshift=0.5, mass=power_law)
+    # The external shear is a property of the system, not of the macro galaxy: it is an `al.MassField`
+    # at the macro lens' redshift. The plane sums both deflection fields, which is what is done here.
+    field = al.MassField(
+        redshift=0.5, shear=al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
+    )
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+    return (
+        galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+        + field.deflections_yx_2d_from(grid=g, xp=jnp).array
+    )
 
 
 lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
@@ -206,7 +225,7 @@ __Path A: existing Tracer lensed image (pre-convolution) for comparison__
 
 Compare the raw lensed image (before PSF and noise) from both paths.
 """
-tracer = al.Tracer(galaxies=all_galaxies, cosmology=cosmology)
+tracer = al.Tracer(galaxies=all_galaxies, fields=all_fields, cosmology=cosmology)
 
 tracer_image_np = tracer.image_2d_from(grid=grid).native.array
 
@@ -247,6 +266,33 @@ np.testing.assert_allclose(
     err_msg="Pre-convolution lensed image mismatch between scan and tracer paths",
 )
 print("PASS: Pre-convolution lensed image matches existing Tracer path")
+
+"""
+__Per-plane sheets live in `tracer.fields`__
+
+The sheet kappa of each plane is read back off the tracer's fields, not off its galaxies — a `MassField`
+is never a member of `tracer.galaxies`.
+"""
+assert (
+    len(tracer.fields) == len(sheet_fields) + 1
+)  # the sheets plus the macro shear field
+
+for plane_idx, z in enumerate(plane_redshifts[:3]):
+    field = [f for f in tracer.fields if f.redshift == z and hasattr(f, "mass_sheet")][
+        0
+    ]
+
+    np.testing.assert_allclose(
+        float(sheet_kappas[plane_idx]),
+        float(field.mass_sheet.kappa),
+        rtol=0,
+        atol=1e-12,
+        err_msg=f"plane {plane_idx} sheet kappa mismatch against tracer.fields",
+    )
+
+assert not any(hasattr(g, "mass_sheet") for g in tracer.galaxies)
+
+print("PASS: per-plane sheet kappas read back off tracer.fields")
 
 """
 __JIT compilation__

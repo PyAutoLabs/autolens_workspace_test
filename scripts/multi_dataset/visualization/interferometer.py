@@ -110,7 +110,7 @@ analysis_list = [
 """
 __Model__
 
-Shared lens (PowerLaw + ExternalShear) + parametric Sersic source. All parameters
+Shared lens (PowerLaw) + an ExternalShear MassField + parametric Sersic source. All parameters
 are fixed via prior medians — we don't run a search here, we just need a concrete
 instance to feed into ``visualize_combined``.
 """
@@ -126,7 +126,7 @@ shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = 0.05
 shear.gamma_2 = 0.05
 
-lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
 source_bulge = af.Model(al.lp.Sersic)
 source_bulge.centre.centre_0 = 0.0
@@ -138,7 +138,14 @@ source_bulge.effective_radius = 0.2
 source_bulge.sersic_index = 1.0
 source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
-base_model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+base_model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
+)
 
 
 """

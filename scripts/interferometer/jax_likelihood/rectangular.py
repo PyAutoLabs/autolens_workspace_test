@@ -187,7 +187,6 @@ lens = af.Model(
     al.Galaxy,
     redshift=0.5,
     mass=mass,
-    shear=shear,
 )
 
 # Source:
@@ -205,7 +204,14 @@ source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
 # Overall Lens Model:
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
+)
 
 
 """
@@ -239,10 +245,15 @@ truth_tracer = al.Tracer(
                 einstein_radius=1.6,
                 ell_comps=al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0),
             ),
-            shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05),
         ),
         al.Galaxy(redshift=1.0, bulge=source_bulge_truth),
-    ]
+    ],
+    # The external shear is a property of the system, so it is an `al.MassField` in `fields=`.
+    fields=[
+        al.MassField(
+            redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05)
+        )
+    ],
 )
 
 image = truth_tracer.image_2d_from(grid=dataset.grid)

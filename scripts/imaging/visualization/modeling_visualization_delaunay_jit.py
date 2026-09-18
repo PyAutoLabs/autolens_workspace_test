@@ -144,7 +144,7 @@ adapt_images = al.AdaptImages(
 """
 __Model__
 
-PowerLaw + ExternalShear lens, Delaunay-mesh source with AdaptSplit
+PowerLaw lens with an ExternalShear MassField, Delaunay-mesh source with AdaptSplit
 regularization. Single pixelized source.
 """
 mass = af.Model(al.mp.PowerLaw)
@@ -160,7 +160,7 @@ shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 
-lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
 regularization = al.reg.AdaptSplit()
 pixelization = af.Model(
@@ -171,7 +171,14 @@ pixelization = af.Model(
 
 source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
+)
 
 
 """

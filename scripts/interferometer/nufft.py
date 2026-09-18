@@ -303,7 +303,14 @@ lens_galaxy = al.Galaxy(
         einstein_radius=1.6,
         ell_comps=al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0),
     ),
-    shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05),
+)
+
+# External Shear: the tidal field of everything outside the modelled system, so it is a property of the
+# system rather than of the lens galaxy. It is held in an `al.MassField` — a container like a galaxy
+# which carries no light — and passed to the tracer's `fields=` argument. The tracer sums every
+# deflection field over the plane, so the simulated data is unchanged.
+field = al.MassField(
+    redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05)
 )
 source_galaxy = al.Galaxy(
     redshift=1.0,
@@ -315,7 +322,7 @@ source_galaxy = al.Galaxy(
         sersic_index=2.5,
     ),
 )
-tracer = al.Tracer(galaxies=[lens_galaxy, source_galaxy])
+tracer = al.Tracer(galaxies=[lens_galaxy, source_galaxy], fields=[field])
 
 # image_2d_from returns the masked slim representation; .native gives the 2D array
 # with masked pixels set to zero, which is what both transformers expect.

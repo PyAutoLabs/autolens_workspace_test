@@ -203,8 +203,13 @@ truth_lens = al.Galaxy(
     bulge=al.lp.Gaussian(**GAUSSIAN_INNER),
     disk=al.lp.Gaussian(**GAUSSIAN_OUTER),
     mass=al.mp.Isothermal(**LENS_MASS),
-    shear=al.mp.ExternalShear(**LENS_SHEAR),
 )
+
+# External Shear: the tidal field of everything outside the modelled system, so it is a property of the
+# system rather than of a galaxy. It is held in an `al.MassField` — a container like a galaxy carrying
+# no light — in the tracer's `fields=` argument and in the model's `fields=` collection.
+truth_field = al.MassField(redshift=0.5, shear=al.mp.ExternalShear(**LENS_SHEAR))
+
 truth_source = al.Galaxy(redshift=1.0, bulge=al.lp.Sersic(**SOURCE_BULGE))
 
 simulator = al.SimulatorImaging(
@@ -216,7 +221,8 @@ simulator = al.SimulatorImaging(
 )
 
 dataset = simulator.via_tracer_from(
-    tracer=al.Tracer(galaxies=[truth_lens, truth_source]), grid=grid
+    tracer=al.Tracer(galaxies=[truth_lens, truth_source], fields=[truth_field]),
+    grid=grid,
 )
 dataset = dataset.apply_mask(
     mask=al.Mask2D.circular(
@@ -250,7 +256,10 @@ lens = af.Model(
         **{**GAUSSIAN_OUTER, "sigma": af.GaussianPrior(mean=0.8, sigma=0.05)},
     ),
     mass=af.Model(al.mp.Isothermal, **LENS_MASS),
-    shear=af.Model(al.mp.ExternalShear, **LENS_SHEAR),
+)
+
+field = af.Model(
+    al.MassField, redshift=0.5, shear=af.Model(al.mp.ExternalShear, **LENS_SHEAR)
 )
 
 model = af.Collection(
@@ -259,7 +268,8 @@ model = af.Collection(
         source=af.Model(
             al.Galaxy, redshift=1.0, bulge=af.Model(al.lp.Sersic, **SOURCE_BULGE)
         ),
-    )
+    ),
+    fields=af.Collection(field=field),
 )
 model.add_assertion(
     model.galaxies.lens.bulge.sigma < model.galaxies.lens.disk.sigma,

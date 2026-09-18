@@ -177,7 +177,6 @@ lens_0 = af.Model(
     redshift=0.5,
     bulge=bulge,
     mass=mass,
-    shear=shear,
 )
 
 mass = af.Model(al.mp.Isothermal)
@@ -217,7 +216,14 @@ source = af.Model(al.Galaxy, redshift=2.0, pixelization=pixelization)
 
 # Overall Lens Model:
 
-model = af.Collection(galaxies=af.Collection(lens=lens_0, lens_1=lens_1, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens_0, lens_1=lens_1, source=source),
+    fields=af.Collection(field=field),
+)
 
 galaxy_name_image_dict = {
     "('galaxies', 'lens_0')": dataset.data,

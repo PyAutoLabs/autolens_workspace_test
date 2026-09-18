@@ -205,7 +205,7 @@ mass = af.Model(al.mp.Isothermal)
 
 shear = af.Model(al.mp.ExternalShear)
 
-lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass)
 
 # mass = af.Model(al.mp.PowerLaw)
 
@@ -232,7 +232,6 @@ lens = af.Model(
     redshift=0.5,
     bulge=bulge,
     mass=mass,
-    shear=shear,
 )
 
 # Source:
@@ -247,7 +246,14 @@ source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
 # Overall Lens Model:
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
+)
 
 
 """

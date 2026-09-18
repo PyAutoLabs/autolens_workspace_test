@@ -87,16 +87,21 @@ bulge = af.Model(al.lp_linear.Sersic)
 mass = af.Model(al.mp.Isothermal)
 shear = af.Model(al.mp.ExternalShear)
 
-lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass)
 
 source_bulge = af.Model(al.lp_linear.Sersic)
 source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 dataset_model = af.Model(al.DatasetModel)
 
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
 model = af.Collection(
     dataset_model=dataset_model,
     galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
 )
 
 print(model.info)

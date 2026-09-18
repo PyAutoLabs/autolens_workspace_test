@@ -149,9 +149,16 @@ for variant, bulge_cls in [
     source_bulge.sersic_index = af.GaussianPrior(mean=1.0, sigma=0.2)
 
     mass, shear = mass_and_shear()
-    lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+    lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
     source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
-    model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+    # External Shear: a property of the system, not of the lens galaxy, so it is held in an
+    # `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+    field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+    model = af.Collection(
+        galaxies=af.Collection(lens=lens, source=source),
+        fields=af.Collection(field=field),
+    )
 
     analysis = al.AnalysisInterferometer(dataset=dataset)
 
@@ -195,11 +202,18 @@ mesh_shape = (8, 8)
 
 def sparse_fitness(mesh, regularization):
     mass, shear = mass_and_shear()
-    lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+    lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
     pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
     source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
-    model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+    # External Shear: a property of the system, not of the lens galaxy, so it is held in an
+    # `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+    field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+    model = af.Collection(
+        galaxies=af.Collection(lens=lens, source=source),
+        fields=af.Collection(field=field),
+    )
 
     bulge = al.lp.Sersic()
     adapt_image = bulge.image_2d_from(grid=dataset_sparse.grid)

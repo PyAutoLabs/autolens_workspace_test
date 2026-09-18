@@ -55,13 +55,20 @@ def fit():
                     bulge=lens_bulge,
                     disk=None,
                     mass=af.Model(al.mp.Isothermal),
-                    shear=af.Model(al.mp.ExternalShear),
                 ),
                 source=af.Model(
                     al.Galaxy,
                     redshift=redshift_source,
                     bulge=source_bulge,
                 ),
+            ),
+            # External shear: an `al.MassField` in the model's own `fields=` slot.
+            fields=af.Collection(
+                field=af.Model(
+                    al.MassField,
+                    redshift=redshift_lens,
+                    shear=af.Model(al.mp.ExternalShear),
+                )
             ),
         )
 
@@ -104,8 +111,6 @@ def fit():
             mass_result=source_lp_result.model.galaxies.lens.mass,
             unfix_mass_centre=True,
         )
-        shear = source_lp_result.model.galaxies.lens.shear
-
         model = af.Collection(
             galaxies=af.Collection(
                 lens=af.Model(
@@ -114,7 +119,6 @@ def fit():
                     bulge=source_lp_result.instance.galaxies.lens.bulge,
                     disk=source_lp_result.instance.galaxies.lens.disk,
                     mass=mass,
-                    shear=shear,
                 ),
                 source=af.Model(
                     al.Galaxy,
@@ -126,6 +130,8 @@ def fit():
                     ),
                 ),
             ),
+            # External shear: an `al.MassField` in the model's own `fields=` slot.
+            fields=source_lp_result.model.fields,
         )
 
         search = af.Nautilus(
@@ -167,7 +173,6 @@ def fit():
                     bulge=source_lp_result.instance.galaxies.lens.bulge,
                     disk=source_lp_result.instance.galaxies.lens.disk,
                     mass=source_pix_result_1.instance.galaxies.lens.mass,
-                    shear=source_pix_result_1.instance.galaxies.lens.shear,
                 ),
                 source=af.Model(
                     al.Galaxy,
@@ -179,6 +184,8 @@ def fit():
                     ),
                 ),
             ),
+            # External shear: an `al.MassField` in the model's own `fields=` slot.
+            fields=source_pix_result_1.instance.fields,
         )
 
         search = af.Nautilus(
@@ -230,10 +237,11 @@ def fit():
                     bulge=lens_bulge,
                     disk=None,
                     mass=source_result_for_lens.instance.galaxies.lens.mass,
-                    shear=source_result_for_lens.instance.galaxies.lens.shear,
                 ),
                 source=source,
             ),
+            # External shear: an `al.MassField` in the model's own `fields=` slot.
+            fields=source_result_for_lens.instance.fields,
         )
 
         search = af.Nautilus(
@@ -292,10 +300,11 @@ def fit():
                     bulge=bulge,
                     disk=disk,
                     mass=mass,
-                    shear=source_result_for_lens.model.galaxies.lens.shear,
                 ),
                 source=source,
             ),
+            # External shear: an `al.MassField` in the model's own `fields=` slot.
+            fields=source_result_for_lens.model.fields,
         )
 
         search = af.Nautilus(

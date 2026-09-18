@@ -289,12 +289,18 @@ def traced_grids_from(parameters):
                         angle=parameters["angle"],
                     ),
                 ),
+            ),
+            al.Galaxy(redshift=1.0),
+        ],
+        # The external shear is a property of the system, so it is an `al.MassField` in `fields=`.
+        fields=[
+            al.MassField(
+                redshift=0.5,
                 shear=al.mp.ExternalShear(
                     gamma_1=parameters["gamma_1"], gamma_2=parameters["gamma_2"]
                 ),
-            ),
-            al.Galaxy(redshift=1.0),
-        ]
+            )
+        ],
     )
     source_mesh = tracer.traced_grid_2d_list_from(grid=image_mesh_grid)[-1]
     source_data = tracer.traced_grid_2d_list_from(grid=image_grid)[-1]

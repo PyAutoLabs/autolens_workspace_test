@@ -124,13 +124,15 @@ extra_galaxy = af.Model(al.Galaxy, redshift=0.5, mass=extra_galaxy_mass)
 """
 __Model__
 """
-lens = af.Model(
-    al.Galaxy, redshift=0.5, mass=al.mp.Isothermal, shear=al.mp.ExternalShear
-)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=al.mp.Isothermal)
+
+# External shear: an `al.MassField` in the model's own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=al.mp.ExternalShear)
 source = af.Model(al.Galaxy, redshift=1.0, bulge=al.lp_linear.Sersic)
 
 model = af.Collection(
     galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
     extra_galaxies=af.Collection(extra_galaxy=extra_galaxy),
 )
 

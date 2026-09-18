@@ -5,20 +5,35 @@ Interop: COOLEST template round trip
 This script validates the COOLEST interop layer (``al.interop.coolest``,
 PyAutoLens#613) end-to-end:
 
-1. **Export / import round trip** — a PowerLaw + ExternalShear lens with
-   Sersic light and a Sersic source (the standard cross-code parity model) is
-   written to a COOLEST ``.json`` template via ``to_coolest`` and read back
-   via ``from_coolest``; tracer deflections and images must be numerically
-   identical.
+1. **Export / import round trip (legacy galaxy-attached shear)** — a PowerLaw
+   + ExternalShear lens with Sersic light and a Sersic source (the standard
+   cross-code parity model) is written to a COOLEST ``.json`` template via
+   ``to_coolest`` and read back via ``from_coolest``; tracer deflections and
+   images must be numerically identical.
 
-2. **Convention checks** — the written template's ``theta_E`` carries the
+   The shear here is attached to the lens ``Galaxy``, which is the *legacy*
+   form — this case is deliberately kept as the regression for the exporter's
+   legacy peel (it must still split the galaxy-attached shear out into its own
+   ``MassField`` entity). ``misc/mass/galaxy_attached_legacy.py`` and this case
+   are the only two galaxy-attached sites allowed in either workspace.
+
+2. **Export / import round trip (``MassField``)** — the same system with the
+   shear held in an ``al.MassField`` in the tracer's ``fields=`` slot, which is
+   the current API. It must export to the same 2 ``Galaxy`` + 1 ``MassField``
+   entities and import back as an ``al.MassField`` in ``tracer_back.fields``.
+
+3. **Convention checks** — the written template's ``theta_E`` carries the
    COOLEST intermediate-axis factor ``sqrt(q) (2/(1+q))^(1/(gamma-1))``, the
    position angle is East-of-North, and shear is stored as a ``MassField``
    entity.
 
-3. **NFW round trip** — the physical ``rho_c`` normalization converts back to
+4. **NFW round trip** — the physical ``rho_c`` normalization converts back to
    the input ``kappa_s`` exactly when the same cosmology is used on both
    sides.
+
+Note that ``from_coolest`` returns the shear as an ``al.MassField`` in
+``tracer_back.fields`` in *both* cases: a COOLEST ``MassField`` entity has no
+galaxy to belong to, so the import is one-way — galaxy-attached in, field out.
 
 Requires the optional ``coolest`` package (``pip install autolens[coolest]``).
 """
@@ -33,7 +48,11 @@ import numpy.testing as npt
 import autolens as al
 
 """
-__Round trip: PowerLaw + Shear lens, Sersic light, Sersic source__
+__Round trip: PowerLaw + Shear lens, Sersic light, Sersic source (LEGACY galaxy-attached shear)__
+
+The shear is attached to the lens `Galaxy` here on purpose: this is the regression for the exporter's legacy
+peel, which must lift a galaxy-attached external field out into its own COOLEST `MassField` entity. Do not
+migrate it to `fields=` — the `MassField` form is covered by its own case below.
 """
 lens = al.Galaxy(
     redshift=0.5,
@@ -89,6 +108,30 @@ with tempfile.TemporaryDirectory() as tmp_dir:
     print("PASS: tracer deflections + image round trip numerically identical")
 
     """
+    The import is one-way: a COOLEST `MassField` entity has no galaxy to belong to, so the shear that went in
+    attached to the lens `Galaxy` comes back as an `al.MassField` in `tracer_back.fields`. Follow it there —
+    `tracer_back.galaxies` no longer has a `shear` attribute at all.
+    """
+    assert len(tracer_back.fields) == 1
+    assert isinstance(tracer_back.fields[0], al.MassField)
+    assert tracer_back.fields[0].redshift == 0.5
+
+    # COOLEST carries no component *names*, so the imported profiles are named `mass_{i}` positionally.
+    shear_back = tracer_back.fields[0].mass_0
+
+    assert isinstance(shear_back, al.mp.ExternalShear)
+
+    npt.assert_allclose(shear_back.gamma_1, 0.02, rtol=0, atol=1e-12)
+    npt.assert_allclose(shear_back.gamma_2, -0.03, rtol=0, atol=1e-12)
+
+    lens_back = [g for g in tracer_back.galaxies if g.redshift == 0.5][0]
+
+    assert not hasattr(lens_back, "shear")
+    print(
+        "PASS: galaxy-attached shear imports back as an al.MassField in tracer.fields"
+    )
+
+    """
     __Convention checks on the written template__
     """
     with open(file_path) as f:
@@ -115,6 +158,72 @@ with tempfile.TemporaryDirectory() as tmp_dir:
         pemd_parameters["phi"]["point_estimate"]["value"], -45.0, rtol=1e-10
     )
     print("PASS: theta_E intermediate-axis factor + East-of-North angle")
+
+"""
+__Round trip: the same system with the shear in a `MassField` (current API)__
+
+The lens galaxy keeps only its own light and mass; the external shear goes into an `al.MassField` at the lens
+redshift, handed to the tracer's `fields=` argument. The exported template must have the same entity make-up as
+the legacy case above — 2 `Galaxy` + 1 `MassField` — and the import must give the shear back in
+`tracer_back.fields`.
+"""
+lens_no_shear = al.Galaxy(
+    redshift=0.5,
+    bulge=lens.bulge,
+    mass=lens.mass,
+)
+
+field = al.MassField(
+    redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.02, gamma_2=-0.03)
+)
+
+tracer_field = al.Tracer(galaxies=[lens_no_shear, source], fields=[field])
+
+with tempfile.TemporaryDirectory() as tmp_dir:
+    file_path = al.interop.coolest.to_coolest(
+        galaxies=tracer_field, file_path=os.path.join(tmp_dir, "template_field")
+    )
+
+    with open(file_path) as f:
+        template_field = json.load(f)
+
+    types_field = [entity["type"] for entity in template_field["lensing_entities"]]
+
+    assert types_field.count("Galaxy") == 2, types_field
+    assert types_field.count("MassField") == 1, types_field
+
+    tracer_field_back = al.interop.coolest.from_coolest(file_path=file_path)
+
+    assert len(tracer_field_back.fields) == 1
+    assert isinstance(tracer_field_back.fields[0], al.MassField)
+    assert tracer_field_back.fields[0].redshift == 0.5
+
+    shear_field_back = tracer_field_back.fields[0].mass_0
+
+    assert isinstance(shear_field_back, al.mp.ExternalShear)
+
+    npt.assert_allclose(shear_field_back.gamma_1, 0.02, rtol=0, atol=1e-12)
+    npt.assert_allclose(shear_field_back.gamma_2, -0.03, rtol=0, atol=1e-12)
+
+    npt.assert_allclose(
+        tracer_field_back.deflections_yx_2d_from(grid=grid).array,
+        tracer_field.deflections_yx_2d_from(grid=grid).array,
+        rtol=1e-6,
+        atol=1e-10,
+    )
+    print("PASS: MassField round trip — 1:1 entity mapping, shear + deflection parity")
+
+"""
+The two constructions are numerically the same system, which is why the legacy case above may keep its
+galaxy-attached shear without weakening anything: the tracer sums every deflection field over the plane.
+"""
+npt.assert_allclose(
+    tracer_field.deflections_yx_2d_from(grid=grid).array,
+    tracer.deflections_yx_2d_from(grid=grid).array,
+    rtol=0,
+    atol=1e-12,
+)
+print("PASS: galaxy-attached and MassField tracers deflect identically")
 
 """
 __NFW round trip (same cosmology both directions)__

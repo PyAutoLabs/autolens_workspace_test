@@ -183,7 +183,6 @@ def model_from(mesh, regularization):
         redshift=0.5,
         bulge=lens_bulge,
         mass=mass,
-        shear=shear,
     )
 
     pixelization = af.Model(
@@ -194,7 +193,14 @@ def model_from(mesh, regularization):
 
     source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
-    return af.Collection(galaxies=af.Collection(lens=lens, source=source))
+    # External Shear: a property of the system, not of the lens galaxy, so it is held in an
+    # `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+    field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+    return af.Collection(
+        galaxies=af.Collection(lens=lens, source=source),
+        fields=af.Collection(field=field),
+    )
 
 
 from autofit.non_linear.fitness import Fitness

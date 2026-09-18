@@ -15,7 +15,7 @@ Every script follows the same structure:
 
 ## general.py
 
-**Model**: `Isothermal + ExternalShear` lens, `lp_linear.Sersic` source, one extra
+**Model**: `Isothermal` lens + an `ExternalShear` `MassField`, `lp_linear.Sersic` source, one extra
 galaxy with `lp_linear.Sersic` light (no mass scaling relation).
 
 **Queries tested**:
@@ -83,7 +83,7 @@ stored in separate output subdirectories.
 
 ## scaling_relation.py
 
-**Model**: `Isothermal + ExternalShear` lens, `lp_linear.Sersic` source, one extra
+**Model**: `Isothermal` lens + an `ExternalShear` `MassField`, `lp_linear.Sersic` source, one extra
 galaxy whose Einstein radius is set via a luminosity scaling relation:
 
     einstein_radius = scaling_factor * luminosity ** scaling_exponent

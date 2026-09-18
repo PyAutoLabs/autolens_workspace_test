@@ -20,9 +20,10 @@ compatibility.
 
 __Contents__
 
-- **Lens Galaxy Composition:** MGE bulge with gaussian_per_basis=2 + Isothermal + ExternalShear.
+- **Lens Galaxy Composition:** MGE bulge with gaussian_per_basis=2 + Isothermal.
+- **External Field Composition:** ExternalShear in an ``al.MassField`` in the model's ``fields=`` slot.
 - **Source Galaxy Composition:** MGE bulge with gaussian_per_basis=1.
-- **Full Model:** af.Collection wrapping lens + source galaxies.
+- **Full Model:** af.Collection wrapping lens + source galaxies and the external field.
 - **MGE Prior Identity:** Within-basis sharing and cross-basis independence of priors.
 - **Identifier Stability:** Hardcoded regression anchor for the full model.
 - **Serialization Round-Trip:** dict/from_dict preserves prior count and path structure.
@@ -49,8 +50,11 @@ each basis independent ellipticity components while sharing a common centre.
 Expected free parameters:
 - bulge: 2 (shared centre) + 2*2 (ell_comps per basis) = 6
 - mass (Isothermal): 5 (centre_0, centre_1, ell_comps_0, ell_comps_1, einstein_radius)
-- shear (ExternalShear): 2 (gamma_1, gamma_2)
-- total lens: 13
+- total lens: 11
+
+The external shear is not one of them: it describes the tidal field of everything *outside* the
+modelled system, so it is a property of the system rather than of a galaxy, and it is composed
+separately below.
 """
 
 mask_radius = 3.0
@@ -71,17 +75,36 @@ assert (
     mass.prior_count == 5
 ), f"Isothermal prior_count: expected 5, got {mass.prior_count}"
 
+lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass)
+assert (
+    lens.prior_count == 11
+), f"Lens galaxy prior_count: expected 11, got {lens.prior_count}"
+
+print("Lens galaxy composition: PASSED")
+
+"""
+__External Field Composition__
+
+The `ExternalShear` is held in an ``al.MassField`` — a container like a ``Galaxy`` (a redshift plus a
+bag of mass profiles) which carries no light — at the lens redshift. In the model it lives in its own
+``fields=`` collection beside ``galaxies=``, and in ``model.info`` it appears under ``fields``.
+
+Expected free parameters:
+- shear (ExternalShear): 2 (gamma_1, gamma_2)
+- total field: 2
+"""
+
 shear = af.Model(al.mp.ExternalShear)
 assert (
     shear.prior_count == 2
 ), f"ExternalShear prior_count: expected 2, got {shear.prior_count}"
 
-lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
 assert (
-    lens.prior_count == 13
-), f"Lens galaxy prior_count: expected 13, got {lens.prior_count}"
+    field.prior_count == 2
+), f"MassField prior_count: expected 2, got {field.prior_count}"
 
-print("Lens galaxy composition: PASSED")
+print("External field composition: PASSED")
 
 """
 __Source Galaxy Composition__
@@ -112,11 +135,16 @@ print("Source galaxy composition: PASSED")
 """
 __Full Model__
 
-The full lens model is an ``af.Collection`` wrapping both galaxies. The total
-free parameter count should be the sum of lens and source counts.
+The full lens model is an ``af.Collection`` wrapping both galaxies and, beside them, the ``fields``
+collection holding the external field. The total free parameter count should be the sum of the lens,
+source and field counts — moving the shear out of the lens galaxy moves parameters between slots but
+never changes the total.
 """
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=af.Collection(field=field),
+)
 
 assert (
     model.prior_count == 17
@@ -127,13 +155,18 @@ paths = model.unique_prior_paths
 assert len(paths) == 17, f"Expected 17 unique prior paths, got {len(paths)}"
 
 for path in paths:
-    assert path[0] == "galaxies", f"Top-level path should be 'galaxies': {path}"
-    assert path[1] in ("lens", "source"), f"Galaxy name unexpected: {path}"
+    assert path[0] in (
+        "galaxies",
+        "fields",
+    ), f"Top-level path should be 'galaxies' or 'fields': {path}"
+    assert path[1] in ("lens", "source", "field"), f"Component name unexpected: {path}"
 
 lens_paths = [p for p in paths if p[1] == "lens"]
 source_paths = [p for p in paths if p[1] == "source"]
-assert len(lens_paths) == 13, f"Expected 13 lens paths, got {len(lens_paths)}"
+field_paths = [p for p in paths if p[0] == "fields"]
+assert len(lens_paths) == 11, f"Expected 11 lens paths, got {len(lens_paths)}"
 assert len(source_paths) == 4, f"Expected 4 source paths, got {len(source_paths)}"
+assert len(field_paths) == 2, f"Expected 2 field paths, got {len(field_paths)}"
 
 print("Full model composition: PASSED")
 
@@ -198,6 +231,12 @@ after a PyAutoFit refactor, existing users' results folders will no longer match
 This hardcoded value is the regression anchor. Update it only if the identifier
 change is intentional (e.g. a deliberate algorithm change). An accidental change
 means a refactor has silently altered model composition.
+
+It was re-anchored on 2026-09-17 when the shear moved from the lens galaxy into an
+``al.MassField`` in the ``fields=`` slot: that composes a genuinely different model, so it
+*must* hash differently. The old value for the galaxy-attached composition was
+``5a3c480de681f6958048b22b3db8ecf9``. The pin proving the galaxy-attached form itself still
+hashes to what it always did lives in ``misc/mass/galaxy_attached_legacy.py``.
 """
 
 from autofit.non_linear.paths.directory import DirectoryPaths
@@ -210,7 +249,7 @@ identifier = paths_obj.identifier
 assert len(identifier) == 32
 assert identifier.isalnum()
 
-assert identifier == "5a3c480de681f6958048b22b3db8ecf9", (
+assert identifier == "b99831e66dd27eee314113e8e58235b6", (
     f"REGRESSION: multi-galaxy MGE model identifier changed from expected value. "
     f"Got '{identifier}'. If this is intentional, update the expected value. "
     f"If not, a PyAutoFit or PyAutoGalaxy refactor has silently altered how "
@@ -224,6 +263,12 @@ print("Identifier stability: PASSED")
 __Serialization Round-Trip__
 
 ``model.dict()`` → ``from_dict()`` must preserve prior count and path structure.
+
+The comparison is on the *set* of paths, not the list. `unique_prior_paths` is ordered by prior id, and
+`from_dict` reassigns ids in its own traversal order, so any model with a second top-level collection
+composed after `galaxies` (`fields` here, but `extra_galaxies` behaves identically) comes back with the
+same paths in a different order. That is a **PyAutoFit** id-ordering artefact, not a structural change:
+the identifier above — the value that actually names a user's output folder — is unchanged by it.
 """
 
 d = model.dict()
@@ -233,8 +278,8 @@ assert (
     restored.prior_count == model.prior_count
 ), f"prior_count changed after round-trip: {restored.prior_count} vs {model.prior_count}"
 
-assert (
-    restored.unique_prior_paths == model.unique_prior_paths
+assert set(restored.unique_prior_paths) == set(
+    model.unique_prior_paths
 ), "Path structure changed after serialization round-trip"
 
 print("Serialization round-trip: PASSED")
