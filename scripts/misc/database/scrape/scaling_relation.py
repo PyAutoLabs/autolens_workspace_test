@@ -132,7 +132,7 @@ source = af.Model(al.Galaxy, redshift=1.0, bulge=al.lp_linear.Sersic)
 
 model = af.Collection(
     galaxies=af.Collection(lens=lens, source=source),
-    fields=af.Collection(field=field),
+    fields=field,
     extra_galaxies=af.Collection(extra_galaxy=extra_galaxy),
 )
 

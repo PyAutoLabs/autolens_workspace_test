@@ -138,7 +138,7 @@ source_mge = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge_mge)
 
 model_mge = af.Collection(
     galaxies=af.Collection(lens=lens_mge, source=source_mge),
-    fields=af.Collection(field=field_mge),
+    fields=field_mge,
 )
 
 

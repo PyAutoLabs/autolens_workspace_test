@@ -92,7 +92,7 @@ field = af.Model(al.MassField, redshift=0.5, shear=shear)
 
 model = af.Collection(
     galaxies=af.Collection(lens=lens, source=source),
-    fields=af.Collection(field=field),
+    fields=field,
 )
 
 print(model.info)

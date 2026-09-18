@@ -181,6 +181,10 @@ print(f"PASS: galaxy-attached model identifier pinned at {GALAXY_ATTACHED_IDENTI
 """
 The `MassField` model composes a *different* model and therefore has its own identifier — it is not, and must
 not be, the same value.
+
+It is written in the older `fields=af.Collection(field=...)` form on purpose. Every other model in
+`autolens_workspace` and `autolens_workspace_test` now sits in the flat `fields=field` slot, so this is the
+workspaces' last regression witness that the library still accepts a collection there. Do not migrate it.
 """
 model_field = af.Collection(
     galaxies=af.Collection(

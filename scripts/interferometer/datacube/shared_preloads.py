@@ -103,7 +103,7 @@ def _model():
 
     return af.Collection(
         galaxies=af.Collection(lens=lens, source=source),
-        fields=af.Collection(field=field),
+        fields=field,
     )
 
 

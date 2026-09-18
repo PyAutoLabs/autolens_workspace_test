@@ -105,7 +105,7 @@ def model_from(bulge_cls):
     field = af.Model(al.MassField, redshift=0.5, shear=af.Model(al.mp.ExternalShear))
     return af.Collection(
         galaxies=af.Collection(lens=lens, source=source),
-        fields=af.Collection(field=field),
+        fields=field,
     )
 
 

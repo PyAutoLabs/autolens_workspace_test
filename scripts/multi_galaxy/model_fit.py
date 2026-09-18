@@ -153,7 +153,7 @@ for i, centre in enumerate(main_lens_centres):
 
 # The external shear is a property of the *system*, not of either deflector, so it is not attached to
 # `lens_0`: it is an `al.MassField` — a container like a galaxy, a redshift plus a bag of mass profiles,
-# carrying no light — living in its own `fields=` collection beside `galaxies=`. There is no shear in the
+# carrying no light — sitting in the `fields=` slot beside `galaxies=`. There is no shear in the
 # simulated system, so both components have median zero.
 shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
@@ -174,7 +174,7 @@ source_model = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 model = af.Collection(
     galaxies=af.Collection(**lens_dict, source=source_model),
-    fields=af.Collection(field=field),
+    fields=field,
 )
 
 """
@@ -194,7 +194,7 @@ prior_count_lens_1 = lens_dict["lens_1"].prior_count
 assert prior_count_lens_0 == prior_count_lens_1  # neither deflector carries the shear
 assert "einstein_radius" in model.info
 assert model.info.count("gamma_1") == 1  # exactly one ExternalShear
-assert model.fields.field.shear.prior_count == 2  # and it is in the fields slot
+assert model.fields.shear.prior_count == 2  # and it is in the fields slot
 assert "dPIE" not in model.info  # untruncated by design in this regime
 
 """

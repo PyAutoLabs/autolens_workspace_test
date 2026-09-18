@@ -74,7 +74,7 @@ extra_galaxies = af.Collection(
 
 model = af.Collection(
     galaxies=af.Collection(lens=lens, source=source),
-    fields=af.Collection(field=field),
+    fields=field,
     extra_galaxies=extra_galaxies,
 )
 

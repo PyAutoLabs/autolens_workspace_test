@@ -86,8 +86,8 @@ print("Lens galaxy composition: PASSED")
 __External Field Composition__
 
 The `ExternalShear` is held in an ``al.MassField`` — a container like a ``Galaxy`` (a redshift plus a
-bag of mass profiles) which carries no light — at the lens redshift. In the model it lives in its own
-``fields=`` collection beside ``galaxies=``, and in ``model.info`` it appears under ``fields``.
+bag of mass profiles) which carries no light — at the lens redshift. In the model it sits in the
+``fields=`` slot beside ``galaxies=``, and in ``model.info`` it appears under ``fields``.
 
 Expected free parameters:
 - shear (ExternalShear): 2 (gamma_1, gamma_2)
@@ -135,15 +135,15 @@ print("Source galaxy composition: PASSED")
 """
 __Full Model__
 
-The full lens model is an ``af.Collection`` wrapping both galaxies and, beside them, the ``fields``
-collection holding the external field. The total free parameter count should be the sum of the lens,
-source and field counts — moving the shear out of the lens galaxy moves parameters between slots but
-never changes the total.
+The full lens model is an ``af.Collection`` wrapping both galaxies and, beside them, the ``fields=``
+slot holding the external field — a bare ``al.MassField`` model, not a collection wrapping one. The
+total free parameter count should be the sum of the lens, source and field counts — moving the shear
+out of the lens galaxy moves parameters between slots but never changes the total.
 """
 
 model = af.Collection(
     galaxies=af.Collection(lens=lens, source=source),
-    fields=af.Collection(field=field),
+    fields=field,
 )
 
 assert (
@@ -159,10 +159,15 @@ for path in paths:
         "galaxies",
         "fields",
     ), f"Top-level path should be 'galaxies' or 'fields': {path}"
-    assert path[1] in ("lens", "source", "field"), f"Component name unexpected: {path}"
+    if path[0] == "galaxies":
+        assert path[1] in ("lens", "source"), f"Galaxy name unexpected: {path}"
+    else:
+        # `fields` is the bare `al.MassField` model itself, so the second path element is one of its
+        # mass profiles (`shear` here) — there is no intervening collection key.
+        assert path[1] == "shear", f"Field profile name unexpected: {path}"
 
-lens_paths = [p for p in paths if p[1] == "lens"]
-source_paths = [p for p in paths if p[1] == "source"]
+lens_paths = [p for p in paths if p[0] == "galaxies" and p[1] == "lens"]
+source_paths = [p for p in paths if p[0] == "galaxies" and p[1] == "source"]
 field_paths = [p for p in paths if p[0] == "fields"]
 assert len(lens_paths) == 11, f"Expected 11 lens paths, got {len(lens_paths)}"
 assert len(source_paths) == 4, f"Expected 4 source paths, got {len(source_paths)}"
@@ -232,11 +237,17 @@ This hardcoded value is the regression anchor. Update it only if the identifier
 change is intentional (e.g. a deliberate algorithm change). An accidental change
 means a refactor has silently altered model composition.
 
-It was re-anchored on 2026-09-17 when the shear moved from the lens galaxy into an
+An identifier is a function of the model *and* the active PyAutoFit configuration, so the
+value below is the one under ``autolens_workspace_test/config/``: it reproduces only when the
+script is run from the workspace root, as every script here is.
+
+It was re-anchored on 2026-09-18 when the shear moved from the lens galaxy into an
 ``al.MassField`` in the ``fields=`` slot: that composes a genuinely different model, so it
 *must* hash differently. The old value for the galaxy-attached composition was
-``5a3c480de681f6958048b22b3db8ecf9``. The pin proving the galaxy-attached form itself still
-hashes to what it always did lives in ``misc/mass/galaxy_attached_legacy.py``.
+``5a3c480de681f6958048b22b3db8ecf9``. This repo went straight from that form to the flat
+``fields=field`` slot — the intermediate ``fields=af.Collection(field=field)`` form never
+shipped from here, so it has no pin of its own. The pin proving the galaxy-attached form
+itself still hashes to what it always did lives in ``misc/mass/galaxy_attached_legacy.py``.
 """
 
 from autofit.non_linear.paths.directory import DirectoryPaths
@@ -249,7 +260,7 @@ identifier = paths_obj.identifier
 assert len(identifier) == 32
 assert identifier.isalnum()
 
-assert identifier == "b99831e66dd27eee314113e8e58235b6", (
+assert identifier == "29f82bd3de24984b94657c328b64c3be", (
     f"REGRESSION: multi-galaxy MGE model identifier changed from expected value. "
     f"Got '{identifier}'. If this is intentional, update the expected value. "
     f"If not, a PyAutoFit or PyAutoGalaxy refactor has silently altered how "

@@ -183,7 +183,7 @@ def build_model(redshift_subhalo, subhalo_mass_factory):
 
     return af.Collection(
         galaxies=af.Collection(lens=lens, subhalo=subhalo, source=source),
-        fields=af.Collection(field=field),
+        fields=field,
     )
 
 

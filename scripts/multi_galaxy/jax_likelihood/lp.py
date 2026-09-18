@@ -170,7 +170,7 @@ for i, centre in enumerate(main_lens_centres):
 
 # The external shear is a property of the *system*, not of either deflector, so it is not attached to
 # `lens_0`: it is an `al.MassField` — a container like a galaxy, a redshift plus a bag of mass profiles,
-# carrying no light — living in its own `fields=` collection beside `galaxies=`. There is no shear in the
+# carrying no light — living in the model's `fields=` slot beside `galaxies=`. There is no shear in the
 # simulated system, so both components have median zero.
 shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
@@ -191,7 +191,7 @@ source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
 model = af.Collection(
     galaxies=af.Collection(**lens_dict, source=source),
-    fields=af.Collection(field=field),
+    fields=field,
 )
 
 """

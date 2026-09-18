@@ -157,7 +157,7 @@ for variant, bulge_cls in [
 
     model = af.Collection(
         galaxies=af.Collection(lens=lens, source=source),
-        fields=af.Collection(field=field),
+        fields=field,
     )
 
     analysis = al.AnalysisInterferometer(dataset=dataset)
@@ -212,7 +212,7 @@ def sparse_fitness(mesh, regularization):
 
     model = af.Collection(
         galaxies=af.Collection(lens=lens, source=source),
-        fields=af.Collection(field=field),
+        fields=field,
     )
 
     bulge = al.lp.Sersic()

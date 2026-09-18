@@ -269,7 +269,7 @@ TRUTH_LENS = al.Galaxy(
 
 # External Shear: the tidal field of everything outside the modelled system, so it is a property of the
 # system rather than of a galaxy. It is held in an `al.MassField` — a container like a galaxy carrying
-# no light — in the tracer's `fields=` argument and in the model's `fields=` collection.
+# no light — in the tracer's `fields=` argument and in the model's `fields=` slot.
 TRUTH_FIELD = al.MassField(redshift=0.5, shear=al.mp.ExternalShear(**LENS_SHEAR))
 
 TRUTH_SOURCE = al.Galaxy(redshift=1.0, bulge=al.lp.Sersic(**SOURCE_BULGE))
@@ -349,7 +349,7 @@ model_1 = af.Collection(
         ),
         source=source_lp,
     ),
-    fields=af.Collection(field=field_model()),
+    fields=field_model(),
 )
 assert model_1.total_free_parameters == 3, model_1.total_free_parameters
 
@@ -413,7 +413,7 @@ model_2 = af.Collection(
         ),
         source=source_pix,
     ),
-    fields=af.Collection(field=field_model()),
+    fields=field_model(),
 )
 assert model_2.total_free_parameters == 2, model_2.total_free_parameters
 

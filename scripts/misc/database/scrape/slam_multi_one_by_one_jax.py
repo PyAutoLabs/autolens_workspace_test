@@ -54,12 +54,10 @@ def fit():
                 ),
             ),
             # External shear: an `al.MassField` in the model's own `fields=` slot.
-            fields=af.Collection(
-                field=af.Model(
-                    al.MassField,
-                    redshift=redshift_lens,
-                    shear=af.Model(al.mp.ExternalShear),
-                )
+            fields=af.Model(
+                al.MassField,
+                redshift=redshift_lens,
+                shear=af.Model(al.mp.ExternalShear),
             ),
         )
 

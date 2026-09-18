@@ -167,7 +167,7 @@ field = af.Model(al.MassField, redshift=0.5, shear=shear)
 
 model = af.Collection(
     galaxies=af.Collection(lens=lens_0, lens_1=lens_1, source=source),
-    fields=af.Collection(field=field),
+    fields=field,
 )
 
 # Use a Sersic image as adapt data to avoid negative dirty-image values.
