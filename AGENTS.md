@@ -38,8 +38,8 @@ failed/                      One .txt log per failing script (written by run_all
 dataset/ config/ output/     Input data, YAML config, runtime fit results
 ```
 
-Per-area detail lives in nested guides: `scripts/CLAUDE.md` and
-`scripts/misc/database/scrape/CLAUDE.md` (sub-area references, not top-level docs).
+Per-area detail lives in nested guides: `scripts/AGENTS.md` and
+`scripts/misc/database/scrape/AGENTS.md` (sub-area references, not top-level docs).
 
 ## Running Scripts
 
