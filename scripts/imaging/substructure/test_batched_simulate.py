@@ -46,7 +46,10 @@ macro_galaxy = al.Galaxy(
         slope=2.2,
         einstein_radius=1.6,
     ),
-    shear=al.mp.ExternalShear(gamma_1=0.01, gamma_2=-0.01),
+)
+
+macro_field = al.MassField(
+    redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.01, gamma_2=-0.01)
 )
 
 source_galaxy = al.Galaxy(
@@ -84,10 +87,17 @@ def lens_mass_fn(grid_raw, params):
         slope=params[4],
         einstein_radius=params[5],
     )
-    shear = al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
-    galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
+    galaxy = al.Galaxy(redshift=0.5, mass=power_law)
+    # The external shear is a property of the system, not of the macro galaxy: it is an `al.MassField`
+    # at the macro lens' redshift. The plane sums both deflection fields, which is what is done here.
+    field = al.MassField(
+        redshift=0.5, shear=al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
+    )
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+    return (
+        galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+        + field.deflections_yx_2d_from(grid=g, xp=jnp).array
+    )
 
 
 lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])
@@ -149,7 +159,10 @@ for b in range(batch_size):
             )
             galaxies.append(halo)
 
-        sheet = ag.Galaxy(
+        # The plane's negative-kappa sheet is external structure, so it is an `al.MassField` at that
+        # plane's redshift. `los_realizations_to_arrays` reads `redshift` and `mass_sheet`, so the
+        # fields ride in the same per-realization list as the halo galaxies.
+        sheet = ag.MassField(
             redshift=z,
             mass_sheet=ag.mp.MassSheet(
                 centre=(0.0, 0.0),

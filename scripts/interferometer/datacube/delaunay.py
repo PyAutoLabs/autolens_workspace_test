@@ -144,7 +144,7 @@ adapt_images = al.AdaptImages(
 """
 __Model__
 
-Same `PowerLaw + ExternalShear` lens and Delaunay source (`reg.AdaptSplit()`)
+Same `PowerLaw` lens with its `ExternalShear` `MassField` and Delaunay source (`reg.AdaptSplit()`)
 as ``interferometer/delaunay.py``.
 """
 mass = af.Model(al.mp.PowerLaw)
@@ -165,7 +165,6 @@ lens = af.Model(
     al.Galaxy,
     redshift=0.5,
     mass=mass,
-    shear=shear,
 )
 
 regularization = al.reg.AdaptSplit()
@@ -178,7 +177,14 @@ pixelization = af.Model(
 
 source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
+)
 
 print(model.info)
 

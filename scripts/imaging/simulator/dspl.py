@@ -65,7 +65,8 @@ simulator = al.SimulatorImaging(
 )
 
 """
-Setup the lens galaxy's mass (SIE+Shear) and source galaxy light (elliptical Sersic) for this simulated lens.
+Setup the lens galaxy's mass (SIE), the external shear (an `ExternalShear` in an `al.MassField`) and the
+source galaxy light (elliptical Sersic) for this simulated lens.
 """
 lens_galaxy = al.Galaxy(
     redshift=0.5,
@@ -87,8 +88,13 @@ lens_galaxy = al.Galaxy(
         einstein_radius=1.6,
         ell_comps=al.convert.ell_comps_from(axis_ratio=0.8, angle=45.0),
     ),
-    shear=al.mp.ExternalShear(gamma_1=0.0, gamma_2=0.0),
 )
+
+# External Shear: the tidal field of everything outside the modelled system, so it is a property of the
+# system rather than of the lens galaxy. It lives in an `al.MassField` — a container like a galaxy (a
+# redshift plus a bag of mass profiles) which carries no light — passed to the tracer's `fields=`
+# argument. The tracer sums every deflection field over the plane, so the simulated data is unchanged.
+field = al.MassField(redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.0, gamma_2=0.0))
 
 lens_galaxy_1 = al.Galaxy(
     redshift=1.0,
@@ -113,7 +119,7 @@ source_galaxy = al.Galaxy(
 """
 Use these galaxies to setup a tracer, which will generate the image for the simulated `Imaging` dataset.
 """
-tracer = al.Tracer(galaxies=[lens_galaxy, lens_galaxy_1, source_galaxy])
+tracer = al.Tracer(galaxies=[lens_galaxy, lens_galaxy_1, source_galaxy], fields=[field])
 
 """
 Pass the simulator a tracer, which creates the image which is simulated as an imaging dataset.

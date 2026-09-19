@@ -96,7 +96,7 @@ mass = af.Model(al.mp.NFWSph)
 
 shear = af.Model(al.mp.ExternalShear)
 
-lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
 # Source: MGE with lp_linear.Gaussian (same as mge.py, using mask_radius=3.0 inner).
 
@@ -110,7 +110,14 @@ source = af.Model(al.Galaxy, redshift=1.0, bulge=bulge)
 
 # Overall Lens Model:
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
+)
 
 print(model.info)
 

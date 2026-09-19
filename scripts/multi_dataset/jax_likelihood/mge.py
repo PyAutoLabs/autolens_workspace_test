@@ -3,7 +3,7 @@ Func Grad: Multi-Wavelength MGE
 ================================
 Tests that JAX can compute batched log-likelihood evaluations for a multi-wavelength
 imaging model using the `FactorGraphModel` API. Two imaging datasets (g and r bands)
-are fitted simultaneously with an Isothermal+ExternalShear lens mass and an MGE source.
+are fitted simultaneously with an Isothermal lens mass plus an ExternalShear MassField and an MGE source.
 
 Uses **option B** — per-band source MGE ``ell_comps`` priors via ``model.copy()`` +
 ``af.GaussianPrior`` on each ``AnalysisFactor``. All other parameters (lens MGE bulge,
@@ -111,7 +111,6 @@ lens = af.Model(
     redshift=0.5,
     bulge=bulge_lens,
     mass=mass,
-    shear=shear,
 )
 
 bulge_source = al.model_util.mge_model_from(
@@ -120,7 +119,14 @@ bulge_source = al.model_util.mge_model_from(
 
 source = af.Model(al.Galaxy, redshift=1.0, bulge=bulge_source)
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
+)
 
 print(model.info)
 

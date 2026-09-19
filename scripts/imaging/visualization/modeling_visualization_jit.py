@@ -125,16 +125,21 @@ for i, gaussian in enumerate(gaussian_list):
 bulge_mge = af.Model(al.lp_basis.Basis, profile_list=list(gaussian_list))
 shear_mge = af.Model(al.mp.ExternalShear)
 
-lens_mge = af.Model(
-    al.Galaxy, redshift=0.5, bulge=bulge_mge, mass=mass_mge, shear=shear_mge
-)
+lens_mge = af.Model(al.Galaxy, redshift=0.5, bulge=bulge_mge, mass=mass_mge)
+
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field_mge = af.Model(al.MassField, redshift=0.5, shear=shear_mge)
 
 source_bulge_mge = al.model_util.mge_model_from(
     mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
 )
 source_mge = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge_mge)
 
-model_mge = af.Collection(galaxies=af.Collection(lens=lens_mge, source=source_mge))
+model_mge = af.Collection(
+    galaxies=af.Collection(lens=lens_mge, source=source_mge),
+    fields=field_mge,
+)
 
 
 analysis_mge = al.AnalysisImaging(

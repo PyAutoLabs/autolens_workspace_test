@@ -45,13 +45,18 @@ def fit():
                     bulge=lens_bulge,
                     disk=None,
                     mass=mass,
-                    shear=af.Model(al.mp.ExternalShear),
                 ),
                 source=af.Model(
                     al.Galaxy,
                     redshift=redshift_source,
                     bulge=source_bulge,
                 ),
+            ),
+            # External shear: an `al.MassField` in the model's own `fields=` slot.
+            fields=af.Model(
+                al.MassField,
+                redshift=redshift_lens,
+                shear=af.Model(al.mp.ExternalShear),
             ),
             dataset_model=dataset_model,
         )
@@ -97,9 +102,6 @@ def fit():
 
             if i > 0:
                 mass.centre = model.galaxies.lens.mass.centre
-
-            shear = source_lp_result[i].model.galaxies.lens.shear
-
             model = af.Collection(
                 galaxies=af.Collection(
                     lens=af.Model(
@@ -108,7 +110,6 @@ def fit():
                         bulge=source_lp_result[i].instance.galaxies.lens.bulge,
                         disk=source_lp_result[i].instance.galaxies.lens.disk,
                         mass=mass,
-                        shear=shear,
                     ),
                     source=af.Model(
                         al.Galaxy,
@@ -123,6 +124,8 @@ def fit():
                         ),
                     ),
                 ),
+                # External shear: an `al.MassField` in the model's own `fields=` slot.
+                fields=source_lp_result[i].model.fields,
                 dataset_model=dataset_model,
             )
 
@@ -165,7 +168,6 @@ def fit():
                         bulge=source_lp_result[i].instance.galaxies.lens.bulge,
                         disk=source_lp_result[i].instance.galaxies.lens.disk,
                         mass=source_pix_result_1[i].instance.galaxies.lens.mass,
-                        shear=source_pix_result_1[i].instance.galaxies.lens.shear,
                     ),
                     source=af.Model(
                         al.Galaxy,
@@ -179,6 +181,8 @@ def fit():
                         ),
                     ),
                 ),
+                # External shear: an `al.MassField` in the model's own `fields=` slot.
+                fields=source_pix_result_1[i].instance.fields,
                 dataset_model=dataset_model,
             )
 
@@ -227,10 +231,11 @@ def fit():
                         bulge=lens_bulge,
                         disk=None,
                         mass=source_result_for_lens[i].instance.galaxies.lens.mass,
-                        shear=source_result_for_lens[i].instance.galaxies.lens.shear,
                     ),
                     source=source,
                 ),
+                # External shear: an `al.MassField` in the model's own `fields=` slot.
+                fields=source_result_for_lens[i].instance.fields,
                 dataset_model=dataset_model,
             )
 
@@ -287,10 +292,11 @@ def fit():
                         bulge=light_result[i].instance.galaxies.lens.bulge,
                         disk=light_result[i].instance.galaxies.lens.disk,
                         mass=mass_i,
-                        shear=source_result_for_lens[i].model.galaxies.lens.shear,
                     ),
                     source=source,
                 ),
+                # External shear: an `al.MassField` in the model's own `fields=` slot.
+                fields=source_result_for_lens[i].model.fields,
                 dataset_model=dataset_model,
             )
 

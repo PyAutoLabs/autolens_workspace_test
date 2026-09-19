@@ -9,7 +9,7 @@ into a lazily-cached ``jax.jit(self.fit_from)``.
 This test runs in two parts:
 
 Part 1 — **MGE caching probe.** Uses an MGE linear lens (GaussianGradient basis
-+ NFWSph mass + ExternalShear) and MGE parametric source model. Calls
++ NFWSph mass, with an ExternalShear MassField) and MGE parametric source model. Calls
 ``analysis.fit_for_visualization(instance)`` twice and asserts the second call
 is much faster than the first (confirming the compiled function is cached on the
 analysis instance, not recompiled per visualization).
@@ -97,7 +97,7 @@ positions = al.Grid2DIrregular(
 Part 1 — MGE caching probe
 ============================================================================
 
-Model: MGE linear lens (Basis of GaussianGradient + NFWSph mass + ExternalShear)
+Model: MGE linear lens (Basis of GaussianGradient + NFWSph mass) + an ExternalShear MassField
 and MGE parametric source. Mirrors the linear MGE pattern from the imaging
 analogue at ``scripts/imaging/modeling_visualization_jit.py``.
 """
@@ -127,16 +127,21 @@ for i, gaussian in enumerate(gaussian_list):
 bulge_mge = af.Model(al.lp_basis.Basis, profile_list=list(gaussian_list))
 shear_mge = af.Model(al.mp.ExternalShear)
 
-lens_mge = af.Model(
-    al.Galaxy, redshift=0.5, bulge=bulge_mge, mass=mass_mge, shear=shear_mge
-)
+lens_mge = af.Model(al.Galaxy, redshift=0.5, bulge=bulge_mge, mass=mass_mge)
+
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field_mge = af.Model(al.MassField, redshift=0.5, shear=shear_mge)
 
 source_bulge_mge = al.model_util.mge_model_from(
     mask_radius=mask_radius, total_gaussians=20, centre_prior_is_uniform=False
 )
 source_mge = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge_mge)
 
-model_mge = af.Collection(galaxies=af.Collection(lens=lens_mge, source=source_mge))
+model_mge = af.Collection(
+    galaxies=af.Collection(lens=lens_mge, source=source_mge),
+    fields=field_mge,
+)
 
 
 analysis_mge = al.AnalysisInterferometer(

@@ -62,9 +62,10 @@ masked_dataset = dataset.apply_mask(mask=mask)
 """
 __Model__
 """
-lens = af.Model(
-    al.Galaxy, redshift=0.5, mass=al.mp.Isothermal, shear=al.mp.ExternalShear
-)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=al.mp.Isothermal)
+
+# External shear: an `al.MassField` in the model's own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=al.mp.ExternalShear)
 source = af.Model(al.Galaxy, redshift=1.0, bulge=al.lp_linear.Sersic)
 
 extra_galaxies = af.Collection(
@@ -72,7 +73,9 @@ extra_galaxies = af.Collection(
 )
 
 model = af.Collection(
-    galaxies=af.Collection(lens=lens, source=source), extra_galaxies=extra_galaxies
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
+    extra_galaxies=extra_galaxies,
 )
 
 """

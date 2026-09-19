@@ -118,7 +118,7 @@ mesh_shape = (mesh_pixels_yx, mesh_pixels_yx)
 """
 __Model__
 
-Parametric Isothermal + ExternalShear lens, rectangular-mesh source with
+Parametric Isothermal lens with an ExternalShear MassField, rectangular-mesh source with
 adaptive regularization. Single pixelized source keeps the
 ``to_inversion.py`` one-entry fallback viable.
 """
@@ -135,7 +135,7 @@ shear = af.Model(al.mp.ExternalShear)
 shear.gamma_1 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 shear.gamma_2 = af.UniformPrior(lower_limit=-0.001, upper_limit=0.001)
 
-lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
 mesh = al.mesh.RectangularBilinearAdaptImage(shape=mesh_shape, weight_power=1.0)
 regularization = al.reg.Adapt()
@@ -143,7 +143,14 @@ pixelization = al.Pixelization(mesh=mesh, regularization=regularization)
 
 source = af.Model(al.Galaxy, redshift=1.0, pixelization=pixelization)
 
-model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
+model = af.Collection(
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
+)
 
 
 galaxy_name_image_dict = {

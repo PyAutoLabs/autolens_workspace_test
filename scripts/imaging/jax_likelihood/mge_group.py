@@ -218,7 +218,7 @@ mass.einstein_radius = af.UniformPrior(lower_limit=1.1, upper_limit=2.1)
 
 shear = af.Model(al.mp.ExternalShear)
 
-lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, bulge=bulge, mass=mass)
 
 # Source:
 
@@ -322,8 +322,14 @@ extra_galaxies = af.Collection(extra_galaxies_list)
 
 # Overall Lens Model:
 
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
 model = af.Collection(
-    galaxies=af.Collection(lens=lens, source=source), extra_galaxies=extra_galaxies
+    galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
+    extra_galaxies=extra_galaxies,
 )
 
 """

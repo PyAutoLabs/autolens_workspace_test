@@ -46,11 +46,18 @@ lens_galaxy = al.Galaxy(
         einstein_radius=1.6,
         ell_comps=al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0),
     ),
-    shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05),
+)
+
+# External Shear: the tidal field of everything outside the modelled system, so it is a property of the
+# system rather than of the lens galaxy. It is held in an `al.MassField` — a container like a galaxy
+# which carries no light — and passed to the tracer's `fields=` argument. The tracer sums every
+# deflection field over the plane, so the simulated datasets are unchanged.
+field = al.MassField(
+    redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05)
 )
 
 """
-The lens galaxy of the `lens_sersic_light` dataset: the same mass and shear, plus a `Sersic`
+The lens galaxy of the `lens_sersic_light` dataset: the same mass (and the same shear field), plus a `Sersic`
 light profile whose intensity varies per band. This is the dataset read by the scripts whose
 model includes a lens light (MGE) component.
 """
@@ -71,7 +78,6 @@ def lens_galaxy_light_from(intensity):
             einstein_radius=1.6,
             ell_comps=al.convert.ell_comps_from(axis_ratio=0.9, angle=45.0),
         ),
-        shear=al.mp.ExternalShear(gamma_1=0.05, gamma_2=0.05),
     )
 
 
@@ -107,7 +113,7 @@ def simulate_and_output(output_path, band, lens, source_galaxy):
         add_poisson_noise_to_data=True,
         noise_seed=1 if band == "g" else 2,
     )
-    tracer = al.Tracer(galaxies=[lens, source_galaxy])
+    tracer = al.Tracer(galaxies=[lens, source_galaxy], fields=[field])
     dataset = simulator.via_tracer_from(tracer=tracer, grid=grid)
     al.output_to_fits(
         values=dataset.data.native,

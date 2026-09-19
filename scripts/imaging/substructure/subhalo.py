@@ -165,8 +165,11 @@ def build_model(redshift_subhalo, subhalo_mass_factory):
         redshift=0.5,
         bulge=af.Model(al.lp_linear.Sersic),
         mass=af.Model(al.mp.PowerLaw),
-        shear=af.Model(al.mp.ExternalShear),
     )
+
+    # External Shear: a property of the system, not of the lens galaxy, so it is held in an
+    # `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+    field = af.Model(al.MassField, redshift=0.5, shear=af.Model(al.mp.ExternalShear))
 
     subhalo_mass = subhalo_mass_factory(redshift_subhalo)
 
@@ -179,7 +182,8 @@ def build_model(redshift_subhalo, subhalo_mass_factory):
     )
 
     return af.Collection(
-        galaxies=af.Collection(lens=lens, subhalo=subhalo, source=source)
+        galaxies=af.Collection(lens=lens, subhalo=subhalo, source=source),
+        fields=field,
     )
 
 

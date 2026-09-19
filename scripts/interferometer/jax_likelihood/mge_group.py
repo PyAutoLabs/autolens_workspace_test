@@ -62,7 +62,7 @@ print(f"Total Visibilities: {dataset.uv_wavelengths.shape[0]}")
 # Lens mass + ExternalShear
 mass = af.Model(al.mp.Isothermal)
 shear = af.Model(al.mp.ExternalShear)
-lens = af.Model(al.Galaxy, redshift=0.5, mass=mass, shear=shear)
+lens = af.Model(al.Galaxy, redshift=0.5, mass=mass)
 
 # Source: MGE with 10 Gaussians
 bulge = al.model_util.mge_model_from(
@@ -83,8 +83,13 @@ for centre in extra_galaxy_centres:
 
 extra_galaxies = af.Collection(extra_galaxies_list)
 
+# External Shear: a property of the system, not of the lens galaxy, so it is held in an
+# `al.MassField` (a container like a galaxy, carrying no light) in its own `fields=` slot.
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
+
 model = af.Collection(
     galaxies=af.Collection(lens=lens, source=source),
+    fields=field,
     extra_galaxies=extra_galaxies,
 )
 

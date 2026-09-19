@@ -124,9 +124,11 @@ def traced_grids_from(parameters, image_grid, image_mesh_grid):
     )
     tracer = al.Tracer(
         galaxies=[
-            al.Galaxy(redshift=0.5, mass=mass, shear=shear),
+            al.Galaxy(redshift=0.5, mass=mass),
             al.Galaxy(redshift=1.0),
-        ]
+        ],
+        # The external shear is a property of the system, so it is an `al.MassField` in `fields=`.
+        fields=[al.MassField(redshift=0.5, shear=shear)],
     )
     source_grid = tracer.traced_grid_2d_list_from(grid=image_grid)[-1]
     source_mesh_grid = tracer.traced_grid_2d_list_from(grid=image_mesh_grid)[-1]

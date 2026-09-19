@@ -4,7 +4,8 @@ Func Grad: Multi Galaxy Light Parametric
 
 This script tests that JAX can JIT-compile and batch-evaluate (via `jax.vmap`) the log likelihood of an
 `Imaging` dataset fitted with a **multi-galaxy** model: two co-dominant lens galaxies, each with its own
-free parametric light and (untruncated) mass model, plus an `ExternalShear` on the first galaxy.
+free parametric light and (untruncated) mass model, plus an `ExternalShear` held in an `al.MassField`
+in the model's `fields=` slot.
 
 The multi-galaxy regime (see `autolens_workspace/scripts/multi_galaxy/`) reuses the standard
 extended-source `AnalysisImaging` pipeline — what this script locks in is that the *summed* deflection
@@ -123,7 +124,8 @@ __Model__
 
 One free light + mass model per co-dominant deflector, composed with the same list-based `lens_0`,
 `lens_1`, ... API the workspace package uses. Mass profiles are **untruncated** isothermals by design
-(no host halo means no tidal truncation). Only `lens_0` carries the `ExternalShear`.
+(no host halo means no tidal truncation). The `ExternalShear` is held in an `al.MassField` in the
+model's `fields=` slot, not attached to either deflector.
 """
 # The simulated values, copied from the simulation block above. Every prior below is uniform and
 # centred on them, so the prior-median evaluation this model is used for sits at the truth rather
@@ -159,21 +161,22 @@ for i, centre in enumerate(main_lens_centres):
         upper_limit=truth["einstein_radius"] + 0.1,
     )
 
-    shear = None
-
-    if i == 0:
-        # There is no shear in the simulated system, so both components have median zero.
-        shear = af.Model(al.mp.ExternalShear)
-        shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
-        shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
-
     lens_dict[f"lens_{i}"] = af.Model(
         al.Galaxy,
         redshift=0.5,
         bulge=bulge,
         mass=mass,
-        shear=shear,
     )
+
+# The external shear is a property of the *system*, not of either deflector, so it is not attached to
+# `lens_0`: it is an `al.MassField` — a container like a galaxy, a redshift plus a bag of mass profiles,
+# carrying no light — living in the model's `fields=` slot beside `galaxies=`. There is no shear in the
+# simulated system, so both components have median zero.
+shear = af.Model(al.mp.ExternalShear)
+shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
 
 # The simulated source: `SersicCore(centre=(0.0, 0.03), intensity=3.0, effective_radius=0.3,
 # sersic_index=1.0)` with the default (zero) `ell_comps`, whose own prior medians are already zero.
@@ -186,7 +189,10 @@ source_bulge.sersic_index = af.UniformPrior(lower_limit=0.9, upper_limit=1.1)
 
 source = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
-model = af.Collection(galaxies=af.Collection(**lens_dict, source=source))
+model = af.Collection(
+    galaxies=af.Collection(**lens_dict, source=source),
+    fields=field,
+)
 
 """
 The `info` attribute shows the model in a readable format.

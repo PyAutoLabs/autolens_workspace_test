@@ -33,7 +33,7 @@ grid_array = jnp.array(grid.array)
 __Build a 4-plane system__
 
 Plane 0 (z=0.25): 5 NFWTruncatedSph LOS halos + negative kappa sheet
-Plane 1 (z=0.50): PowerLaw + ExternalShear macro + 5 NFWTruncatedSph subhalos + sheet
+Plane 1 (z=0.50): PowerLaw macro + ExternalShear MassField + 5 NFWTruncatedSph subhalos + sheet
 Plane 2 (z=0.75): 5 NFWTruncatedSph LOS halos + sheet
 Plane 3 (z=1.00): source (no deflectors)
 """
@@ -44,6 +44,10 @@ n_halos_per_plane = 5
 max_n = 10
 
 all_galaxies = []
+
+# One `al.MassField` per plane: the negative-kappa sheet describes structure outside the modelled
+# system, so it is a field at that plane's redshift rather than a galaxy with no light.
+sheet_fields = []
 
 for plane_idx, z in enumerate(plane_redshifts[:3]):
     plane_halos = []
@@ -63,11 +67,12 @@ for plane_idx, z in enumerate(plane_redshifts[:3]):
         plane_halos.append(halo)
 
     sheet_kappa = -np.random.uniform(0.001, 0.005)
-    sheet = ag.Galaxy(
-        redshift=z,
-        mass_sheet=ag.mp.MassSheet(centre=(0.0, 0.0), kappa=sheet_kappa),
+    sheet_fields.append(
+        ag.MassField(
+            redshift=z,
+            mass_sheet=ag.mp.MassSheet(centre=(0.0, 0.0), kappa=sheet_kappa),
+        )
     )
-    plane_halos.append(sheet)
     all_galaxies.extend(plane_halos)
 
 macro_galaxy = al.Galaxy(
@@ -78,17 +83,22 @@ macro_galaxy = al.Galaxy(
         slope=2.2,
         einstein_radius=1.6,
     ),
-    shear=al.mp.ExternalShear(gamma_1=0.01, gamma_2=-0.01),
+)
+
+macro_field = al.MassField(
+    redshift=0.5, shear=al.mp.ExternalShear(gamma_1=0.01, gamma_2=-0.01)
 )
 all_galaxies.append(macro_galaxy)
 
 source_galaxy = al.Galaxy(redshift=1.0)
 all_galaxies.append(source_galaxy)
 
+all_fields = sheet_fields + [macro_field]
+
 """
 __Path A: existing Tracer path__
 """
-tracer = al.Tracer(galaxies=all_galaxies, cosmology=cosmology)
+tracer = al.Tracer(galaxies=all_galaxies, fields=all_fields, cosmology=cosmology)
 planes = tracer.planes
 
 traced_grids_existing = tracer_util.traced_grid_2d_list_from(
@@ -103,8 +113,10 @@ __Path B: scan-based path__
 """
 halo_galaxies = [g for g in all_galaxies if g.redshift < 1.0 and g is not macro_galaxy]
 
+# `galaxies_to_halo_arrays` reads `redshift` and `mass_sheet`, so the per-plane `MassField` sheets are
+# handed to it beside the halo galaxies — the sheet kappas it returns come from `tracer.fields`.
 halo_params, halo_mask, sheet_kappas = substructure_util.galaxies_to_halo_arrays(
-    galaxies=halo_galaxies,
+    galaxies=halo_galaxies + sheet_fields,
     plane_redshifts=plane_redshifts,
     max_n=max_n,
     profile_cls=ag.mp.NFWTruncatedSph,
@@ -123,10 +135,17 @@ def lens_mass_fn(grid_raw, params):
         slope=params[4],
         einstein_radius=params[5],
     )
-    shear = al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
-    galaxy = al.Galaxy(redshift=0.5, mass=power_law, shear=shear)
+    galaxy = al.Galaxy(redshift=0.5, mass=power_law)
+    # The external shear is a property of the system, not of the macro galaxy: it is an `al.MassField`
+    # at the macro lens' redshift. The plane sums both deflection fields, which is what is done here.
+    field = al.MassField(
+        redshift=0.5, shear=al.mp.ExternalShear(gamma_1=params[6], gamma_2=params[7])
+    )
     g = aa.Grid2DIrregular(values=grid_raw, xp=jnp)
-    return galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+    return (
+        galaxy.deflections_yx_2d_from(grid=g, xp=jnp).array
+        + field.deflections_yx_2d_from(grid=g, xp=jnp).array
+    )
 
 
 lens_mass_params = jnp.array([0.0, 0.0, 0.05, -0.03, 2.2, 1.6, 0.01, -0.01])

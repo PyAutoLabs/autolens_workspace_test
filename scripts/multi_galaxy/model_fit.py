@@ -7,7 +7,8 @@ Integration test of the multi-galaxy regime introduced in `autolens_workspace/sc
 extended-source `AnalysisImaging` workflow.
 
 The regime's defining structural property — one free `Isothermal` per deflector, untruncated (no host halo means
-no tidal truncation), a single `ExternalShear` on the first galaxy, and no extra/scaling galaxy tiers — is what
+no tidal truncation), a single `ExternalShear` held in an `al.MassField` in the model's `fields=` slot
+(a property of the system, not of either deflector), and no extra/scaling galaxy tiers — is what
 this script locks in. It simulates its own dataset (a merging pair modeled on SDSS J1011+0143: ~0.9" separation,
 ~1.8" combined Einstein ring) so it is fully self-contained.
 
@@ -106,8 +107,8 @@ aplt.plot_array(array=dataset.data)
 __Model__
 
 One free light + mass model per co-dominant deflector, composed with the same list-based `lens_0`, `lens_1`, ...
-API the workspace package uses. Mass profiles are **untruncated** isothermals by design. Only `lens_0` carries
-the `ExternalShear`.
+API the workspace package uses. Mass profiles are **untruncated** isothermals by design. The `ExternalShear`
+is held in an `al.MassField` in the model's `fields=` slot, not attached to either deflector.
 """
 # The simulated values, copied from the simulation block above. Every prior below is uniform and
 # centred on them, so the prior-median evaluation this model is used for sits at the truth rather
@@ -143,21 +144,22 @@ for i, centre in enumerate(main_lens_centres):
         upper_limit=truth["einstein_radius"] + 0.1,
     )
 
-    shear = None
-
-    if i == 0:
-        # There is no shear in the simulated system, so both components have median zero.
-        shear = af.Model(al.mp.ExternalShear)
-        shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
-        shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
-
     lens_dict[f"lens_{i}"] = af.Model(
         al.Galaxy,
         redshift=0.5,
         bulge=bulge,
         mass=mass,
-        shear=shear,
     )
+
+# The external shear is a property of the *system*, not of either deflector, so it is not attached to
+# `lens_0`: it is an `al.MassField` — a container like a galaxy, a redshift plus a bag of mass profiles,
+# carrying no light — sitting in the `fields=` slot beside `galaxies=`. There is no shear in the
+# simulated system, so both components have median zero.
+shear = af.Model(al.mp.ExternalShear)
+shear.gamma_1 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+shear.gamma_2 = af.UniformPrior(lower_limit=-0.01, upper_limit=0.01)
+
+field = af.Model(al.MassField, redshift=0.5, shear=shear)
 
 # The simulated source: `SersicCore(centre=(0.0, 0.03), intensity=3.0, effective_radius=0.3,
 # sersic_index=1.0)` with the default (zero) `ell_comps`, whose own prior medians are already zero.
@@ -170,7 +172,10 @@ source_bulge.sersic_index = af.UniformPrior(lower_limit=0.9, upper_limit=1.1)
 
 source_model = af.Model(al.Galaxy, redshift=1.0, bulge=source_bulge)
 
-model = af.Collection(galaxies=af.Collection(**lens_dict, source=source_model))
+model = af.Collection(
+    galaxies=af.Collection(**lens_dict, source=source_model),
+    fields=field,
+)
 
 """
 __Model Structure Assertions__
@@ -178,15 +183,18 @@ __Model Structure Assertions__
 Lock in the regime's structural properties:
 
  - every deflector has its own free mass model (independent einstein_radius priors);
- - exactly one shear in the whole model;
+ - the two deflectors are structurally identical — the shear belongs to neither of them, so their prior
+   counts are equal;
+ - exactly one shear in the whole model, and it lives in the `fields=` slot;
  - no truncated profiles anywhere.
 """
 prior_count_lens_0 = lens_dict["lens_0"].prior_count
 prior_count_lens_1 = lens_dict["lens_1"].prior_count
 
-assert prior_count_lens_0 == prior_count_lens_1 + 2  # only difference is the shear
+assert prior_count_lens_0 == prior_count_lens_1  # neither deflector carries the shear
 assert "einstein_radius" in model.info
 assert model.info.count("gamma_1") == 1  # exactly one ExternalShear
+assert model.fields.shear.prior_count == 2  # and it is in the fields slot
 assert "dPIE" not in model.info  # untruncated by design in this regime
 
 """
