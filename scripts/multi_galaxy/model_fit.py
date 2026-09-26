@@ -114,8 +114,18 @@ is held in an `al.MassField` in the model's `fields=` slot, not attached to eith
 # centred on them, so the prior-median evaluation this model is used for sits at the truth rather
 # than at the workspace defaults.
 main_lens_truth = [
-    {"intensity": 1.0, "effective_radius": 0.6, "sersic_index": 3.0, "einstein_radius": 1.0},
-    {"intensity": 0.8, "effective_radius": 0.5, "sersic_index": 3.0, "einstein_radius": 0.8},
+    {
+        "intensity": 1.0,
+        "effective_radius": 0.6,
+        "sersic_index": 3.0,
+        "einstein_radius": 1.0,
+    },
+    {
+        "intensity": 0.8,
+        "effective_radius": 0.5,
+        "sersic_index": 3.0,
+        "einstein_radius": 0.8,
+    },
 ]
 
 lens_dict = {}

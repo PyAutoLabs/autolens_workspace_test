@@ -105,6 +105,7 @@ source_r = al.Galaxy(
     ),
 )
 
+
 def simulate_and_output(output_path, band, lens, source_galaxy):
     simulator = al.SimulatorImaging(
         exposure_time=2000.0,
