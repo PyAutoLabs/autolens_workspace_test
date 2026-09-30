@@ -33,7 +33,7 @@ scripts/                     Integration-test scripts run on the build server
     latent/ weak/ interop/     Latent-variable / weak-lensing / COOLEST-interop tests
     util.py                    Shared jax-gradient finite-difference helper
     hessian_jax.py profiles_jit.py tracer_jax.py tracer_multiplane.py ...  loose JAX/tracer tests
-  gallery/ profiling/        Outside the taxonomy (external couplings — untouched)
+  profiling/                 Outside the taxonomy (external couplings — untouched)
 failed/                      One .txt log per failing script (written by run_all_scripts.sh)
 dataset/ config/ output/     Input data, YAML config, runtime fit results
 ```
