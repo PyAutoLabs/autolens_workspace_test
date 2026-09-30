@@ -1,0 +1,8837 @@
+{
+  "provenance": {
+    "libraries": {
+      "autolens": {
+        "sha": "efd13c4cdfb7ab0d4a37549468998e06e31f27d7",
+        "dirty": ""
+      },
+      "autoarray": {
+        "sha": "7a89e19a09760a0daf22f40e8b111b5388767f73",
+        "dirty": ""
+      },
+      "autogalaxy": {
+        "sha": "4c834cedee64a6fe530c7ac66d77de21cca346e8",
+        "dirty": ""
+      },
+      "autofit": {
+        "sha": "b13169e2ced2c44ed2b4a43f3a6ef1c92df989d4",
+        "dirty": ""
+      },
+      "autonerves": {
+        "sha": "1ec1c829acec0ce85a7eddf791eb66574d507884",
+        "dirty": ""
+      }
+    },
+    "packages": {
+      "numpy": "2.2.6",
+      "scipy": "1.17.1",
+      "jax": "0.10.2",
+      "jaxlib": "0.10.2",
+      "numba": "0.62.1"
+    },
+    "x64": true,
+    "max_containing_size": 20,
+    "devices": [
+      "cpu:0"
+    ]
+  },
+  "fixtures": {
+    "analytic_quad": {
+      "source": [
+        0.0,
+        0.0
+      ],
+      "einstein_radius": 1.6,
+      "shear": 0.1,
+      "ell_comps": [
+        0.0,
+        0.0
+      ],
+      "reference_positions": [
+        [
+          1.4545454545454546,
+          0.0
+        ],
+        [
+          -1.4545454545454546,
+          0.0
+        ],
+        [
+          0.0,
+          1.777777777777778
+        ],
+        [
+          0.0,
+          -1.777777777777778
+        ]
+      ]
+    },
+    "near_caustic": {
+      "source": [
+        0.07777695929510982,
+        0.07777695971376672
+      ],
+      "einstein_radius": 1.6,
+      "ell_comps": [
+        0.05263157894736841,
+        3.2227547345982974e-18
+      ],
+      "reference_positions": [
+        [
+          0.7846166906784195,
+          1.4838809478037478
+        ],
+        [
+          1.1868227353854968,
+          1.1868226140200082
+        ],
+        [
+          1.4838809080877005,
+          0.784616765416992
+        ],
+        [
+          -1.0312687543416907,
+          -1.0312687570460641
+        ]
+      ]
+    }
+  },
+  "rows": [
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.001,
+      "backend": "numpy",
+      "shape": [
+        5,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          0.0,
+          -1.7771562973493171
+        ],
+        [
+          -1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          0.0,
+          0.0009021097956087865
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5991881010856481,
+      "seconds_including_compile": 0.07727169999998296,
+      "magnifications": {
+        "old_fd_scale": [
+          5.41126512141165,
+          -4.779233986714771,
+          -4.779233986714771,
+          0.02041256979367694,
+          5.411265121411647
+        ],
+        "old_fd_0.01": [
+          5.563914825897422,
+          -4.535080338537536,
+          -4.535080338537536,
+          3.971715472698459e-05,
+          5.563914825897432
+        ],
+        "current_numpy": [
+          5.564311959916693,
+          -4.534491534052031,
+          -4.534491534052031,
+          -0.0006268540635828893,
+          5.564311959916748
+        ],
+        "current_jax": [
+          5.564311960064176,
+          -4.534491533725826,
+          -4.534491533725826,
+          -0.000626854062775226,
+          5.56431196006418
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 0.0007823253618302979,
+          "current_numpy": 0.0007823253618302979,
+          "current_jax": 0.0007823253618302979
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007823253618302979,
+          "old_fd_0.01": 0.0007823253618302979,
+          "current_numpy": 0.0007823253618302979,
+          "current_jax": 0.0007823253618302979
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          0.0,
+          -1.7771562973493171
+        ],
+        [
+          -1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ]
+      ],
+      "default_error_max": 0.0007823253618302979,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007823253618302979,
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            4
+          ],
+          "current_numpy": [
+            0,
+            4
+          ],
+          "current_jax": [
+            0,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          0.0,
+          -1.777156297349317
+        ],
+        [
+          0.0,
+          0.0009021097956087864
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043914
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5991881010856481,
+      "seconds_including_compile": 18.71584179999627,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.779233986714771,
+          5.411265121411647,
+          0.02041256979367694,
+          5.411265121411647,
+          -4.779233986714771
+        ],
+        "old_fd_0.01": [
+          -4.535080338537536,
+          5.563914825897432,
+          3.971715472698459e-05,
+          5.563914825897432,
+          -4.535080338537536
+        ],
+        "current_numpy": [
+          -4.534491534052031,
+          5.564311959916689,
+          -0.0006268540635828892,
+          5.564311959916748,
+          -4.534491534052031
+        ],
+        "current_jax": [
+          -4.534491533725826,
+          5.56431196006418,
+          -0.0006268540627749725,
+          5.56431196006418,
+          -4.534491533725826
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 0.0007823253618302979,
+          "current_numpy": 0.0007823253618302979,
+          "current_jax": 0.0007823253618302979
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007823253618302979,
+          "old_fd_0.01": 0.0007823253618302979,
+          "current_numpy": 0.0007823253618302979,
+          "current_jax": 0.0007823253618302979
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          0.0,
+          -1.777156297349317
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043914
+        ]
+      ],
+      "default_error_max": 0.0007823253618302979,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007823253618302979,
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            1,
+            3
+          ],
+          "old_fd_0.01": [
+            1,
+            3
+          ],
+          "current_numpy": [
+            1,
+            3
+          ],
+          "current_jax": [
+            1,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          0.0,
+          0.0009021097956087864
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043914
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5991881010856481,
+      "seconds_including_compile": 6.7947237999978825,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.779233986714771,
+          5.411265121411647,
+          0.02041256979367694,
+          5.411265121411647,
+          -4.779233986714771
+        ],
+        "old_fd_0.01": [
+          -4.535080338537536,
+          5.563914825897432,
+          3.971715472698459e-05,
+          5.563914825897432,
+          -4.535080338537536
+        ],
+        "current_numpy": [
+          -4.534491534052031,
+          5.564311959916748,
+          -0.0006268540635828892,
+          5.564311959916748,
+          -4.534491534052031
+        ],
+        "current_jax": [
+          -4.534491533725826,
+          5.56431196006418,
+          -0.0006268540627749725,
+          5.56431196006418,
+          -4.534491533725826
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 0.0007823253618302979,
+          "current_numpy": 0.0007823253618302979,
+          "current_jax": 0.0007823253618302979
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007823253618302979,
+          "old_fd_0.01": 0.0007823253618302979,
+          "current_numpy": 0.0007823253618302979,
+          "current_jax": 0.0007823253618302979
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.4539062500000002,
+          0.0004510548978043914
+        ],
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043914
+        ]
+      ],
+      "default_error_max": 0.0007823253618302979,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007823253618302979,
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            1,
+            3
+          ],
+          "old_fd_0.01": [
+            1,
+            3
+          ],
+          "current_numpy": [
+            1,
+            3
+          ],
+          "current_jax": [
+            1,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "backend": "numpy",
+      "shape": [
+        5,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          0.0,
+          1.7778328796960234
+        ],
+        [
+          1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          -1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          0.0,
+          0.00011276372445109138
+        ],
+        [
+          0.0,
+          -1.7778328796960234
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.599898506356538,
+      "seconds_including_compile": 0.08463469999696827,
+      "magnifications": {
+        "old_fd_scale": [
+          5.402418896086274,
+          -4.791899936250453,
+          -4.791899936250453,
+          0.020412332808427944,
+          5.402418896086274
+        ],
+        "old_fd_0.01": [
+          5.554385493671639,
+          -4.546808635776004,
+          -4.546808635776004,
+          3.9557945175745844e-05,
+          5.554385493671639
+        ],
+        "current_numpy": [
+          5.5547808167544765,
+          -4.546217615640975,
+          -4.546217615640975,
+          -7.832392471323388e-05,
+          5.5547808167544765
+        ],
+        "current_jax": [
+          5.554780816901137,
+          -4.546217615313479,
+          -4.546217615313479,
+          -7.832392459572305e-05,
+          5.554780816901137
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 7.175873374157752e-05,
+          "current_numpy": 7.175873374157752e-05,
+          "current_jax": 7.175873374157752e-05
+        },
+        "0.1": {
+          "old_fd_scale": 7.175873374157752e-05,
+          "old_fd_0.01": 7.175873374157752e-05,
+          "current_numpy": 7.175873374157752e-05,
+          "current_jax": 7.175873374157752e-05
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          0.0,
+          1.7778328796960234
+        ],
+        [
+          1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          -1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960234
+        ]
+      ],
+      "default_error_max": 7.175873374157752e-05,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 7.175873374157752e-05,
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            4
+          ],
+          "current_numpy": [
+            0,
+            4
+          ],
+          "current_jax": [
+            0,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          0.00011276372445109137
+        ],
+        [
+          0.0,
+          1.7778328796960232
+        ],
+        [
+          1.45458984375,
+          5.638186222554199e-05
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5998985063565383,
+      "seconds_including_compile": 15.882180899992818,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.791899936250453,
+          5.402418896086271,
+          0.020412332808427944,
+          5.402418896086271,
+          -4.791899936250453
+        ],
+        "old_fd_0.01": [
+          -4.546808635776004,
+          5.554385493671639,
+          3.9557945175745844e-05,
+          5.554385493671639,
+          -4.546808635776004
+        ],
+        "current_numpy": [
+          -4.546217615640975,
+          5.5547808167544765,
+          -7.832392471323387e-05,
+          5.5547808167544765,
+          -4.546217615640975
+        ],
+        "current_jax": [
+          -4.546217615313479,
+          5.554780816901137,
+          -7.832392459572304e-05,
+          5.554780816901137,
+          -4.546217615313479
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 7.175873374157752e-05,
+          "current_numpy": 7.175873374157752e-05,
+          "current_jax": 7.175873374157752e-05
+        },
+        "0.1": {
+          "old_fd_scale": 7.175873374157752e-05,
+          "old_fd_0.01": 7.175873374157752e-05,
+          "current_numpy": 7.175873374157752e-05,
+          "current_jax": 7.175873374157752e-05
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          1.7778328796960232
+        ],
+        [
+          1.45458984375,
+          5.638186222554199e-05
+        ]
+      ],
+      "default_error_max": 7.175873374157752e-05,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 7.175873374157752e-05,
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            1,
+            3
+          ],
+          "old_fd_0.01": [
+            1,
+            3
+          ],
+          "current_numpy": [
+            1,
+            3
+          ],
+          "current_jax": [
+            1,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          0.00011276372445109137
+        ],
+        [
+          0.0,
+          1.7778328796960232
+        ],
+        [
+          1.45458984375,
+          5.638186222554199e-05
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5998985063565383,
+      "seconds_including_compile": 6.427090899996983,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.791899936250453,
+          5.402418896086271,
+          0.020412332808427944,
+          5.402418896086271,
+          -4.791899936250453
+        ],
+        "old_fd_0.01": [
+          -4.546808635776004,
+          5.554385493671639,
+          3.9557945175745844e-05,
+          5.554385493671639,
+          -4.546808635776004
+        ],
+        "current_numpy": [
+          -4.546217615640975,
+          5.5547808167544765,
+          -7.832392471323387e-05,
+          5.5547808167544765,
+          -4.546217615640975
+        ],
+        "current_jax": [
+          -4.546217615313479,
+          5.554780816901137,
+          -7.832392459572304e-05,
+          5.554780816901137,
+          -4.546217615313479
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 7.175873374157752e-05,
+          "current_numpy": 7.175873374157752e-05,
+          "current_jax": 7.175873374157752e-05
+        },
+        "0.1": {
+          "old_fd_scale": 7.175873374157752e-05,
+          "old_fd_0.01": 7.175873374157752e-05,
+          "current_numpy": 7.175873374157752e-05,
+          "current_jax": 7.175873374157752e-05
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.45458984375,
+          5.638186222554199e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          1.7778328796960232
+        ],
+        [
+          1.45458984375,
+          5.638186222554199e-05
+        ]
+      ],
+      "default_error_max": 7.175873374157752e-05,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 7.175873374157752e-05,
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            1,
+            3
+          ],
+          "old_fd_0.01": [
+            1,
+            3
+          ],
+          "current_numpy": [
+            1,
+            3
+          ],
+          "current_jax": [
+            1,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.001,
+      "backend": "numpy",
+      "shape": [
+        7,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 7,
+      "positions": [
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          -1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          0.0,
+          0.00090210979560879
+        ],
+        [
+          -1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          0.0,
+          1.7771562973493171
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5991881010856481,
+      "seconds_including_compile": 0.4441701999967336,
+      "magnifications": {
+        "old_fd_scale": [
+          5.554406218288274,
+          -4.549245069060403,
+          -4.549245069060403,
+          0.0010407689380103264,
+          -4.549245069060403,
+          -4.549245069060403,
+          5.554406218288268
+        ],
+        "old_fd_0.01": [
+          5.563914825897432,
+          -4.535080338537526,
+          -4.535080338537526,
+          3.971715472698459e-05,
+          -4.535080338537526,
+          -4.535080338537526,
+          5.563914825897422
+        ],
+        "current_numpy": [
+          5.564311959916748,
+          -4.534491534052026,
+          -4.534491534052026,
+          -0.0006268540635881707,
+          -4.534491534052026,
+          -4.534491534052026,
+          5.564311959916693
+        ],
+        "current_jax": [
+          5.56431196006418,
+          -4.534491533725826,
+          -4.534491533725826,
+          -0.0006268540627749751,
+          -4.534491533725826,
+          -4.534491533725826,
+          5.564311960064176
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.1": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 7,
+          "old_fd_0.01": 7,
+          "current_numpy": 7,
+          "current_jax": 7
+        },
+        "0.01": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "0.1": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        6,
+        2
+      ],
+      "default_positions": [
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          -1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          -1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          0.0,
+          1.7771562973493171
+        ]
+      ],
+      "default_error_max": null,
+      "default_has_four_images": false,
+      "default_within_precision": false,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007823253618302999,
+      "measured_filtered_shape": [
+        6,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            6
+          ],
+          "current_numpy": [
+            0,
+            6
+          ],
+          "current_jax": [
+            0,
+            6
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 7,
+      "positions": [
+        [
+          -1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          -1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          0.0,
+          0.0009021097956087899
+        ],
+        [
+          0.0,
+          1.777156297349317
+        ],
+        [
+          1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043949
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5991881010856481,
+      "seconds_including_compile": 18.40401120000024,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.549245069060403,
+          -4.549245069060403,
+          5.554406218288274,
+          0.0010407689380103264,
+          5.554406218288274,
+          -4.549245069060403,
+          -4.549245069060403
+        ],
+        "old_fd_0.01": [
+          -4.535080338537526,
+          -4.535080338537526,
+          5.563914825897432,
+          3.971715472698459e-05,
+          5.563914825897432,
+          -4.535080338537526,
+          -4.535080338537526
+        ],
+        "current_numpy": [
+          -4.534491534052026,
+          -4.534491534052026,
+          5.564311959916748,
+          -0.0006268540635828917,
+          5.564311959916689,
+          -4.534491534052026,
+          -4.534491534052026
+        ],
+        "current_jax": [
+          -4.534491533725826,
+          -4.534491533725826,
+          5.56431196006418,
+          -0.0006268540627752283,
+          5.56431196006418,
+          -4.534491533725826,
+          -4.534491533725826
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.1": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 7,
+          "old_fd_0.01": 7,
+          "current_numpy": 7,
+          "current_jax": 7
+        },
+        "0.01": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "0.1": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        6,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          -1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          0.0,
+          1.777156297349317
+        ],
+        [
+          1.4539062500000002,
+          -0.0004510548978043949
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043949
+        ]
+      ],
+      "default_error_max": null,
+      "default_has_four_images": false,
+      "default_within_precision": false,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007823253618302999,
+      "measured_filtered_shape": [
+        6,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            4
+          ],
+          "current_numpy": [
+            2,
+            4
+          ],
+          "current_jax": [
+            2,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          0.0,
+          0.0009021097956087899
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043949
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5991881010856481,
+      "seconds_including_compile": 4.145546400002786,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.549245069060403,
+          5.554406218288274,
+          0.0010407689380103264,
+          5.554406218288274,
+          -4.549245069060403
+        ],
+        "old_fd_0.01": [
+          -4.535080338537526,
+          5.563914825897432,
+          3.971715472698459e-05,
+          5.563914825897432,
+          -4.535080338537526
+        ],
+        "current_numpy": [
+          -4.534491534052026,
+          5.564311959916748,
+          -0.0006268540635828917,
+          5.564311959916748,
+          -4.534491534052026
+        ],
+        "current_jax": [
+          -4.534491533725826,
+          5.56431196006418,
+          -0.0006268540627752283,
+          5.56431196006418,
+          -4.534491533725826
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 0.0007823253618302999,
+          "old_fd_0.01": 0.0007823253618302999,
+          "current_numpy": 0.0007823253618302999,
+          "current_jax": 0.0007823253618302999
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007823253618302999,
+          "old_fd_0.01": 0.0007823253618302999,
+          "current_numpy": 0.0007823253618302999,
+          "current_jax": 0.0007823253618302999
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.4539062500000002,
+          0.0004510548978043949
+        ],
+        [
+          0.0,
+          -1.7771562973493167
+        ],
+        [
+          0.0,
+          1.7771562973493167
+        ],
+        [
+          1.4539062500000002,
+          0.0004510548978043949
+        ]
+      ],
+      "default_error_max": 0.0007823253618302999,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007823253618302999,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            1,
+            3
+          ],
+          "old_fd_0.01": [
+            1,
+            3
+          ],
+          "current_numpy": [
+            1,
+            3
+          ],
+          "current_jax": [
+            1,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "backend": "numpy",
+      "shape": [
+        7,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 7,
+      "positions": [
+        [
+          0.0,
+          1.7778328796960237
+        ],
+        [
+          1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          -1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          0.0,
+          0.00011276372445109832
+        ],
+        [
+          1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          -1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960234
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.599898506356538,
+      "seconds_including_compile": 0.5102065999963088,
+      "magnifications": {
+        "old_fd_scale": [
+          5.544920193117473,
+          -4.561026733825454,
+          -4.561026733825454,
+          0.0010405962951338006,
+          -4.561026733825454,
+          -4.561026733825454,
+          5.544920193117473
+        ],
+        "old_fd_0.01": [
+          5.554385493671639,
+          -4.546808635776004,
+          -4.546808635776004,
+          3.9557945175745844e-05,
+          -4.546808635776004,
+          -4.546808635776004,
+          5.554385493671639
+        ],
+        "current_numpy": [
+          5.554780816754849,
+          -4.546217615640975,
+          -4.546217615640975,
+          -7.83239247132387e-05,
+          -4.546217615640975,
+          -4.546217615640975,
+          5.5547808167544765
+        ],
+        "current_jax": [
+          5.554780816901131,
+          -4.546217615313479,
+          -4.546217615313479,
+          -7.832392459572788e-05,
+          -4.546217615313479,
+          -4.546217615313479,
+          5.554780816901137
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.1": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 7,
+          "old_fd_0.01": 7,
+          "current_numpy": 7,
+          "current_jax": 7
+        },
+        "0.01": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "0.1": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        6,
+        2
+      ],
+      "default_positions": [
+        [
+          0.0,
+          1.7778328796960237
+        ],
+        [
+          1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          -1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          -1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960234
+        ]
+      ],
+      "default_error_max": null,
+      "default_has_four_images": false,
+      "default_within_precision": false,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 7.175873374158298e-05,
+      "measured_filtered_shape": [
+        6,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            6
+          ],
+          "current_numpy": [
+            0,
+            6
+          ],
+          "current_jax": [
+            0,
+            6
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 7,
+      "positions": [
+        [
+          -1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          -1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          0.0001127637244510983
+        ],
+        [
+          0.0,
+          1.7778328796960237
+        ],
+        [
+          1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          1.45458984375,
+          5.638186222554893e-05
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5998985063565383,
+      "seconds_including_compile": 15.354946000006748,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.561026733825454,
+          -4.561026733825454,
+          5.5449201931174805,
+          0.0010405962951338006,
+          5.544920193117473,
+          -4.561026733825454,
+          -4.561026733825454
+        ],
+        "old_fd_0.01": [
+          -4.546808635776004,
+          -4.546808635776004,
+          5.554385493671639,
+          3.9557945175745844e-05,
+          5.554385493671639,
+          -4.546808635776004,
+          -4.546808635776004
+        ],
+        "current_numpy": [
+          -4.546217615640975,
+          -4.546217615640975,
+          5.5547808167544765,
+          -7.832392469212936e-05,
+          5.554780816754849,
+          -4.546217615640975,
+          -4.546217615640975
+        ],
+        "current_jax": [
+          -4.546217615313479,
+          -4.546217615313479,
+          5.554780816901137,
+          -7.832392459547455e-05,
+          5.554780816901131,
+          -4.546217615313479,
+          -4.546217615313479
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.1": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 7,
+          "old_fd_0.01": 7,
+          "current_numpy": 7,
+          "current_jax": 7
+        },
+        "0.01": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "0.1": {
+          "old_fd_scale": 6,
+          "old_fd_0.01": 6,
+          "current_numpy": 6,
+          "current_jax": 6
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        6,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          -1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          1.7778328796960237
+        ],
+        [
+          1.45458984375,
+          -5.638186222554893e-05
+        ],
+        [
+          1.45458984375,
+          5.638186222554893e-05
+        ]
+      ],
+      "default_error_max": null,
+      "default_has_four_images": false,
+      "default_within_precision": false,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 7.175873374158298e-05,
+      "measured_filtered_shape": [
+        6,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            4
+          ],
+          "current_numpy": [
+            2,
+            4
+          ],
+          "current_jax": [
+            2,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          0.0001127637244510983
+        ],
+        [
+          0.0,
+          1.7778328796960232
+        ],
+        [
+          1.45458984375,
+          5.638186222554893e-05
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.5998985063565383,
+      "seconds_including_compile": 4.753586800004996,
+      "magnifications": {
+        "old_fd_scale": [
+          -4.561026733825454,
+          5.5449201931174805,
+          0.0010405962951338006,
+          5.5449201931174805,
+          -4.561026733825454
+        ],
+        "old_fd_0.01": [
+          -4.546808635776004,
+          5.554385493671639,
+          3.9557945175745844e-05,
+          5.554385493671639,
+          -4.546808635776004
+        ],
+        "current_numpy": [
+          -4.546217615640975,
+          5.5547808167544765,
+          -7.832392469212936e-05,
+          5.5547808167544765,
+          -4.546217615640975
+        ],
+        "current_jax": [
+          -4.546217615313479,
+          5.554780816901137,
+          -7.832392459547455e-05,
+          5.554780816901137,
+          -4.546217615313479
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 7.175873374158298e-05,
+          "old_fd_0.01": 7.175873374158298e-05,
+          "current_numpy": 7.175873374158298e-05,
+          "current_jax": 7.175873374158298e-05
+        },
+        "0.1": {
+          "old_fd_scale": 7.175873374158298e-05,
+          "old_fd_0.01": 7.175873374158298e-05,
+          "current_numpy": 7.175873374158298e-05,
+          "current_jax": 7.175873374158298e-05
+        },
+        "5.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 2,
+          "old_fd_0.01": 2,
+          "current_numpy": 2,
+          "current_jax": 2
+        },
+        "10.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "20.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "50.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 0,
+          "current_numpy": 0,
+          "current_jax": 0
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.45458984375,
+          5.638186222554893e-05
+        ],
+        [
+          0.0,
+          -1.7778328796960232
+        ],
+        [
+          0.0,
+          1.7778328796960232
+        ],
+        [
+          1.45458984375,
+          5.638186222554893e-05
+        ]
+      ],
+      "default_error_max": 7.175873374158298e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 7.175873374158298e-05,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            1,
+            3
+          ],
+          "old_fd_0.01": [
+            1,
+            3
+          ],
+          "current_numpy": [
+            1,
+            3
+          ],
+          "current_jax": [
+            1,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "20.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "50.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [],
+          "current_numpy": [],
+          "current_jax": []
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.001,
+      "backend": "numpy",
+      "shape": [
+        5,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          0.7843750000000002,
+          1.4839706137764601
+        ],
+        [
+          -0.0007812500000000002,
+          -0.0004510548978044053
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ],
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4662685361073517,
+      "seconds_including_compile": 0.07802839999931166,
+      "magnifications": {
+        "old_fd_scale": [
+          142.8744988402719,
+          0.020532242581155567,
+          147.13570039990051,
+          -6.349872502562812,
+          -162.39560290240473
+        ],
+        "old_fd_0.01": [
+          149.79718305718106,
+          3.993363766574015e-05,
+          154.4632471153318,
+          -6.476301629444122,
+          -330.9105472003978
+        ],
+        "current_numpy": [
+          149.81319831322799,
+          -0.0005401108687185033,
+          154.48020811318938,
+          -6.476650191384868,
+          -331.8047070374702
+        ],
+        "current_jax": [
+          149.81319825947895,
+          -0.0005401111539578775,
+          154.48020805487297,
+          -6.476650192156713,
+          -331.80470801737334
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "5.0": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          0.7843750000000002,
+          1.4839706137764601
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ],
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ]
+      ],
+      "default_error_max": 0.0007641441552534636,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007641441552534636,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [
+            4
+          ],
+          "current_numpy": [
+            4
+          ],
+          "current_jax": [
+            4
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.0320136061764558
+        ],
+        [
+          -0.00078125,
+          -0.0004510548978044053
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4662685361073517,
+      "seconds_including_compile": 14.126206799999636,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.349872502562786,
+          0.020532242581155567,
+          142.87449884026114,
+          -162.39560290240473,
+          147.13570039990051
+        ],
+        "old_fd_0.01": [
+          -6.476301629443854,
+          3.993363766574015e-05,
+          149.79718305713934,
+          -330.9105472003978,
+          154.4632471153318
+        ],
+        "current_numpy": [
+          -6.476650191381989,
+          -0.0005401108687379967,
+          149.8131983131601,
+          -331.8047070374702,
+          154.48020811318938
+        ],
+        "current_jax": [
+          -6.476650192156707,
+          -0.0005401111539578775,
+          149.81319825947833,
+          -331.80470801737334,
+          154.48020805487297
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "5.0": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.03125,
+          -1.0320136061764558
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "default_error_max": 0.0007641441552534636,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007641441552534636,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          -0.00078125,
+          -0.0004510548978043988
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4662685361073524,
+      "seconds_including_compile": 4.448739400002523,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.349872502562812,
+          0.020532242581155567,
+          142.87449884026114,
+          -162.39560290240473,
+          147.13570039990051
+        ],
+        "old_fd_0.01": [
+          -6.476301629444122,
+          3.993363766574015e-05,
+          149.79718305713934,
+          -330.9105472003978,
+          154.4632471153318
+        ],
+        "current_numpy": [
+          -6.476650191384868,
+          -0.0005401108687628559,
+          149.8131983131601,
+          -331.8047070374702,
+          154.48020811318938
+        ],
+        "current_jax": [
+          -6.476650192156713,
+          -0.0005401111539577416,
+          149.81319825947833,
+          -331.80470801737334,
+          154.48020805487297
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "5.0": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "default_error_max": 0.0007641441552534636,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007641441552534636,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "backend": "numpy",
+      "shape": [
+        5,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.18681640625,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ],
+        [
+          -1.03125,
+          -1.0312242601052983
+        ],
+        [
+          -9.765625000000002e-05,
+          -5.638186222555587e-05
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4670572733451277,
+      "seconds_including_compile": 0.08374689999618568,
+      "magnifications": {
+        "old_fd_scale": [
+          143.2068035171012,
+          -151.18581466936908,
+          142.964426364588,
+          -6.332163179697892,
+          0.02053199235454733
+        ],
+        "old_fd_0.01": [
+          150.10334432304452,
+          -287.5527028715579,
+          149.8431847210112,
+          -6.457819925601689,
+          3.9762539491670836e-05
+        ],
+        "current_numpy": [
+          150.11927370276436,
+          -288.2279066742947,
+          149.85907474424758,
+          -6.458166399558029,
+          -6.748969168828512e-05
+        ],
+        "current_jax": [
+          150.11927364790353,
+          -288.2279074136644,
+          149.85907469079413,
+          -6.458166400331207,
+          -6.748997653541482e-05
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "0.1": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "5.0": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.18681640625,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ],
+        [
+          -1.03125,
+          -1.0312242601052983
+        ]
+      ],
+      "default_error_max": 6.341930443402696e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 6.341930443402696e-05,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2
+          ],
+          "current_jax": [
+            0,
+            1,
+            2
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2
+          ],
+          "current_jax": [
+            0,
+            1,
+            2
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2
+          ],
+          "current_jax": [
+            0,
+            1,
+            2
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [
+            1
+          ],
+          "current_numpy": [
+            1
+          ],
+          "current_jax": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          -9.765625e-05,
+          -5.638186222555587e-05
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.467057273345128,
+      "seconds_including_compile": 15.583499500004109,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.332163179697882,
+          0.02053199235454733,
+          143.2068035171012,
+          -151.18581466936655,
+          142.964426364588
+        ],
+        "old_fd_0.01": [
+          -6.457819925601618,
+          3.9762539491670836e-05,
+          150.10334432304452,
+          -287.5527028724782,
+          149.8431847210112
+        ],
+        "current_numpy": [
+          -6.458166399559148,
+          -6.748969168370371e-05,
+          150.11927370276436,
+          -288.2279066742878,
+          149.85907474424758
+        ],
+        "current_jax": [
+          -6.458166400331223,
+          -6.748997653493971e-05,
+          150.11927364790353,
+          -288.2279074136506,
+          149.85907469079413
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "0.1": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "5.0": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ]
+      ],
+      "default_error_max": 6.341930443402696e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 6.341930443402696e-05,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          -9.765625e-05,
+          -5.638186222555679e-05
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4670572733451275,
+      "seconds_including_compile": 5.109400700006518,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.332163179697882,
+          0.02053199235454733,
+          143.2068035171012,
+          -151.18581466936655,
+          142.964426364588
+        ],
+        "old_fd_0.01": [
+          -6.457819925601618,
+          3.9762539491670836e-05,
+          150.10334432304452,
+          -287.5527028724782,
+          149.8431847210112
+        ],
+        "current_numpy": [
+          -6.458166399559148,
+          -6.748969172944989e-05,
+          150.11927370276436,
+          -288.2279066742878,
+          149.85907474424758
+        ],
+        "current_jax": [
+          -6.458166400331223,
+          -6.748997653483789e-05,
+          150.11927364790353,
+          -288.2279074136506,
+          149.85907469079413
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": null,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "0.1": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "5.0": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 0,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ]
+      ],
+      "default_error_max": 6.341930443402696e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 6.341930443402696e-05,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.001,
+      "backend": "numpy",
+      "shape": [
+        5,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          0.7843750000000002,
+          1.4839706137764601
+        ],
+        [
+          -0.0007812500000000002,
+          -0.0004510548978043949
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ],
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4662685361073526,
+      "seconds_including_compile": 0.7038823000038974,
+      "magnifications": {
+        "old_fd_scale": [
+          149.41051571583515,
+          0.0010463213330917246,
+          154.05375387935192,
+          -6.46798553284857,
+          -310.8499549288196
+        ],
+        "old_fd_0.01": [
+          149.79718305718106,
+          3.9933637665740135e-05,
+          154.4632471153318,
+          -6.476301629444122,
+          -330.9105472003978
+        ],
+        "current_numpy": [
+          149.81319831322799,
+          -0.0005401108687512413,
+          154.48020811318938,
+          -6.476650191384868,
+          -331.8047070374702
+        ],
+        "current_jax": [
+          149.81319825947895,
+          -0.0005401111539577416,
+          154.48020805487297,
+          -6.476650192156713,
+          -331.80470801737334
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "5.0": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 1,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          0.7843750000000002,
+          1.4839706137764601
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ],
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ]
+      ],
+      "default_error_max": 0.0007641441552534636,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007641441552534636,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [
+            4
+          ],
+          "old_fd_0.01": [
+            4
+          ],
+          "current_numpy": [
+            4
+          ],
+          "current_jax": [
+            4
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.0320136061764558
+        ],
+        [
+          -0.00078125,
+          -0.0004510548978043949
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4662685361073526,
+      "seconds_including_compile": 19.46098759999586,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.467985532848479,
+          0.0010463213330917246,
+          149.41051571584632,
+          -310.8499549288196,
+          154.05375387935192
+        ],
+        "old_fd_0.01": [
+          -6.476301629443854,
+          3.9933637665740135e-05,
+          149.79718305713934,
+          -330.9105472003978,
+          154.4632471153318
+        ],
+        "current_numpy": [
+          -6.476650191381989,
+          -0.0005401108687298461,
+          149.8131983131601,
+          -331.8047070374702,
+          154.48020811318938
+        ],
+        "current_jax": [
+          -6.476650192156707,
+          -0.0005401111539577416,
+          149.81319825947833,
+          -331.80470801737334,
+          154.48020805487297
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "5.0": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 1,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.03125,
+          -1.0320136061764558
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "default_error_max": 0.0007641441552534636,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007641441552534636,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [
+            3
+          ],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          -0.00078125,
+          -0.00045105489780439533
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4662685361073526,
+      "seconds_including_compile": 3.878837199998088,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.46798553284857,
+          0.0010463213330917246,
+          149.41051571584632,
+          -310.8499549288196,
+          154.05375387935192
+        ],
+        "old_fd_0.01": [
+          -6.476301629444122,
+          3.9933637665740135e-05,
+          149.79718305713934,
+          -330.9105472003978,
+          154.4632471153318
+        ],
+        "current_numpy": [
+          -6.476650191384868,
+          -0.0005401108687426493,
+          149.8131983131601,
+          -331.8047070374702,
+          154.48020811318938
+        ],
+        "current_jax": [
+          -6.476650192156713,
+          -0.0005401111539579114,
+          149.81319825947833,
+          -331.80470801737334,
+          154.48020805487297
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "0.1": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "5.0": {
+          "old_fd_scale": 0.0007641441552534636,
+          "old_fd_0.01": 0.0007641441552534636,
+          "current_numpy": 0.0007641441552534636,
+          "current_jax": 0.0007641441552534636
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 1,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.03125,
+          -1.032013606176456
+        ],
+        [
+          0.784375,
+          1.4839706137764601
+        ],
+        [
+          1.1875,
+          1.187176491021168
+        ],
+        [
+          1.48359375,
+          0.7843844672818432
+        ]
+      ],
+      "default_error_max": 0.0007641441552534636,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 0.0007641441552534636,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [
+            3
+          ],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "backend": "numpy",
+      "shape": [
+        5,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.18681640625,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ],
+        [
+          -1.03125,
+          -1.0312242601052983
+        ],
+        [
+          -9.765625000000002e-05,
+          -5.638186222554893e-05
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.467057273345131,
+      "seconds_including_compile": 0.5040874000042095,
+      "magnifications": {
+        "old_fd_scale": [
+          149.71870659031308,
+          -272.2781005139561,
+          149.45950063675934,
+          -6.44955369958326,
+          0.0010461381981579493
+        ],
+        "old_fd_0.01": [
+          150.10334432304452,
+          -287.5527028715579,
+          149.8431847210112,
+          -6.457819925601689,
+          3.9762539491670836e-05
+        ],
+        "current_numpy": [
+          150.11927370276436,
+          -288.2279066742947,
+          149.85907474424758,
+          -6.458166399558029,
+          -6.748969170925777e-05
+        ],
+        "current_jax": [
+          150.11927364790353,
+          -288.2279074136644,
+          149.85907469079413,
+          -6.458166400331207,
+          -6.748997653521119e-05
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "0.1": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "5.0": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 1,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.18681640625,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ],
+        [
+          -1.03125,
+          -1.0312242601052983
+        ]
+      ],
+      "default_error_max": 6.341930443402696e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 6.341930443402696e-05,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2
+          ],
+          "current_jax": [
+            0,
+            1,
+            2
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2
+          ],
+          "current_jax": [
+            0,
+            1,
+            2
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            0,
+            1,
+            2
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2
+          ],
+          "current_jax": [
+            0,
+            1,
+            2
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [
+            1
+          ],
+          "old_fd_0.01": [
+            1
+          ],
+          "current_numpy": [
+            1
+          ],
+          "current_jax": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "backend": "jax",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          -9.765625e-05,
+          -5.638186222554893e-05
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4670572733451308,
+      "seconds_including_compile": 14.945281400003296,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.449553699583352,
+          0.0010461381981579493,
+          149.71870659031308,
+          -272.2781005139561,
+          149.45950063675934
+        ],
+        "old_fd_0.01": [
+          -6.457819925601618,
+          3.9762539491670836e-05,
+          150.10334432304452,
+          -287.5527028724782,
+          149.8431847210112
+        ],
+        "current_numpy": [
+          -6.458166399559148,
+          -6.748969169144119e-05,
+          150.11927370276436,
+          -288.2279066742878,
+          149.85907474424758
+        ],
+        "current_jax": [
+          -6.458166400331223,
+          -6.748997653538088e-05,
+          150.11927364790353,
+          -288.2279074136506,
+          149.85907469079413
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "0.1": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "5.0": {
+          "old_fd_scale": 6.341930443402696e-05,
+          "old_fd_0.01": 6.341930443402696e-05,
+          "current_numpy": 6.341930443402696e-05,
+          "current_jax": 6.341930443402696e-05
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 1,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": null,
+      "default_shape": [
+        4,
+        2
+      ],
+      "default_positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685198
+        ]
+      ],
+      "default_error_max": 6.341930443402696e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 6.341930443402696e-05,
+      "measured_filtered_shape": [
+        4,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [
+            3
+          ],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "backend": "jit",
+      "shape": [
+        20,
+        2
+      ],
+      "dtype": "float64",
+      "n_images": 5,
+      "positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          -9.765625e-05,
+          -5.638186222554985e-05
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685199
+        ]
+      ],
+      "position_error_max": null,
+      "residual_max": 1.4670572733451306,
+      "seconds_including_compile": 4.978101499997138,
+      "magnifications": {
+        "old_fd_scale": [
+          -6.449553699583352,
+          0.0010461381981579493,
+          149.71870659031308,
+          -272.2781005139561,
+          149.45950063674073
+        ],
+        "old_fd_0.01": [
+          -6.457819925601618,
+          3.976253949167083e-05,
+          150.10334432304452,
+          -287.5527028724782,
+          149.84318472090402
+        ],
+        "current_numpy": [
+          -6.458166399559148,
+          -6.748969170369221e-05,
+          150.11927370276436,
+          -288.2279066742878,
+          149.85907474536083
+        ],
+        "current_jax": [
+          -6.458166400331223,
+          -6.748997653504151e-05,
+          150.11927364790353,
+          -288.2279074136506,
+          149.85907469079163
+        ]
+      },
+      "filtered_position_errors": {
+        "1e-08": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "0.01": {
+          "old_fd_scale": 6.341930443391641e-05,
+          "old_fd_0.01": 6.341930443391641e-05,
+          "current_numpy": 6.341930443391641e-05,
+          "current_jax": 6.341930443391641e-05
+        },
+        "0.1": {
+          "old_fd_scale": 6.341930443391641e-05,
+          "old_fd_0.01": 6.341930443391641e-05,
+          "current_numpy": 6.341930443391641e-05,
+          "current_jax": 6.341930443391641e-05
+        },
+        "5.0": {
+          "old_fd_scale": 6.341930443391641e-05,
+          "old_fd_0.01": 6.341930443391641e-05,
+          "current_numpy": 6.341930443391641e-05,
+          "current_jax": 6.341930443391641e-05
+        },
+        "10.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "20.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "50.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        },
+        "200.0": {
+          "old_fd_scale": null,
+          "old_fd_0.01": null,
+          "current_numpy": null,
+          "current_jax": null
+        }
+      },
+      "filter_counts": {
+        "1e-08": {
+          "old_fd_scale": 5,
+          "old_fd_0.01": 5,
+          "current_numpy": 5,
+          "current_jax": 5
+        },
+        "0.01": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "0.1": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "5.0": {
+          "old_fd_scale": 4,
+          "old_fd_0.01": 4,
+          "current_numpy": 4,
+          "current_jax": 4
+        },
+        "10.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "20.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "50.0": {
+          "old_fd_scale": 3,
+          "old_fd_0.01": 3,
+          "current_numpy": 3,
+          "current_jax": 3
+        },
+        "200.0": {
+          "old_fd_scale": 1,
+          "old_fd_0.01": 1,
+          "current_numpy": 1,
+          "current_jax": 1
+        }
+      },
+      "default_exception": "NonConcreteBooleanIndexError",
+      "default_shape": null,
+      "default_positions": [
+        [
+          -1.03125,
+          -1.031224260105298
+        ],
+        [
+          0.7845703125000001,
+          1.483857850052009
+        ],
+        [
+          1.1868164062499997,
+          1.1867818179855891
+        ],
+        [
+          1.48388671875,
+          0.7845536128685199
+        ]
+      ],
+      "default_error_max": 6.341930443391641e-05,
+      "default_has_four_images": true,
+      "default_within_precision": true,
+      "diagnostic_unique_count": 4,
+      "diagnostic_unique_error": 6.341930443391641e-05,
+      "measured_filtered_shape": [
+        20,
+        2
+      ],
+      "filter_kept_indices": {
+        "1e-08": {
+          "old_fd_scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.01": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "0.1": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "5.0": {
+          "old_fd_scale": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            0,
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        "10.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "20.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "50.0": {
+          "old_fd_scale": [
+            2,
+            3,
+            4
+          ],
+          "old_fd_0.01": [
+            2,
+            3,
+            4
+          ],
+          "current_numpy": [
+            2,
+            3,
+            4
+          ],
+          "current_jax": [
+            2,
+            3,
+            4
+          ]
+        },
+        "200.0": {
+          "old_fd_scale": [
+            3
+          ],
+          "old_fd_0.01": [
+            3
+          ],
+          "current_numpy": [
+            3
+          ],
+          "current_jax": [
+            3
+          ]
+        }
+      }
+    }
+  ]
+}

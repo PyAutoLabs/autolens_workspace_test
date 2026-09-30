@@ -1,0 +1,195 @@
+{
+  "boundaries": [
+    {
+      "repo": "PyAutoArray",
+      "sha": "e0e2f28e601576ce936a85cb6c956e73d823113a",
+      "parent": "6faddd6988e6f52b9be15cb8d142dc1de5e4dd42",
+      "date_subject": "2025-11-03T20:19:06+00:00 small tests on imports"
+    },
+    {
+      "repo": "PyAutoArray",
+      "sha": "314e2d091f17e2cbc7f9ad63d9ec05e7dcd4a90e",
+      "parent": "0c3153148ae4158e0d4d4b43ea29b34d10677c99",
+      "date_subject": "2025-11-13T15:22:37+00:00 finish"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "0ea7c600035b79abc178a67dbebf92f5634d3216",
+      "parent": "1a6e388034aa9d4ab61ed5263b342aca8ae695be",
+      "date_subject": "2025-11-09T11:34:37+00:00 xp refactor complete"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "c36f8a6ecb06d319425188165f896a19ae621f9c",
+      "parent": "7a1748f34fa461cfc14ed732bd02e2e3f124f6c4",
+      "date_subject": "2025-11-13T15:24:54+00:00 finish"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "dd82ce3863114d3c436e790d7331f8c4cc7bca32",
+      "parent": "a0fc12caf43b87e1823c846df215275c881d3e37",
+      "date_subject": "2025-11-18T10:59:44+00:00 remove infinities from point solver solution"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "14826f6c708e4ae6ddf324bea231029a250e32e7",
+      "parent": "2aba5a66d70d13baf9abd08665a6249bdfb1c6e7",
+      "date_subject": "2026-03-02T21:40:27+00:00 Refactor OperateDeflections from mixin to composition in PyAutoLens"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "3db51dd380938edff1252331a25333a2bc01cff9",
+      "parent": "3a65af27528a00ceef17769334364bd7f3d70942",
+      "date_subject": "2026-03-04T18:24:04+00:00 update to LensCalc API (rename from OperateDeflections)"
+    },
+    {
+      "repo": "PyAutoGalaxy",
+      "sha": "ee92bebecd47e769ab9974807bc0e4b3127fa828",
+      "parent": "b9a2e50062ecde9781219fb1d681fb9bfddeedf6",
+      "date_subject": "2026-03-02T11:47:09+00:00 add JAX-accelerated hessian_from via jacfwd"
+    },
+    {
+      "repo": "PyAutoGalaxy",
+      "sha": "eacdcd77de6287175c56a21d287f0fd8d8a4626a",
+      "parent": "854e70e99ce9ce099dea0840c3c706da94fd14e7",
+      "date_subject": "2026-04-18T22:41:32+01:00 fix: Richardson-extrapolate LensCalc numpy Hessian for JAX-path parity"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "5c42d813336ce8a516e7e2d48d8cad281519d126",
+      "parent": "d876f51c551d00bc3a07ab9a43d1f9b1db0a8450",
+      "date_subject": "2024-12-16T16:11:07+00:00 remove max containing size from solver"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "fca58c468a13b09d28576b3bfdca2ce62250ad62",
+      "parent": "4ddc9e527f86a65aa3c4b20eee6da9ae34fd11bb",
+      "date_subject": "2026-04-21T14:08:22+01:00 refactor(point): make PointSolver stateless w.r.t. xp"
+    },
+    {
+      "repo": "PyAutoLens",
+      "sha": "d24339c3742d320fb7300de0d360009ce39fb987",
+      "parent": "6551e6c6d3ba00090c5e0251db2a9e0043203d1b",
+      "date_subject": "2026-05-24T15:02:40+01:00 feat: add use_jax=True flag to PointSolver"
+    }
+  ],
+  "method_source": {
+    "sha": "8d7747d8ee5486fcbe9da0f137dc2f94640ea332",
+    "path": "autogalaxy/operate/deflections.py"
+  },
+  "evidence_type": "Historical method on current deflections; not an old full-stack run",
+  "comparisons": [
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.001,
+      "buffer": 0.2,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "buffer": 0.2,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.001,
+      "buffer": 0.05,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "buffer": 0.05,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "analytic_quad",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.001,
+      "buffer": 0.2,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "buffer": 0.2,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.2,
+      "precision": 0.0001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.001,
+      "buffer": 0.05,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "buffer": 0.05,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "fixture": "near_caustic",
+      "scale": 0.05,
+      "precision": 0.0001,
+      "buffer": 0.01,
+      "max_absolute_difference": 0.0
+    }
+  ]
+}
