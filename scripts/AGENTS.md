@@ -9,8 +9,11 @@ and where its JAX-specific responsibilities lie.
 folders `imaging/`, `interferometer/`, `point_source/`, `multi_galaxy/`,
 `cluster/`, `multi_dataset/`, plus `misc/` for dataset-agnostic material (`aggregator/`, `database/`, `mass/`,
 `mass_via_integral/`, `jax_assertions/`, `latent/`, `weak/`, `interop/`, the
-`util.py` gradient helper, and loose tracer/profile/hessian tests). `gallery/`
-and `profiling/` sit outside the taxonomy (external couplings).
+`util.py` gradient helper, and loose tracer/profile/hessian tests).
+`profiling/` sits outside the taxonomy (an external coupling). Lens figure
+rendering lives in the `autolens_visualization` project repo (aggregated by the
+PyAutoEyes dashboard); the `scripts/<domain>/visualization/` scripts here are
+JIT/plotting regression scripts, not a gallery.
 
 Within each dataset folder, related scripts are grouped into **task
 subfolders** so the dataset root holds only its modeling singletons:
