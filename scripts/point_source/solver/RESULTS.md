@@ -72,9 +72,16 @@ It failed immediately with `ModuleNotFoundError: No module named 'autoconf'`.
 These date-selected sources are not a recovered historical lockfile. The shared
 Python installation was left intact. No old full-stack numerical run is claimed.
 
-`history_audit.py` extracts the original undecorated `hessian_from` function
-from that Galaxy revision and compares it with the explicit central-difference
-replay at buffers `scale` and `0.01`, using current deflections. This isolates
+`history_audit.py` loads the original undecorated `hessian_from` function
+from `historical_hessian.json`, an exact extract from that Galaxy revision,
+and compares it with the explicit central-difference replay at buffers `scale`
+and `0.01`, using current deflections. The fixture includes the original full
+commit, source path and twelve boundary pins; `audit_support.py` checks a fixed
+SHA-256 digest before the method can execute. No runtime Git history is needed.
+To update the fixture, extract the method's exact source lines from the pinned
+Git object, verify every boundary SHA/parent/date against its repository, and
+review the fixture and digest change together. Do not regenerate scientific
+measurements merely to update provenance. This isolates
 the Hessian-step mechanism; it cannot rule out other historical solver changes.
 
 ## Fixtures, references and interpretation
@@ -172,3 +179,14 @@ Raw logs live under the task worktree `../scratch/`; smoke machine report is
 `test-results/autolens_workspace_test__scripts__script.json`. These are ignored
 runtime artifacts. Numerical witnesses and version pins are retained beside
 this report.
+
+## Installed-wheel provenance
+
+The audits also run with wheel-installed libraries. Provenance labels each
+library as `checkout` (Git SHA and dirty status) or `installed` (distribution
+version and a SHA-256 fingerprint of imported package contents, excluding
+bytecode caches). Installed libraries have null Git SHA/dirty fields; the audit
+does not invent a source revision. Metadata must point to the actual imported
+package. Resume and end-of-run checks compare the complete provenance record.
+Evidence produced before this provenance schema change cannot be resumed into
+new-format evidence; existing committed evidence remains an historical record.

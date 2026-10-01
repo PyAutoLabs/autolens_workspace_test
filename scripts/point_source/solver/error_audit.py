@@ -19,7 +19,6 @@ import importlib.metadata
 import json
 import os
 from pathlib import Path
-import subprocess
 import time
 
 import numpy as np
@@ -28,6 +27,7 @@ import jax
 import jax.numpy as jnp
 import autolens as al
 from autoarray.structures.triangles.array import MAX_CONTAINING_SIZE
+from audit_support import library_provenance
 
 
 """__Fixtures__
@@ -160,17 +160,10 @@ def magnifications(tracer, points, scale):
 def provenance():
     import autoarray, autogalaxy, autofit, autonerves
 
-    repos = {}
-    for module in (al, autoarray, autogalaxy, autofit, autonerves):
-        directory = Path(module.__file__).resolve().parents[1]
-        repos[module.__name__] = {
-            "sha": subprocess.check_output(
-                ["git", "-C", str(directory), "rev-parse", "HEAD"], text=True
-            ).strip(),
-            "dirty": subprocess.check_output(
-                ["git", "-C", str(directory), "status", "--porcelain"], text=True
-            ).strip(),
-        }
+    repos = {
+        module.__name__: library_provenance(module)
+        for module in (al, autoarray, autogalaxy, autofit, autonerves)
+    }
     return {
         "libraries": repos,
         "packages": {

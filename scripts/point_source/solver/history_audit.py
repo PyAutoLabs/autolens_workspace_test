@@ -4,7 +4,8 @@ PointSolver Historical Mechanism Replay
 
 Validate the finite-difference replay against the actual pre-March source
 method, running that method with today's deflection callable. This does not
-claim an old full-stack execution. Requires local git history (read only).
+claim an old full-stack execution. Uses a checked-in, digest-verified extract
+from the pinned Git source; installed wheels need no local repository history.
 
 __Contents__
 Historical pins; isolated method extraction; numerical replay cross-check.
@@ -17,51 +18,20 @@ import argparse
 import ast
 import json
 from pathlib import Path
-import subprocess
 from typing import Tuple
 
 import numpy as np
 import autoarray as aa
-import autogalaxy as ag
-import autolens as al
 from error_audit import FIXTURES, tracer_for, fd_magnification
-
-
-def git(repo, *args):
-    return subprocess.check_output(["git", "-C", str(repo), *args], text=True)
+from audit_support import historical_fixture
 
 
 def measure(evidence):
-    lens = Path(al.__file__).resolve().parents[1]
-    array = Path(aa.__file__).resolve().parents[1]
-    galaxy = Path(ag.__file__).resolve().parents[1]
-    boundaries = [
-        (array, "e0e2f28e"),
-        (array, "314e2d09"),
-        (lens, "0ea7c6000"),
-        (lens, "c36f8a6ec"),
-        (lens, "dd82ce386"),
-        (lens, "14826f6c7"),
-        (lens, "3db51dd38"),
-        (galaxy, "ee92bebe"),
-        (galaxy, "eacdcd77"),
-        (lens, "5c42d8133"),
-        (lens, "fca58c468"),
-        (lens, "d24339c37"),
-    ]
-    pins = [
-        {
-            "repo": p.name,
-            "sha": git(p, "rev-parse", sha).strip(),
-            "parent": git(p, "rev-parse", sha + "^").strip(),
-            "date_subject": git(p, "show", "-s", "--format=%cI %s", sha).strip(),
-        }
-        for p, sha in boundaries
-    ]
-    stamp = git(lens, "show", "-s", "--format=%cI", "14826f6c7^").strip()
-    galaxy_sha = git(galaxy, "rev-list", "-1", "--before=" + stamp, "main").strip()
-    path = "autogalaxy/operate/deflections.py"
-    source = git(galaxy, "show", galaxy_sha + ":" + path)
+    fixture = historical_fixture()
+    pins = fixture["boundaries"]
+    galaxy_sha = fixture["method_source"]["sha"]
+    path = fixture["method_source"]["path"]
+    source = fixture["source"]
     method = next(
         n
         for n in ast.walk(ast.parse(source))
@@ -95,6 +65,8 @@ def measure(evidence):
                     "max_absolute_difference": error,
                 }
             )
+    if not comparisons:
+        raise ValueError("Historical replay requires nonempty NumPy evidence")
     return {
         "boundaries": pins,
         "method_source": {"sha": galaxy_sha, "path": path},
