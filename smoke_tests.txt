@@ -12,6 +12,7 @@ imaging/jax_likelihood/smbh.py
 interferometer/jax_likelihood/rectangular.py
 interferometer/jax_likelihood/mge.py
 point_source/jax_likelihood/point.py
+point_source/jax_likelihood/solver_extent.py
 misc/jax_assertions/delaunay_nn.py
 misc/jax_assertions/delaunay_nn_caps.py
 misc/jax_assertions/delaunay_walk.py
