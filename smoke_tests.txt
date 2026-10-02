@@ -15,6 +15,7 @@ point_source/jax_likelihood/point.py
 misc/jax_assertions/delaunay_nn.py
 misc/jax_assertions/delaunay_nn_caps.py
 misc/jax_assertions/delaunay_walk.py
+misc/jax_assertions/fit_util_masked_division.py
 misc/jax_assertions/fit_imaging_sparse_operator.py
 misc/jax_assertions/fit_interferometer_sparse_operator.py
 interferometer/datacube/shared_preloads.py
