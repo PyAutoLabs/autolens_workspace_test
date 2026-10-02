@@ -41,3 +41,4 @@ imaging/over_sample_adapt_snr.py
 # Bounded per-source-plane geometry; research timings live in autolens_profiling.
 cluster/critical_curves.py
 imaging/mesh_interpolator_source_recovery.py
+misc/jax_assertions/rectangular_geometry.py
