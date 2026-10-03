@@ -16,7 +16,32 @@ ENV: full_datasets
 import numpy as np
 
 import autolens as al
-from autogalaxy.operate.lens_calc import LensCalc
+from autogalaxy.operate.lens_calc import LensCalc, evaluation_grid
+
+
+"""__Capped field__
+
+Capture the evaluation grid without computing a million-point Hessian. This is
+the phase-3a cluster witness: the 60 arcsec field must survive the 1000-pixel cap.
+The library unit tests also cover both axis orientations and rounding.
+"""
+
+
+@evaluation_grid
+def capped_geometry(_, grid, pixel_scale):
+    return grid.shape_native, grid.pixel_scales, grid.geometry.shape_native_scaled
+
+
+shape, scales, extent = capped_geometry(
+    None,
+    al.Grid2D.uniform(
+        shape_native=(120, 120), pixel_scales=0.5, respect_small_datasets=False
+    ),
+    pixel_scale=0.05,
+)
+assert shape == (1000, 1000)
+np.testing.assert_allclose(scales, (0.06, 0.06), rtol=0, atol=1e-12)
+np.testing.assert_allclose(extent, (60.0, 60.0), rtol=0, atol=1e-12)
 
 
 """__Cluster__
@@ -84,4 +109,4 @@ for plane_j, redshift in ((1, 1.0), (2, 2.0)):
         if kind == "tangential":
             radii.append(float(np.mean(np.linalg.norm(points, axis=1))))
 assert radii[1] > radii[0] + spacing, radii
-print("Cluster critical curves: both source planes, both kinds and caustics PASS")
+print("Cluster critical curves: capped field, both source planes and caustics PASS")
