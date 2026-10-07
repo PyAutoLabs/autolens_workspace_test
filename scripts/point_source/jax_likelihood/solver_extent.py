@@ -20,7 +20,9 @@ import autofit as af
 import autolens as al
 from autofit.non_linear.fitness import Fitness
 
-assert os.environ.get("PYAUTO_SMALL_DATASETS") != "1", "Extent parity needs full datasets"
+assert (
+    os.environ.get("PYAUTO_SMALL_DATASETS") != "1"
+), "Extent parity needs full datasets"
 assert os.environ.get("PYAUTO_DISABLE_JAX") != "1", "Extent parity needs JAX enabled"
 
 # Same committed dataset and prior medians as image_plane.py.
