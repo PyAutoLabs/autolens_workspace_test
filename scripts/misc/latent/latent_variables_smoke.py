@@ -39,7 +39,7 @@ analysis = al.AnalysisImaging(dataset=dataset, use_jax=False, magzero=25.0)
 
 search = af.Nautilus(
     name="latent_variables_smoke",
-    n_live=10,
+    n_live=13,  # Nautilus needs n_live > n_dim (12 free parameters)
     n_like_max=10,
 )
 
