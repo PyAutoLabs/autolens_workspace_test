@@ -181,9 +181,13 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-# Regression constant filled in on first run against the workspace_test
-# seeded PointDataset (``scripts/point_source/simulators/simple.py``).
-EXPECTED_VMAP_LOG_LIKELIHOOD_SOURCE_PLANE = -331481.25978149
+# Regression constant measured against the workspace_test seeded PointDataset
+# (``scripts/point_source/simulators/simple.py``) with the default
+# ``weighting = "jacobian"`` (PyAutoLens#792). The pre-#792 default, the scalar
+# ``"magnification"`` weighting with a 1-D normalisation, gave -331481.26: at the
+# prior-median model one image has |mu| ~ 82, which inflates the scalar chi² to
+# ~6.6e5 against 244 for the Jacobian weighting.
+EXPECTED_VMAP_LOG_LIKELIHOOD_SOURCE_PLANE = -104.66864953
 
 np.testing.assert_allclose(
     np.array(result),
@@ -218,7 +222,7 @@ fit_np = analysis_np.fit_from(instance=instance)
 log_likelihood_np = float(fit_np.log_likelihood)
 print("NumPy fit.log_likelihood:", log_likelihood_np)
 
-EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE = -331481.26508536364
+EXPECTED_EAGER_LOG_LIKELIHOOD_SOURCE_PLANE = -104.6686495443079
 
 np.testing.assert_allclose(
     log_likelihood_np,
