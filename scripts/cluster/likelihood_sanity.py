@@ -16,12 +16,12 @@ Stress-test the cluster point-source likelihood path end to end:
      b) For LARGE perturbations chi² is monotone non-decreasing in |ε|.
 
 **Known pathology surfaced by this script**: at small perturbations (|ε| ≤ 0.05) the chi² response
-is dominated by the ``PointSolver``'s precision floor (~0.001" image-plane × magnification ≈ 100
-at multi-image positions ÷ 0.005" position noise ≈ 4e8 baseline chi²). Tiny perturbations to the
-mass model produce sub-1% variations in chi², which can be in either direction. Genuine model
-sensitivity only emerges above ~10% perturbations. This is a real finding — cluster point-source
-likelihood is *noisy* at the precision-floor level — and should inform how priors are tightened
-when modelling real cluster data.
+is small compared with the truth chi², so tiny perturbations to the mass model produce sub-1%
+variations in chi², which can be in either direction. ``FitPositionsSource`` uses its default
+``"jacobian"`` weighting, so for a model that reproduces the data its chi² is about the
+image-plane chi²; the truth chi² is printed per dataset so a large baseline can be traced.
+Genuine model sensitivity only emerges above ~10% perturbations, which should inform how priors
+are tightened when modelling real cluster data.
 
 Per the issue mandate: "be persistent, be nit-picking, look for obvious issues with our
 implementation."
@@ -249,6 +249,9 @@ _t0 = time.perf_counter()
 truth_source_chi2 = source_chi_squared(truth_tracer, dataset_list, source_galaxies)
 _t_source = time.perf_counter() - _t0
 print(f"  FitPositionsSource     chi² = {truth_source_chi2:.6e}  ({_t_source:.2f}s)")
+for dataset, source_galaxy in zip(dataset_list, source_galaxies):
+    _truth_chi2 = source_chi_squared(truth_tracer, [dataset], [source_galaxy])
+    print(f"    {dataset.name}: chi² = {_truth_chi2:.6e}")
 
 if RUN_IMAGE_PLANE:
     _t0 = time.perf_counter()
@@ -463,11 +466,12 @@ if failures:
         print(line)
     print()
     print(
-        "These are NOT hard failures — they are characterised behaviour. Source-plane chi² "
-        "in cluster lensing is dominated by the PointSolver precision floor amplified by the "
-        "image-plane magnification (~100x at multi-image positions). The absolute chi² scale "
-        'of ~8e7 is consistent with σ_pos=0.005" × magnification_factor amplifying the '
-        '0.001"-precision PointSolver residual.'
+        "These are NOT hard failures — they are characterised behaviour. With the default "
+        '"jacobian" weighting the source-plane chi² of a model that reproduces the data is '
+        'about the image-plane chi², i.e. ~N × (0.001" solver precision / 0.005" noise)² — '
+        "far below 1. A truth chi² many orders above that (see the per-dataset breakdown at "
+        "the top) means the truth tracer does not reproduce that dataset's positions, and the "
+        "sweep is then measuring a mis-specified model rather than the likelihood's noise floor."
     )
 else:
     print("No violations: truth ε=0 is the minimum and chi² is monotone in |ε|.")
