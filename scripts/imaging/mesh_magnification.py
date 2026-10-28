@@ -84,10 +84,13 @@ __Tolerances__
 Absolute tolerance on `mu_recovered / mu_true - 1`, per mesh and per leg, as
 `(lensed, identity)`. The measured errors are quoted beside each; the tolerances are
 ~1.5x the measurement (floored at 1%, the level at which noise and regularization
-move the exact-quadrature meshes: `Delaunay` itself lands at -0.25% / +0.43%).
+move the tight meshes: `Delaunay` itself lands at -0.25% / +0.43%).
 """
 MU_TOLERANCE = {
-    # exact quadrature of the interpolant
+    # Delaunay: exact quadrature of its linear interpolant. RectangularUniform: its
+    # cells tile the overlay box exactly (sum-exact) but per node only approximate
+    # the bilinear quadrature near the boundary ring, negligible for a source away
+    # from the mesh edge.
     "RectangularUniform": (0.01, 0.01),  # measured -0.16%, -0.48%
     "Delaunay": (0.01, 0.01),  # measured -0.25%, +0.43%
     # documented approximations, flagged in PyAutoArray#659
