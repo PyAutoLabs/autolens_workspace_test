@@ -42,4 +42,6 @@ imaging/over_sample_adapt_snr.py
 # Bounded per-source-plane geometry; research timings live in autolens_profiling.
 cluster/critical_curves.py
 imaging/mesh_interpolator_source_recovery.py
+# added 2026-10-28 (PyAutoArray#659): every mesh's areas_for_magnification and recovered magnification vs simulator truth (lensed + identity legs); ~60-75s locally, no search.
+imaging/mesh_magnification.py
 misc/jax_assertions/rectangular_geometry.py
