@@ -40,11 +40,11 @@ __Tolerances__
 Measured with this script's configuration (PyAutoArray#659) and set per leg at ~1.5x
 the measurement, floored at 1%. They are tight enough that the old `RectangularUniform` bias
 (+259% / +27% on these legs before the fix), the old adaptive rectangular
-node-midpoint bias (up to +14.43%) and the old Delaunay Voronoi bias all fail.
+node-midpoint bias (up to +14.43%), the old kNN dual-area bias (up to +6.10%) and
+the old Delaunay Voronoi bias all fail.
 
-`KNearestNeighbor` and `KNNBarycentric` inherit the Delaunay dual areas, which
-approximate rather than equal the quadrature of their interpolants; their
-tolerances record that approximation until phase 4b replaces it.
+`DelaunayNN` inherits the Delaunay dual areas, which approximate rather than equal
+the quadrature of its Sibson interpolant; it measures within the 1% floor here.
 
 __Env__
 
@@ -100,11 +100,14 @@ MU_TOLERANCE = {
     "RectangularBilinearAdaptDensity": (0.01, 0.01),  # measured -0.61%, -0.34%
     "RectangularBilinearAdaptImage": (0.01, 0.01),  # measured -0.57%, -0.49%
     "RectangularRTUAdaptImage": (0.01, 0.01),  # measured +0.08%, +0.12%
+    # Delaunay dual areas under the Sibson interpolant: an approximation, but
+    # within the 1% floor here
     "DelaunayNN": (0.01, 0.01),  # measured -0.27%, -0.41%
-    # documented approximations (Delaunay dual areas under a non-linear
-    # interpolant), flagged in PyAutoArray#659 for phase 4b
-    "KNearestNeighbor": (0.09, 0.08),  # measured +6.10%, -5.11%
-    "KNNBarycentric": (0.026, 0.054),  # measured -1.71%, -3.57%
+    # quadrature of the kNN interpolants' own basis functions (PyAutoArray#665;
+    # the Delaunay dual areas they used before measured +6.10% / -5.11% and
+    # -1.71% / -3.57%)
+    "KNearestNeighbor": (0.01, 0.01),  # measured -0.22%, -0.12%
+    "KNNBarycentric": (0.01, 0.01),  # measured -0.37%, -0.14%
 }
 LEG_INDEX = {"lensed": 0, "identity": 1}
 
