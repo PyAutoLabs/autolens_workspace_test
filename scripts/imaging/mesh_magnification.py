@@ -27,8 +27,8 @@ For every mesh the dataset is fitted with the TRUE tracer and a fixed-regulariza
 pixelization (no search), and the script asserts:
 
  - the areas are finite, non-negative and sum to the area of the domain the mesh
-   covers (the data's bounding box for the rectangular meshes, the convex hull of
-   the vertices for the Delaunay family);
+   covers (the over-sampled data's bounding box for the rectangular meshes, the
+   convex hull of the vertices for the Delaunay family);
  - the recovered mu agrees with the truth within the per-mesh tolerance below, on
    both legs;
  - the workspace formula and the PyAutoLens `magnification` latent agree.
@@ -39,13 +39,12 @@ __Tolerances__
 
 Measured with this script's configuration (PyAutoArray#659) and set per leg at ~1.5x
 the measurement, floored at 1%. They are tight enough that the old `RectangularUniform` bias
-(+259% / +27% on these legs before the fix) and the old Delaunay Voronoi bias fail.
+(+259% / +27% on these legs before the fix), the old adaptive rectangular
+node-midpoint bias (up to +14.43%) and the old Delaunay Voronoi bias all fail.
 
-The rectangular adaptive meshes (`RectangularBilinearAdapt*`, `RectangularRTUAdapt*`)
-and the non-linear interpolants that inherit the Delaunay dual areas (`DelaunayNN`,
-`KNearestNeighbor`, `KNNBarycentric`) use areas that approximate, rather than equal,
-the quadrature of their interpolant; their tolerances record that approximation and
-are flagged in PyAutoArray#659 for a ruling.
+`KNearestNeighbor` and `KNNBarycentric` inherit the Delaunay dual areas, which
+approximate rather than equal the quadrature of their interpolants; their
+tolerances record that approximation until phase 4b replaces it.
 
 __Env__
 
@@ -90,17 +89,20 @@ MU_TOLERANCE = {
     # Delaunay: exact quadrature of its linear interpolant. RectangularUniform: its
     # cells tile the overlay box exactly (sum-exact) but per node only approximate
     # the bilinear quadrature near the boundary ring, negligible for a source away
-    # from the mesh edge.
+    # from the mesh edge. The adaptive rectangular meshes: exact per-axis quadrature
+    # of each node's bilinear hat through the mapper's CDF (PyAutoArray#659; their
+    # node-midpoint cells were off by up to +14.43% lensed / +11.23% identity).
     "RectangularUniform": (0.01, 0.01),  # measured -0.16%, -0.48%
     "Delaunay": (0.01, 0.01),  # measured -0.25%, +0.43%
-    # documented approximations, flagged in PyAutoArray#659
-    "RectangularRTUAdaptDensity": (0.03, 0.01),  # measured -1.82%, -0.24%
-    # the identity leg's unlensed grid ties every row and column, the rank CDF's
-    # worst case (a staircase), so node-midpoint cells are furthest from the hats
-    "RectangularBilinearAdaptDensity": (0.01, 0.17),  # measured -0.21%, +11.23%
-    "RectangularBilinearAdaptImage": (0.22, 0.02),  # measured +14.43%, +1.31%
-    "RectangularRTUAdaptImage": (0.13, 0.016),  # measured +8.56%, +1.05%
+    # unchanged by the exact areas (-1.82% before and after), so this is the
+    # coarse density-adapted reconstruction under regularization, not the areas
+    "RectangularRTUAdaptDensity": (0.03, 0.01),  # measured -1.82%, -0.26%
+    "RectangularBilinearAdaptDensity": (0.01, 0.01),  # measured -0.61%, -0.34%
+    "RectangularBilinearAdaptImage": (0.01, 0.01),  # measured -0.57%, -0.49%
+    "RectangularRTUAdaptImage": (0.01, 0.01),  # measured +0.08%, +0.12%
     "DelaunayNN": (0.01, 0.01),  # measured -0.27%, -0.41%
+    # documented approximations (Delaunay dual areas under a non-linear
+    # interpolant), flagged in PyAutoArray#659 for phase 4b
     "KNearestNeighbor": (0.09, 0.08),  # measured +6.10%, -5.11%
     "KNNBarycentric": (0.026, 0.054),  # measured -1.71%, -3.57%
 }
@@ -284,19 +286,17 @@ def fit_from(leg, name):
 def covered_area_from(name, mapper):
     """
     The analytic area of the domain the mesh's areas tile: the convex hull of the
-    vertices (Delaunay family), the over-sampled data's bounding box
-    (`RectangularUniform`, whose overlay grid spans it) or the data's bounding box
-    (the adaptive meshes, whose CDF maps it onto the unit square).
+    vertices (Delaunay family) or the over-sampled data's bounding box (the
+    rectangular meshes: `RectangularUniform`'s overlay grid spans it, and the
+    adaptive meshes integrate their basis functions over it).
     """
     if not name.startswith("Rectangular"):
         return scipy.spatial.ConvexHull(
             np.asarray(mapper.mesh_geometry.mesh_grid_xy)
         ).volume
-    if name == "RectangularUniform":
-        return np.prod(
-            np.ptp(np.asarray(mapper.source_plane_data_grid.over_sampled.array), axis=0)
-        )
-    return np.prod(np.ptp(np.asarray(mapper.source_plane_data_grid.array), axis=0))
+    return np.prod(
+        np.ptp(np.asarray(mapper.source_plane_data_grid.over_sampled.array), axis=0)
+    )
 
 
 """
