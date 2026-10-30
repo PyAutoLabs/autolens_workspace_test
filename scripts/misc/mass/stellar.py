@@ -453,7 +453,7 @@ run_param_sweep(
 """
 __Chameleon Family__
 
-Chameleon.potential_2d_from computed via MGE decomposition.
+Chameleon.potential_2d_from is analytic (difference of two cored isothermal potentials).
 """
 
 run_param_sweep(
