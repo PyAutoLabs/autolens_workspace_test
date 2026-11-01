@@ -50,14 +50,9 @@ dataset_path = path.join("dataset", "multi_dataset", "lens_sersic")
 """
 __Dataset Auto-Simulation__
 """
-if al.util.dataset.should_simulate(dataset_path):
-    import subprocess
-    import sys
-
-    subprocess.run(
-        [sys.executable, "scripts/multi_dataset/simulator.py"],
-        check=True,
-    )
+al.util.dataset.simulate_if_needed(
+    dataset_path, simulator="scripts/multi_dataset/simulator.py"
+)
 
 dataset_list = [
     al.Imaging.from_fits(
