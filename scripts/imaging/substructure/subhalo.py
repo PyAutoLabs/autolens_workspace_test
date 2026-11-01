@@ -83,13 +83,9 @@ auto-simulation fallback as ``lp.py``.
 """
 dataset_path = path.join("dataset", "imaging", "jax_test")
 
-if al.util.dataset.should_simulate(dataset_path):
-    import subprocess
-
-    subprocess.run(
-        [sys.executable, "scripts/imaging/simulator/simple.py"],
-        check=True,
-    )
+al.util.dataset.simulate_if_needed(
+    dataset_path, simulator="scripts/imaging/simulator/simple.py"
+)
 
 dataset = al.Imaging.from_fits(
     data_path=path.join(dataset_path, "data.fits"),

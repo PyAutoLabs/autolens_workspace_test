@@ -71,17 +71,9 @@ dataset_path = path.join("dataset", "interferometer", dataset_name)
 """
 __Dataset Auto-Simulation__
 """
-if al.util.dataset.should_simulate(dataset_path):
-    import subprocess
-    import sys
-
-    subprocess.run(
-        [
-            sys.executable,
-            "scripts/interferometer/simulator/simple.py",
-        ],
-        check=True,
-    )
+al.util.dataset.simulate_if_needed(
+    dataset_path, simulator="scripts/interferometer/simulator/simple.py"
+)
 
 dataset = al.Interferometer.from_fits(
     data_path=path.join(dataset_path, "data.fits"),

@@ -92,14 +92,9 @@ assert os.environ.get("PYAUTO_SMALL_DATASETS") != "1", (
 """
 __Dataset Auto-Simulation__
 """
-if al.util.dataset.should_simulate(str(dataset_path)):
-    import subprocess
-    import sys
-
-    subprocess.run(
-        [sys.executable, "scripts/point_source/simulators/simple.py"],
-        check=True,
-    )
+al.util.dataset.simulate_if_needed(
+    dataset_path, simulator="scripts/point_source/simulators/simple.py"
+)
 
 dataset = al.from_json(
     file_path=dataset_path / "point_dataset_positions_only.json",
