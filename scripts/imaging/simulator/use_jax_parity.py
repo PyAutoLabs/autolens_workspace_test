@@ -25,7 +25,6 @@ import numpy as np
 
 import autolens as al
 
-
 grid = al.Grid2D.uniform(shape_native=(100, 100), pixel_scales=0.1)
 
 lens_galaxy = al.Galaxy(

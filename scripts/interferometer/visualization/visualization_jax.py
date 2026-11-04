@@ -42,7 +42,6 @@ import autofit as af
 import autolens as al
 from autolens.interferometer.model.visualizer import VisualizerInterferometer
 
-
 """
 __Dataset__
 

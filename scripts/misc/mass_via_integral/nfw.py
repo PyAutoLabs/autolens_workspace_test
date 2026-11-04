@@ -10,7 +10,6 @@ import numpy as np
 from scipy.integrate import quad
 import autogalaxy as ag
 
-
 """
 __NFW Deflection Function__
 """

@@ -18,7 +18,6 @@ import numpy as np
 import autolens as al
 from autogalaxy.operate.lens_calc import LensCalc, evaluation_grid
 
-
 """__Capped field__
 
 Capture the evaluation grid without computing a million-point Hessian. This is

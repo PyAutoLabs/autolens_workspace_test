@@ -37,7 +37,6 @@ from error_audit import (
     tracer_for,
 )
 
-
 """__Independent References__
 
 Both existing fixtures have an isothermal mass component, whose deflection is

@@ -11,7 +11,6 @@ from scipy import special
 from scipy.integrate import quad
 import autogalaxy as ag
 
-
 epsrel = 1.49e-6
 
 

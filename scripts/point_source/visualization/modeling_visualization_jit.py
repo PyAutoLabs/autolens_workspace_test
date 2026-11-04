@@ -58,7 +58,6 @@ from autolens import with_test_mode_segment
 import autofit as af
 import autolens as al
 
-
 """
 __Dataset__
 """

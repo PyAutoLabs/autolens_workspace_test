@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 import subprocess
 
-
 HISTORICAL_SHA256 = "7a5ea76af2b856370820e0d5c1f8090ba0e270e4d4dd5677f8230f0134a4c834"
 HISTORICAL_FIXTURE = Path(__file__).with_name("historical_hessian.json")
 

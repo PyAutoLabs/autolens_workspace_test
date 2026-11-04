@@ -12,7 +12,6 @@ from scipy import special
 from scipy.integrate import quad
 import autogalaxy as ag
 
-
 """
 __gNFWSph Deflection Integrand and Function__
 

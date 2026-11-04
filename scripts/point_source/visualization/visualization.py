@@ -34,7 +34,6 @@ import autofit as af
 import autolens as al
 from autolens.point.model.visualizer import VisualizerPoint
 
-
 """
 __Dataset__
 """

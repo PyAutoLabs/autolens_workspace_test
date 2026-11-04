@@ -12,7 +12,6 @@ import numpy as np
 from scipy.integrate import quad
 import autogalaxy as ag
 
-
 """
 __Deflection Function__
 

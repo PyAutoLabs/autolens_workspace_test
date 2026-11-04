@@ -47,7 +47,6 @@ import autofit as af
 import autolens as al
 from autolens import conf
 
-
 sub_size = 4
 psf_shape_2d = (21, 21)
 

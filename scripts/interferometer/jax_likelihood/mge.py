@@ -47,7 +47,6 @@ import autofit as af
 import autolens as al
 from autolens import conf
 
-
 """
 __Mask__
 

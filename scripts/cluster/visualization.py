@@ -65,7 +65,6 @@ import autolens as al
 import autolens.plot as aplt
 from autogalaxy.operate.lens_calc import LensCalc
 
-
 """
 __Paths__
 

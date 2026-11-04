@@ -24,7 +24,6 @@ import numpy.testing as npt
 
 import autolens as al
 
-
 grid = al.Grid2D.uniform(shape_native=(15, 15), pixel_scales=0.1)
 
 psf = al.Convolver.from_gaussian(

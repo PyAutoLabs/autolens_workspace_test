@@ -63,7 +63,6 @@ import autofit as af
 import autolens as al
 from autolens.imaging.model.visualizer import VisualizerImaging
 
-
 """
 __Dataset__
 

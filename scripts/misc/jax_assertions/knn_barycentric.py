@@ -34,7 +34,6 @@ import autoarray as aa
 
 from autoarray import fixtures
 
-
 """
 __Setup__
 

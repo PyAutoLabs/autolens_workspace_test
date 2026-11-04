@@ -29,7 +29,6 @@ import autolens as al
 from autoarray.structures.triangles.array import MAX_CONTAINING_SIZE
 from audit_support import library_provenance
 
-
 """__Fixtures__
 
 The centred SIS plus external shear has four analytic axis images. The SIE

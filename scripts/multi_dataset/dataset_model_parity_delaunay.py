@@ -52,7 +52,6 @@ import numpy as np
 import autoarray as aa
 import autolens as al
 
-
 OFFSET = (0.3, 0.2)
 THETA = 12.0  # degrees, CCW.
 
