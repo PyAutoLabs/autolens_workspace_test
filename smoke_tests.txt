@@ -47,3 +47,5 @@ imaging/mesh_magnification.py
 # added 2026-10-30 (arc phase 6b, PyAutoGalaxy#685/#687): LensCalc area magnification per image vs forward-traced truth (double + quad); ~5s locally.
 imaging/area_magnification.py
 misc/jax_assertions/rectangular_geometry.py
+# added 2026-11-08: jax.jit / jax.grad parity for the jax_zero_contour critical curves + caustics (eager vs jit to 1e-10; grad of caustic areas vs central FD and exact 2A/b); ~90s locally, no search, no dataset.
+misc/jax_assertions/critical_curves_zero_contour_jit_grad.py
