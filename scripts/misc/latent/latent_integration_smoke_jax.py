@@ -310,13 +310,52 @@ phase("jax fit: search + per-sample latent jit + zip")
 """
 __On-Disk Assertions__
 """
+
+
+def latent_warning_excerpt(max_lines=60):
+    """
+    Return what `search.log` says about the latent pass, for an assertion
+    message.
+
+    PyAutoFit logs every latent failure as a `compute_latent_samples:` warning,
+    and the first one carries the traceback of the first failing sample. That
+    is the actual cause of an empty latent block, so quote it rather than guess:
+    the block can be emptied by ANY latent that raises on every sample (e.g. a
+    JAX regression inside a profile a latent reaches), not only by the model
+    assertion. When there is no such warning, saying so is itself diagnostic.
+    """
+    logs = sorted(OUTPUT_PATH.rglob("search.log"))
+    if not logs:
+        return f"No search.log under {OUTPUT_PATH}, so no latent warning to quote."
+    lines = []
+    for log in logs:
+        log_lines = log.read_text().splitlines()
+        start = next(
+            (i for i, line in enumerate(log_lines) if "compute_latent_samples" in line),
+            None,
+        )
+        if start is not None:
+            lines.append(f"--- {log} ---")
+            lines.extend(log_lines[start : start + max_lines])
+    if not lines:
+        return (
+            f"No `compute_latent_samples` warning in {[str(log) for log in logs]}: "
+            "the latent function never raised and never reported an empty "
+            "result, which rules out that whole class — look at whether the "
+            "latent pass ran at all (e.g. latent output disabled or skipped)."
+        )
+    return "search.log says:\n" + "\n".join(lines)
+
+
 summaries = sorted(OUTPUT_PATH.rglob("files/latent/latent_summary.json"))
-assert len(summaries) == 1, (
-    f"a real JAX search must write exactly one files/latent/latent_summary.json; "
-    f"found {summaries}. An EMPTY list is the PyAutoLens#734 / PyAutoFit#1600 "
-    "failure: the model assertion raised inside the latent engine's per-sample "
-    "jax.jit for every sample, so the whole latent block was dropped."
-)
+if len(summaries) != 1:
+    raise AssertionError(
+        "a real JAX search must write exactly one files/latent/latent_summary.json; "
+        f"found {summaries}.\n{latent_warning_excerpt()}\n"
+        "(One known cause of an EMPTY list is the model assertion raising inside "
+        "the latent engine's per-sample jax.jit — PyAutoLens#734 / "
+        "PyAutoFit#1600 — but the warning above is the authority.)"
+    )
 
 summary = json.loads(summaries[0].read_text())["arguments"]
 
