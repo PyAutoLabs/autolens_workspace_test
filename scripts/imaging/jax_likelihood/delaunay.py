@@ -297,7 +297,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -541.50627819,
+    -532.29584351,  # re-pinned 2026-11-09: +0.5*ln(1e8) per intrinsic-regularized mapper, pseudo-determinant log det H (PyAutoArray#682)
     rtol=1e-4,
     err_msg="delaunay: JAX vmap likelihood mismatch",
 )
