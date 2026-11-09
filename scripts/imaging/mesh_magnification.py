@@ -43,8 +43,10 @@ the measurement, floored at 1%. They are tight enough that the old `RectangularU
 node-midpoint bias (up to +14.43%), the old kNN dual-area bias (up to +6.10%) and
 the old Delaunay Voronoi bias all fail.
 
-`DelaunayNN` inherits the Delaunay dual areas, which approximate rather than equal
-the quadrature of its Sibson interpolant; it measures within the 1% floor here.
+`DelaunayNN` integrates its own Sibson basis functions (the kNN meshes' quadrature,
+PyAutoArray#610). The Delaunay dual areas it used before approximate that quadrature
+only: once the Sibson weights at internal edges were corrected they biased the
+identity leg here by -2.65%.
 
 __Env__
 
@@ -102,7 +104,7 @@ MU_TOLERANCE = {
     "RectangularRTUAdaptImage": (0.01, 0.01),  # measured +0.08%, +0.12%
     # Delaunay dual areas under the Sibson interpolant: an approximation, but
     # within the 1% floor here
-    "DelaunayNN": (0.01, 0.01),  # measured -0.27%, -0.41%
+    "DelaunayNN": (0.01, 0.01),  # measured -0.23%, +0.04% (PyAutoArray#610)
     # quadrature of the kNN interpolants' own basis functions (PyAutoArray#665;
     # the Delaunay dual areas they used before measured +6.10% / -5.11% and
     # -1.71% / -3.57%)
