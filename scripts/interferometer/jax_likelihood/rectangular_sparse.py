@@ -259,7 +259,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3162.347549,
+    -3153.137208,  # re-pinned 2026-11-09: +0.5*ln(1e8) per intrinsic-regularized mapper, pseudo-determinant log det H (PyAutoArray#682)
     rtol=1e-4,
     err_msg="interferometer/rectangular_sparse: JAX vmap likelihood mismatch",
 )
@@ -376,7 +376,7 @@ print("TransformerDFT (no sparse) vmap result:", result_dft_nosparse)
 
 np.testing.assert_allclose(
     np.array(result_dft_nosparse),
-    -3162.347549,  # matches rectangular.py (same model, same DFT-no-sparse path)
+    -3153.137208,  # matches rectangular.py (same model, same DFT-no-sparse path); re-pinned 2026-11-09: +0.5*ln(1e8) per intrinsic-regularized mapper, pseudo-determinant log det H (PyAutoArray#682)
     rtol=1e-4,
     err_msg="interferometer/rectangular_sparse: DFT-no-sparse vmap likelihood disagrees with rectangular.py reference",
 )
@@ -431,7 +431,7 @@ print("TransformerNUFFT vmap result:", result_nufft)
 
 np.testing.assert_allclose(
     np.array(result_nufft),
-    -3162.347549,  # matches DFT-no-sparse path (Path B)
+    -3153.137208,  # matches DFT-no-sparse path (Path B); re-pinned 2026-11-09: +0.5*ln(1e8) per intrinsic-regularized mapper, pseudo-determinant log det H (PyAutoArray#682)
     rtol=1e-4,
     err_msg="interferometer/rectangular_sparse: TransformerNUFFT vmap likelihood disagrees with DFT-no-sparse",
 )

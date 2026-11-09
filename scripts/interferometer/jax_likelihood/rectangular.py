@@ -319,7 +319,7 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 np.testing.assert_allclose(
     np.array(result),
-    -3162.347549,
+    -3153.137208,  # re-pinned 2026-11-09: +0.5*ln(1e8), pseudo-determinant log det H (PyAutoArray#682)
     rtol=1e-4,
     err_msg="interferometer/rectangular: JAX vmap likelihood mismatch",
 )
@@ -432,7 +432,7 @@ print("TransformerNUFFT vmap result:", result_nufft)
 
 np.testing.assert_allclose(
     np.array(result_nufft),
-    -3162.347549,
+    -3153.137208,  # re-pinned 2026-11-09: +0.5*ln(1e8), pseudo-determinant log det H (PyAutoArray#682)
     rtol=1e-4,
     err_msg="interferometer/rectangular: TransformerNUFFT vmap likelihood disagrees with TransformerDFT",
 )
