@@ -188,28 +188,40 @@ def _assert_likelihood_sanity(label, analysis, model):
         f"{label}: log_likelihood_function ({analysis_value}) does not match "
         f"fit.figure_of_merit ({fit.figure_of_merit}) — regression of PR #504"
     )
-    # ABSOLUTE tolerance, deliberately not a relative one. The Bayesian-evidence
-    # correction (`figure_of_merit - log_likelihood`, i.e. the regularization and
-    # log-det terms) is an absolute quantity of order tens-to-hundreds of nats set
-    # by the number of source pixels; `log_likelihood` at the prior medians is set
-    # by the number of DATA pixels and grows with the dataset — ~1e2 under
-    # `profile_smoke.yaml`'s capped mask, ~5e8 under `profile_release.yaml`'s
-    # full-resolution one. A relative tolerance therefore measures the dataset
-    # scale rather than the terms. It fired for exactly that reason in PyAutoHeart
-    # release-integrate run 33220882817: a perfectly healthy 391.57-nat correction
-    # on log_likelihood = -5.39477770e8 is 7.26e-7 of it, inside `rel=1e-6`, so the
-    # guard reported "log-det terms are zero" about a fit whose terms were nothing
-    # of the kind. (The same script passed the same check in run 33177898708 only
-    # because it sat on the other side of that knife edge.) `abs=1.0` states the
-    # requirement the message actually claims — the terms must move the objective
-    # by at least a nat — and is scale-free.
-    assert float(fit.figure_of_merit) != pytest.approx(
-        float(fit.log_likelihood), abs=1.0
-    ), (
-        f"{label}: figure_of_merit ({fit.figure_of_merit}) is within 1 nat of "
-        f"log_likelihood ({fit.log_likelihood}) — pixelization regularization "
-        f"log-det terms are zero, this script no longer exercises the bug PR #504 fixed"
+    # Non-vacuity: this script only exercises the bug PR #504 fixed while the fit
+    # carries the pixelization's Bayesian-evidence log-det terms. Assert each term
+    # directly, at least a nat in size, rather than their NET effect on the
+    # objective. Both earlier forms of this guard tested a net quantity and both
+    # fired on healthy fits:
+    #
+    #   * relative tolerance — PyAutoHeart release-integrate run 33220882817: a
+    #     391.57-nat correction on log_likelihood = -5.39477770e8 is inside
+    #     `rel=1e-6`, so the guard measured the dataset scale, not the terms;
+    #   * `|figure_of_merit - log_likelihood| >= 1` — PyAutoHeart run 42998439751
+    #     (autolens_workspace_test#362): PyAutoArray#683's pseudo-determinant
+    #     raised log det H by 0.5*ln(1e8) per intrinsic-regularized mapper, the
+    #     terms' sum crossed zero and landed at +0.80 nat at release resolution.
+    #     Smoke-scale A/B at the prior medians: log det(F+H) 122.67 both sides,
+    #     log det H 113.04 -> 131.46, net -4.83 -> +4.39. Healthy terms, a
+    #     coincidental cancellation.
+    #
+    # The terms themselves are tens-to-hundreds of nats, set by the number of
+    # source pixels, so `abs >= 1.0` is scale-free and cannot cancel.
+    inversion = fit.inversion
+    assert inversion is not None, (
+        f"{label}: the fit has no inversion — this script no longer exercises the "
+        f"bug PR #504 fixed"
     )
+    for name in (
+        "log_det_curvature_reg_matrix_term",
+        "log_det_regularization_matrix_term",
+    ):
+        value = float(getattr(inversion, name))
+        assert abs(value) >= 1.0, (
+            f"{label}: inversion.{name} ({value}) is below 1 nat — the pixelization "
+            f"log-det terms are absent, this script no longer exercises the bug "
+            f"PR #504 fixed"
+        )
     fitness = Fitness(
         model=model,
         analysis=analysis,
@@ -222,7 +234,9 @@ def _assert_likelihood_sanity(label, analysis, model):
         f"{label}: Fitness.call_wrap ({call_wrap_value}) does not match "
         f"fit.figure_of_merit ({fit.figure_of_merit})"
     )
-    print(f"  PASS {label}: LLF == figure_of_merit != log_likelihood == call_wrap")
+    print(
+        f"  PASS {label}: LLF == figure_of_merit == call_wrap; log-det terms present"
+    )
 
 
 sanity_analysis_cpu = al.AnalysisInterferometer(
