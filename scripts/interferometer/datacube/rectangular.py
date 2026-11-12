@@ -268,7 +268,9 @@ print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 Cube log-likelihood ≈ N × single-channel log-likelihood (-3153.137208) for
 identical channels. Pinned empirically below.
 """
-EXPECTED_VMAP_LOG_LIKELIHOOD = n_channels * -3153.137208  # re-pinned 2026-11-10: +0.5*ln(1e8) per channel mapper, pseudo-determinant log det H (PyAutoArray#682); = jax_likelihood/rectangular.py
+EXPECTED_VMAP_LOG_LIKELIHOOD = (
+    n_channels * -3153.137208
+)  # re-pinned 2026-11-10: +0.5*ln(1e8) per channel mapper, pseudo-determinant log det H (PyAutoArray#682); = jax_likelihood/rectangular.py
 
 np.testing.assert_allclose(
     np.array(result),

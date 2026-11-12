@@ -234,9 +234,7 @@ def _assert_likelihood_sanity(label, analysis, model):
         f"{label}: Fitness.call_wrap ({call_wrap_value}) does not match "
         f"fit.figure_of_merit ({fit.figure_of_merit})"
     )
-    print(
-        f"  PASS {label}: LLF == figure_of_merit == call_wrap; log-det terms present"
-    )
+    print(f"  PASS {label}: LLF == figure_of_merit == call_wrap; log-det terms present")
 
 
 sanity_analysis_cpu = al.AnalysisInterferometer(
