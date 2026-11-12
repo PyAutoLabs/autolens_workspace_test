@@ -212,7 +212,9 @@ print(result)
 print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
-EXPECTED_VMAP_LOG_LIKELIHOOD = 1995.0853994
+# +2 x 0.5*ln(1e8) = +18.420680743952367 vs 1995.0853994: PyAutoArray#683 pseudo-determinant
+# (two intrinsic-regularized mappers), re-pinned 2026-11-12 (PyAutoNerves#215).
+EXPECTED_VMAP_LOG_LIKELIHOOD = 2013.5060801439522
 
 np.testing.assert_allclose(
     np.array(result),

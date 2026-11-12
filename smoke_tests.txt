@@ -48,4 +48,4 @@ imaging/mesh_magnification.py
 imaging/area_magnification.py
 misc/jax_assertions/rectangular_geometry.py
 # added 2026-11-08: jax.jit / jax.grad parity for the jax_zero_contour critical curves + caustics (eager vs jit to 1e-10; grad of caustic areas vs central FD and exact 2A/b); ~90s locally, no search, no dataset.
-misc/jax_assertions/critical_curves_zero_contour_jit_grad.py
+# misc/jax_assertions/critical_curves_zero_contour_jit_grad.py  # disabled 2026-11-12 (PyAutoNerves#215): jax.grad through jax_zero_contour fails on jax 0.12 (lax.custom_root transpose assert inside jax; passes on 0.11.2). Re-enable with Mind draft/bug/autogalaxy/zero_contour_grad_fails_on_jax_0_12.md; also NEEDS_FIX in config/build/no_run.yaml.
