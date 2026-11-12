@@ -214,7 +214,9 @@ print("JAX Time Taken using VMAP:", time.time() - start)
 print("JAX Time Taken per Likelihood:", (time.time() - start) / batch_size)
 
 # re-pinned 2026-09-08: lp radial bins sub-size 1 retired (autolens_profiling#235, #311)
-EXPECTED_VMAP_LOG_LIKELIHOOD = 2436.1000271383004
+# +2 x 0.5*ln(1e8) = +18.420680743952367 vs 2436.1000271383004: PyAutoArray#683 pseudo-determinant
+# (two intrinsic-regularized mappers), re-pinned 2026-11-12 (PyAutoNerves#215).
+EXPECTED_VMAP_LOG_LIKELIHOOD = 2454.5207078822527
 
 np.testing.assert_allclose(
     np.array(result),
