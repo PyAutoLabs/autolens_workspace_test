@@ -12,13 +12,14 @@ zeroth-order regularization (each pixel toward zero) is neighbour-free and
 pure xp — strict FD on all parameters.
 
 **Variant B — ``RectangularRTUAdaptDensity`` (os_pix=4) +
-``reg.MaternKernel(nu=2.5)``**: THE Matérn/tfp question. The JAX path of
-the Matérn kernel evaluates the modified Bessel ``K_nu`` through
-``tensorflow_probability.substrates.jax.math.bessel_kve`` (tfp-nightly —
-see ``kv_xp`` in ``PyAutoArray .../regularization/matern_kernel.py``),
-which ships a registered custom gradient w.r.t. its argument (``nu`` is a
-static float), and the dense covariance is inverted via a differentiable
-Cholesky ``cho_solve``. Gradients flow end-to-end and pass strict FD on all
+``reg.MaternKernel(nu=2.5)``**: THE Matérn gradient question. The JAX path
+of the Matérn kernel evaluates the modified Bessel ``K_nu`` through
+PyAutoArray's vendored pure-JAX ``bessel_kve`` (a port of
+tensorflow-probability's, PyAutoArray#694 — see ``kv_xp`` in
+``PyAutoArray .../regularization/matern_kernel.py``), which registers a
+custom gradient w.r.t. its argument (``nu`` must be a static float: no
+gradient is defined in the order), and the dense covariance is inverted
+via a differentiable Cholesky ``cho_solve``. Gradients flow end-to-end and pass strict FD on all
 parameters on this mesh (measured 2.2e-4 max relative).
 
 **Variant C — ``KNearestNeighbor`` + ``reg.Zeroth``**: strict FD on all
@@ -53,9 +54,8 @@ __Env__
 
 Test-harness configuration (PyAutoHands docs/env_profile_redesign.md §10).
 Drive jax.value_and_grad + finite-difference gradient checks; need JAX
-enabled and full-resolution float64 data. Requires tfp-nightly for the
-Matérn variants (``pip install tfp-nightly``; the last stable
-tensorflow-probability release is incompatible with modern JAX).
+enabled and full-resolution float64 data. The Matérn variants need no
+extra dependency (the modified-Bessel ``K_nu`` is vendored in PyAutoArray).
 
 ENV: jax full_datasets
 """
@@ -262,7 +262,7 @@ for (
         1e-3,
     ),
     (
-        "RectangularRTUAdaptDensity (os_pix=4) + reg.MaternKernel(nu=2.5) [tfp bessel_kve]",
+        "RectangularRTUAdaptDensity (os_pix=4) + reg.MaternKernel(nu=2.5) [vendored bessel_kve]",
         al.mesh.RectangularRTUAdaptDensity(shape=mesh_shape),
         al.reg.MaternKernel(coefficient=100.0, scale=1.0, nu=2.5),
         4,

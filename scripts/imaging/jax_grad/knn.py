@@ -38,7 +38,8 @@ its likelihood has more (still measure-zero) FD-hostile jump sites.
 numpy call — so under ``jax.jit`` / ``jax.grad`` they raise
 ``TracerArrayConversionError``. The split-family schemes used here derive
 their spacing from kNN distances instead (pure JAX); kernel schemes
-(``reg.MaternKernel``, needing tfp-nightly) are the other JAX-safe pairing.
+(``reg.MaternKernel``, via PyAutoArray's vendored ``bessel_kve``) are the
+other JAX-safe pairing.
 
 Every variant asserts the mass/shear gradients are genuinely live, and the
 strict FD comparison uses the step-sweep mode of ``util.compare_gradients``
