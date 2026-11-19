@@ -4,6 +4,11 @@ Sersic Gradient Mass Profile — Deflections via Integral
 
 This script preserves the integral-based deflection calculation for the
 SersicGradient mass profile, which was removed from the autogalaxy source code.
+
+The mass-to-light ratio is `mass_to_light_ratio * (R / effective_radius) ** -mass_to_light_gradient`,
+with R the same circularised radius the Sersic light is evaluated at, so it equals
+`mass_to_light_ratio` on the ellipse of the effective radius for any axis ratio
+(PyAutoGalaxy#725).
 """
 
 import numpy as np
@@ -30,7 +35,7 @@ def deflection_func(
         (u * ((x**2) + (y**2 / (1 - (1 - axis_ratio**2) * u))))
     )
     return (
-        (((axis_ratio * _eta_u) / effective_radius) ** -mass_to_light_gradient)
+        ((_eta_u / effective_radius) ** -mass_to_light_gradient)
         * np.exp(
             -sersic_constant
             * (((_eta_u / effective_radius) ** (1.0 / sersic_index)) - 1)
