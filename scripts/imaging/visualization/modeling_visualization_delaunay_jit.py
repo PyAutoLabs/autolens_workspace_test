@@ -44,6 +44,7 @@ ENV: real_output
 import shutil
 import time
 from os import path
+import sys
 from pathlib import Path
 
 import jax
@@ -210,6 +211,9 @@ historically, but the guard catches future drift in either direction.
 import pytest
 from autofit.non_linear.fitness import Fitness
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _pixelization_guard import assert_log_det_terms
+
 
 def _assert_likelihood_sanity(label, analysis, model):
     instance = model.instance_from_prior_medians()
@@ -219,28 +223,7 @@ def _assert_likelihood_sanity(label, analysis, model):
         f"{label}: log_likelihood_function ({analysis_value}) does not match "
         f"fit.figure_of_merit ({fit.figure_of_merit}) — regression of PR #504"
     )
-    # ABSOLUTE tolerance, deliberately not a relative one. The Bayesian-evidence
-    # correction (`figure_of_merit - log_likelihood`, i.e. the regularization and
-    # log-det terms) is an absolute quantity of order tens-to-hundreds of nats set
-    # by the number of source pixels; `log_likelihood` at the prior medians is set
-    # by the number of DATA pixels and grows with the dataset — ~1e2 under
-    # `profile_smoke.yaml`'s capped mask, ~5e8 under `profile_release.yaml`'s
-    # full-resolution one. A relative tolerance therefore measures the dataset
-    # scale rather than the terms. It fired for exactly that reason in PyAutoHeart
-    # release-integrate run 33220882817: a perfectly healthy 391.57-nat correction
-    # on log_likelihood = -5.39477770e8 is 7.26e-7 of it, inside `rel=1e-6`, so the
-    # guard reported "log-det terms are zero" about a fit whose terms were nothing
-    # of the kind. (The same script passed the same check in run 33177898708 only
-    # because it sat on the other side of that knife edge.) `abs=1.0` states the
-    # requirement the message actually claims — the terms must move the objective
-    # by at least a nat — and is scale-free.
-    assert float(fit.figure_of_merit) != pytest.approx(
-        float(fit.log_likelihood), abs=1.0
-    ), (
-        f"{label}: figure_of_merit ({fit.figure_of_merit}) is within 1 nat of "
-        f"log_likelihood ({fit.log_likelihood}) — pixelization regularization "
-        f"log-det terms are zero, this script no longer exercises the bug PR #504 fixed"
-    )
+    assert_log_det_terms(label, fit.inversion)
     fitness = Fitness(
         model=model,
         analysis=analysis,
@@ -253,7 +236,7 @@ def _assert_likelihood_sanity(label, analysis, model):
         f"{label}: Fitness.call_wrap ({call_wrap_value}) does not match "
         f"fit.figure_of_merit ({fit.figure_of_merit})"
     )
-    print(f"  PASS {label}: LLF == figure_of_merit != log_likelihood == call_wrap")
+    print(f"  PASS {label}: LLF == figure_of_merit == call_wrap; log-det terms present")
 
 
 sanity_analysis_cpu = al.AnalysisImaging(
