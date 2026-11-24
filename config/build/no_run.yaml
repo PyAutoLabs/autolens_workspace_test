@@ -91,7 +91,6 @@
 # UN-QUARANTINED 2026-11-12 (PyAutoNerves#215): multi_dataset/jax_likelihood/{delaunay,shared_preloads,delaunay_mge}.py hung on jax 0.11.2
 # (XLA:CPU deadlock, PyAutoNerves#213). On jax 0.12.0.1 at 4 cores with no XLA flag
 # they ran 3/3 each with no hang; the floor is now jax>=0.12.0,<0.13.
-- misc/jax_assertions/critical_curves_zero_contour_jit_grad.py # NEEDS_FIX 2026-11-12 - jax 0.12: jax.grad through jax_zero_contour fails (lax.custom_root transpose assert in jax); passes on 0.11.2. Mind draft/bug/autogalaxy/zero_contour_grad_fails_on_jax_0_12.md
 
 # The jax-compile-stall family was RESTORED (PyAutoFit#1528, 2026-08-27). Both
 # entries below were removed from this file, and multi_dataset/jax_likelihood/
