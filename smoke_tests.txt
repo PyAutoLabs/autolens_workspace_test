@@ -3,6 +3,8 @@
 # interferometer/visualization/visualization.py  # disabled: bypass mode missing fit.png assertion (rhayes777/PyAutoFit#1179)
 # promoted 2026-09-07 (#296) — the entry below is ENABLED: imaging/jax_likelihood/delaunay.py runs in 18.7s in CI, and its absence from this gate is why jax_delaunay's six-tuple return (PyAutoArray #524) broke it silently on the weekly and integrate channels.
 imaging/jax_likelihood/delaunay.py
+# added 2026-11-26 (autolens_workspace#693): the default adaptive set-up (HilbertSNR + soft S/N adapt images) through NumPy, vmap and jit.
+imaging/jax_likelihood/hilbert_snr.py
 # promoted 2026-09-15 (autolens_workspace_test#317) — disabled 2026-04 for jax 0.7's removed pytype_aval_mappings; refuted on jax 0.10.2: 6/6 release-profile pass 2026-08-21 and again 2026-09-15, 3/3 cold smoke runs at 62.1/58.7/53.3 s vs the 300 s cap. Same reason delaunay.py was promoted in #296: off this gate, a break reaches the weekly/integrate channels silently.
 imaging/jax_likelihood/delaunay_mge.py
 imaging/jax_likelihood/rectangular.py
