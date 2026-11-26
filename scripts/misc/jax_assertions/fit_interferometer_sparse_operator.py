@@ -149,12 +149,20 @@ that feed it are solver-independent.
 """
 settings = al.Settings(use_positive_only_solver=False)
 
+"""
+The mapping-matrix reference fit switches the lazy sparse operator off. Since the R6 default
+(`lazy_sparse_operator: "auto"`), a NumPy pixelized fit of a dataset with no operator builds the
+sparse operator itself, so without this the "un-operated" fit would take the sparse route too and
+the parity check would compare the sparse path with itself.
+"""
+settings_mapping = al.Settings(use_positive_only_solver=False, lazy_sparse_operator="off")
+
 
 def assert_parity(name, tracer, rtol_reconstruction, rtol_log_evidence):
     fit_mapping = al.FitInterferometer(
         dataset=dataset,
         tracer=tracer,
-        settings=settings,
+        settings=settings_mapping,
     )
 
     fit_sparse_operator = al.FitInterferometer(
