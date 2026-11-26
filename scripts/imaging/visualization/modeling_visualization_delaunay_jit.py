@@ -5,9 +5,9 @@ with a DELAUNAY-pixelization source.
 
 Sibling to ``modeling_visualization_jit.py`` (MGE) and
 ``modeling_visualization_rectangular_jit.py`` (rectangular mesh). Exercises
-the same Path A pipeline — ``Analysis.fit_for_visualization`` lazily-cached
-as ``jax.jit(self.fit_from)`` — but with a Delaunay-triangulated source
-whose centres are placed by a Hilbert image mesh.
+the same Path A pipeline — ``Analysis.fit_for_visualization``, an eager
+``fit_from`` served by per-function JAX JIT caches — but with a
+Delaunay-triangulated source whose centres are placed by a Hilbert image mesh.
 
 This test runs in two parts:
 
@@ -196,6 +196,42 @@ instance_probe = model.instance_from_prior_medians()
 
 
 """
+__JIT-cache probe__
+
+Timed on a cold ``analysis_probe``, before the Likelihood Sanity block below.
+Since PyAutoFit#1297, ``fit_for_visualization`` is an eager ``fit_from`` whose
+JAX work is served by per-function JIT caches, not one ``jax.jit(fit_from)``.
+Those caches are shared by every ``fit_from`` call, so the sanity check's
+``analysis_probe.fit_from(...)`` warms them too. Probing after it timed two
+warm calls and failed the speedup assertion (autolens_workspace_test#375).
+"""
+t0 = time.perf_counter()
+fit_1 = analysis_probe.fit_for_visualization(instance_probe)
+jax.block_until_ready(fit_1.log_likelihood)
+t1 = time.perf_counter()
+compile_time = t1 - t0
+print(f"First call (compile + run): {compile_time:.3f}s")
+print(f"  log_likelihood leaf type: {type(fit_1.log_likelihood).__name__}")
+assert isinstance(
+    fit_1.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_1.log_likelihood)}"
+
+t0 = time.perf_counter()
+fit_2 = analysis_probe.fit_for_visualization(instance_probe)
+jax.block_until_ready(fit_2.log_likelihood)
+t1 = time.perf_counter()
+cached_time = t1 - t0
+print(f"Second call (cached):       {cached_time:.3f}s")
+print(f"Speedup:                    {compile_time / max(cached_time, 1e-9):.1f}x")
+
+assert cached_time < compile_time * 0.5, (
+    f"Cached call ({cached_time:.3f}s) not faster than compile "
+    f"({compile_time:.3f}s) — JIT cache is not being hit."
+)
+print("PASS: Delaunay jit-cached fit_for_visualization works and is reused.")
+
+
+"""
 __Likelihood Sanity__
 
 Guard against regressions like PyAutoLens PR #504, where the CPU branch of
@@ -247,32 +283,6 @@ sanity_analysis_cpu = al.AnalysisImaging(
 )
 _assert_likelihood_sanity("CPU", sanity_analysis_cpu, model)
 _assert_likelihood_sanity("JAX", analysis_probe, model)
-
-
-t0 = time.perf_counter()
-fit_1 = analysis_probe.fit_for_visualization(instance_probe)
-jax.block_until_ready(fit_1.log_likelihood)
-t1 = time.perf_counter()
-compile_time = t1 - t0
-print(f"First call (compile + run): {compile_time:.3f}s")
-print(f"  log_likelihood leaf type: {type(fit_1.log_likelihood).__name__}")
-assert isinstance(
-    fit_1.log_likelihood, jnp.ndarray
-), f"expected jax.Array, got {type(fit_1.log_likelihood)}"
-
-t0 = time.perf_counter()
-fit_2 = analysis_probe.fit_for_visualization(instance_probe)
-jax.block_until_ready(fit_2.log_likelihood)
-t1 = time.perf_counter()
-cached_time = t1 - t0
-print(f"Second call (cached):       {cached_time:.3f}s")
-print(f"Speedup:                    {compile_time / max(cached_time, 1e-9):.1f}x")
-
-assert cached_time < compile_time * 0.5, (
-    f"Cached call ({cached_time:.3f}s) not faster than compile "
-    f"({compile_time:.3f}s) — JIT cache is not being hit."
-)
-print("PASS: Delaunay jit-cached fit_for_visualization works and is reused.")
 
 
 """

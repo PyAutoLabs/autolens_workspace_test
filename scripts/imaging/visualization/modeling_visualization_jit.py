@@ -4,7 +4,9 @@ End-to-end test: jit-cached visualization during a real Nautilus model-fit.
 
 Exercises the full Path A pipeline shipped across PyAutoArray #288, PyAutoLens
 #445, and the PyAutoFit change that turns ``Analysis.fit_for_visualization``
-into a lazily-cached ``jax.jit(self.fit_from)``.
+into a lazily-cached ``jax.jit(self.fit_from)``. Since PyAutoFit#1297 it is an
+eager ``fit_from`` served by per-function JAX JIT caches, warmed once by
+``Fitness`` before sampling.
 
 This test runs in two parts:
 
