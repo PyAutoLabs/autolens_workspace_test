@@ -155,7 +155,9 @@ The mapping-matrix reference fit switches the lazy sparse operator off. Since th
 sparse operator itself, so without this the "un-operated" fit would take the sparse route too and
 the parity check would compare the sparse path with itself.
 """
-settings_mapping = al.Settings(use_positive_only_solver=False, lazy_sparse_operator="off")
+settings_mapping = al.Settings(
+    use_positive_only_solver=False, lazy_sparse_operator="off"
+)
 
 
 def assert_parity(name, tracer, rtol_reconstruction, rtol_log_evidence):
