@@ -5,9 +5,9 @@ with a DELAUNAY-pixelization source.
 
 Sibling to ``modeling_visualization_jit.py`` (MGE) and
 ``modeling_visualization_rectangular_jit.py`` (rectangular mesh). Exercises
-the same Path A pipeline — ``Analysis.fit_for_visualization`` lazily-cached
-as ``jax.jit(self.fit_from)`` — but with a Delaunay-triangulated source
-whose centres are placed by a Hilbert image mesh.
+the same Path A pipeline — ``Analysis.fit_for_visualization``, an eager
+``fit_from`` served by per-function JAX JIT caches — but with a
+Delaunay-triangulated source whose centres are placed by a Hilbert image mesh.
 
 This test runs in two parts:
 
@@ -196,6 +196,42 @@ instance_probe = model.instance_from_prior_medians()
 
 
 """
+__JIT-cache probe__
+
+Timed on a cold ``analysis_probe``, before the Likelihood Sanity block below.
+Since PyAutoFit#1297, ``fit_for_visualization`` is an eager ``fit_from`` whose
+JAX work is served by per-function JIT caches, not one ``jax.jit(fit_from)``.
+Those caches are shared by every ``fit_from`` call, so the sanity check's
+``analysis_probe.fit_from(...)`` warms them too. Probing after it timed two
+warm calls and failed the speedup assertion (autolens_workspace_test#375).
+"""
+t0 = time.perf_counter()
+fit_1 = analysis_probe.fit_for_visualization(instance_probe)
+jax.block_until_ready(fit_1.log_likelihood)
+t1 = time.perf_counter()
+compile_time = t1 - t0
+print(f"First call (compile + run): {compile_time:.3f}s")
+print(f"  log_likelihood leaf type: {type(fit_1.log_likelihood).__name__}")
+assert isinstance(
+    fit_1.log_likelihood, jnp.ndarray
+), f"expected jax.Array, got {type(fit_1.log_likelihood)}"
+
+t0 = time.perf_counter()
+fit_2 = analysis_probe.fit_for_visualization(instance_probe)
+jax.block_until_ready(fit_2.log_likelihood)
+t1 = time.perf_counter()
+cached_time = t1 - t0
+print(f"Second call (cached):       {cached_time:.3f}s")
+print(f"Speedup:                    {compile_time / max(cached_time, 1e-9):.1f}x")
+
+assert cached_time < compile_time * 0.5, (
+    f"Cached call ({cached_time:.3f}s) not faster than compile "
+    f"({compile_time:.3f}s) — JIT cache is not being hit."
+)
+print("PASS: Delaunay jit-cached fit_for_visualization works and is reused.")
+
+
+"""
 __Likelihood Sanity__
 
 Guard against regressions like PyAutoLens PR #504, where the CPU branch of
@@ -249,32 +285,6 @@ _assert_likelihood_sanity("CPU", sanity_analysis_cpu, model)
 _assert_likelihood_sanity("JAX", analysis_probe, model)
 
 
-t0 = time.perf_counter()
-fit_1 = analysis_probe.fit_for_visualization(instance_probe)
-jax.block_until_ready(fit_1.log_likelihood)
-t1 = time.perf_counter()
-compile_time = t1 - t0
-print(f"First call (compile + run): {compile_time:.3f}s")
-print(f"  log_likelihood leaf type: {type(fit_1.log_likelihood).__name__}")
-assert isinstance(
-    fit_1.log_likelihood, jnp.ndarray
-), f"expected jax.Array, got {type(fit_1.log_likelihood)}"
-
-t0 = time.perf_counter()
-fit_2 = analysis_probe.fit_for_visualization(instance_probe)
-jax.block_until_ready(fit_2.log_likelihood)
-t1 = time.perf_counter()
-cached_time = t1 - t0
-print(f"Second call (cached):       {cached_time:.3f}s")
-print(f"Speedup:                    {compile_time / max(cached_time, 1e-9):.1f}x")
-
-assert cached_time < compile_time * 0.5, (
-    f"Cached call ({cached_time:.3f}s) not faster than compile "
-    f"({compile_time:.3f}s) — JIT cache is not being hit."
-)
-print("PASS: Delaunay jit-cached fit_for_visualization works and is reused.")
-
-
 """
 __Visualization Sanity__
 
@@ -297,7 +307,11 @@ _sanity_source = al.Galaxy(redshift=1.0)
 _sanity_tracer = al.Tracer(galaxies=[_sanity_lens, _sanity_source])
 _sanity_od = _SanityLensCalc.from_tracer(_sanity_tracer)
 
-_tc_list = _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+_sanity_t0 = _sanity_time.perf_counter()
+_tc_list = (
+    _sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+)  # cold: first call on fresh instance (JIT compile)
+_sanity_cold_dt = _sanity_time.perf_counter() - _sanity_t0
 assert len(_tc_list) > 0, (
     "no tangential critical curves returned by zero_contour — expected a "
     "non-empty tangential critical curve for this lens at this grid resolution"
@@ -312,15 +326,25 @@ print(
     f"{len(_tc_list)} tangential CC, einstein_radius={float(_er_sanity):.4f}"
 )
 
-_sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm cache
 _t0 = _sanity_time.perf_counter()
-_sanity_od.tangential_critical_curve_list_via_zero_contour_from()
+_sanity_od.tangential_critical_curve_list_via_zero_contour_from()  # warm (cached solver)
 _warm_dt = _sanity_time.perf_counter() - _t0
-assert _warm_dt < 0.1, (
-    f"zero_contour warm call took {_warm_dt * 1000:.1f} ms (> 100 ms) — "
-    "closure cache-busting bug from PyAutoGalaxy #433 may have regressed"
+# Hardware-independent guard: the warm (cached) call must be much faster than
+# the cold JIT-compiling first call. A closure cache-busting regression
+# (PyAutoGalaxy #433) recompiles the solver every call, so warm ~= cold (ratio
+# near 1). An absolute millisecond budget instead false-positives on slower
+# machines where the honest warm call legitimately exceeds it. Mirrors the
+# point_source / interferometer siblings (autolens_workspace_test#148).
+assert _warm_dt < _sanity_cold_dt * 0.5, (
+    f"zero_contour warm call {_warm_dt * 1000:.1f} ms vs cold "
+    f"{_sanity_cold_dt * 1000:.1f} ms (ratio {_warm_dt / _sanity_cold_dt:.2f}) — "
+    "warm should be much faster than the cold compile; a ratio near 1 means the "
+    "closure cache-busting bug from PyAutoGalaxy #433 has regressed"
 )
-print(f"  PASS Visualization Sanity (perf): warm call {_warm_dt * 1000:.1f} ms")
+print(
+    f"  PASS Visualization Sanity (perf): warm {_warm_dt * 1000:.1f} ms vs "
+    f"cold {_sanity_cold_dt * 1000:.1f} ms (ratio {_warm_dt / _sanity_cold_dt:.2f})"
+)
 
 
 """
